@@ -1,3 +1,7 @@
 streamlit
-leafmap
-geopandas
+pandas
+plotly
+folium
+streamlit-folium
+
+
