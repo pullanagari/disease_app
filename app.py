@@ -8,8 +8,8 @@ from datetime import datetime
 # -------------------------------
 # Load CSV
 # -------------------------------
-csv_path = r"csv_url = "https://github.com/pullanagari/Disease_app.git/data_temp.csv""
-df = pd.read_csv(csv_path)
+csv_url = "https://raw.githubusercontent.com/pullanagari/Disease_app/main/data_temp.csv"
+df = pd.read_csv(csv_url)
 
 # Ensure proper datetime parsing
 df["date"] = pd.to_datetime(df["date"], errors="coerce", dayfirst=True)
@@ -119,4 +119,5 @@ else:
     Developed by Hari Dadu (AgVic), Sam Rogers & Russell Edson (Uni of Adelaide),  
     supported by SAGIT internship program.
     """)
+
 
