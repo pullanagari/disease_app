@@ -8,7 +8,7 @@ from datetime import datetime
 # -------------------------------
 # Load CSV
 # -------------------------------
-csv_path = r"C:\Users\a1233249\Downloads\data_temp.csv"
+csv_path = r"csv_url = "https://github.com/pullanagari/Disease_app.git/data_temp.csv""
 df = pd.read_csv(csv_path)
 
 # Ensure proper datetime parsing
@@ -119,3 +119,4 @@ else:
     Developed by Hari Dadu (AgVic), Sam Rogers & Russell Edson (Uni of Adelaide),  
     supported by SAGIT internship program.
     """)
+
