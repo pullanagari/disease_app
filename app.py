@@ -138,8 +138,6 @@ else:
     This application supports field crop pathology staff during surveillance activities to upload disease information 
     and visualize disease severity through maps, graphs, and tables.
 
-    # **Credits**  
-    # Developed by Hari Dadu (AgVic), Sam Rogers & Russell Edson (Uni of Adelaide),  
-    # supported by SAGIT internship program.
-    """)
+       """)
+
 
