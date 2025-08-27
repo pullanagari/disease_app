@@ -13,14 +13,21 @@ import io
 # Load CSV
 # -------------------------------
 csv_url = "https://raw.githubusercontent.com/pullanagari/Disease_app/main/data_temp.csv"
-df = pd.read_csv(csv_url)
-
-# Ensure proper datetime parsing
-df["date"] = pd.to_datetime(df["date"], errors="coerce", dayfirst=True)
 
 # Create directories if they don't exist
 os.makedirs("uploads", exist_ok=True)
 os.makedirs("data", exist_ok=True)
+
+# Function to load data
+@st.cache_data
+def load_data():
+    df = pd.read_csv(csv_url)
+    # Ensure proper datetime parsing
+    df["date"] = pd.to_datetime(df["date"], errors="coerce", dayfirst=True)
+    return df
+
+# Load initial data
+df = load_data()
 
 # -------------------------------
 # Page Layout & Sidebar
@@ -166,10 +173,6 @@ elif menu == "Tag a disease":
             else:
                 new_df.to_csv(local_csv_path, mode="w", header=True, index=False)
             
-            # Also append to the main dataframe for immediate viewing
-            global df
-            df = pd.concat([df, new_df], ignore_index=True)
-            
             st.success("✅ Submission successful! Data saved locally to CSV.")
             
             # Show preview of uploaded photo if available
@@ -182,6 +185,7 @@ elif menu == "Tag a disease":
     st.markdown("---")
     st.markdown("### Export Data")
     
+    local_csv_path = "data/local_disease_data.csv"
     if os.path.exists(local_csv_path):
         local_data = pd.read_csv(local_csv_path)
         if not local_data.empty:
