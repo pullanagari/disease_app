@@ -115,7 +115,10 @@ elif menu == "Tag a disease":
             new_record = {
                 "date": date.strftime("%d/%m/%Y"),
                 "collector_name": collector,
+                "Field_type":Field_type,
+                "Agronomist":Agronomist,
                 "crop": crop,
+                "variety": variety,
                 "disease1": disease1,
                 "severity1_percent": severity1,
                 "latitude": latitude,
@@ -139,4 +142,5 @@ else:
     and visualize disease severity through maps, graphs, and tables.
 
        """)
+
 
