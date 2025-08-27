@@ -112,6 +112,7 @@ elif menu == "Tag a disease":
         location = st.text_input("Location (Suburb)")
         field_type = st.text_input("Field Type", "")
         agronomist = st.text_input("Agronomist", "")
+        plant_stage = st.selectbox("Plant Growth Stage",["Emergence", "Tillering", "Stem elongation", "Flowering", "Grain filling", "Maturity"])
 
         submitted = st.form_submit_button("Submit")
 
@@ -146,6 +147,7 @@ else:
     This application supports field crop pathology staff during surveillance activities to upload disease information 
     and visualize disease severity through maps, graphs, and tables.
     """)
+
 
 
 
