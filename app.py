@@ -4,6 +4,10 @@ import plotly.express as px
 import folium
 from streamlit_folium import st_folium
 from datetime import datetime
+import os
+import base64
+from PIL import Image
+import io
 
 # -------------------------------
 # Load CSV
@@ -13,6 +17,10 @@ df = pd.read_csv(csv_url)
 
 # Ensure proper datetime parsing
 df["date"] = pd.to_datetime(df["date"], errors="coerce", dayfirst=True)
+
+# Create directories if they don't exist
+os.makedirs("uploads", exist_ok=True)
+os.makedirs("data", exist_ok=True)
 
 # -------------------------------
 # Page Layout & Sidebar
@@ -113,10 +121,25 @@ elif menu == "Tag a disease":
         field_type = st.text_input("Field Type", "")
         agronomist = st.text_input("Agronomist", "")
         plant_stage = st.selectbox("Plant Growth Stage",["Emergence", "Tillering", "Stem elongation", "Flowering", "Grain filling", "Maturity"])
-
+        
+        # Photo upload
+        uploaded_file = st.file_uploader("Attach Photo (Optional)", type=['png', 'jpg', 'jpeg'])
+        
         submitted = st.form_submit_button("Submit")
 
         if submitted:
+            # Handle photo upload
+            photo_filename = None
+            if uploaded_file is not None:
+                # Generate a unique filename
+                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                file_extension = uploaded_file.name.split('.')[-1]
+                photo_filename = f"disease_photo_{timestamp}.{file_extension}"
+                
+                # Save the uploaded file
+                with open(os.path.join("uploads", photo_filename), "wb") as f:
+                    f.write(uploaded_file.getbuffer())
+            
             new_record = {
                 "date": date.strftime("%d/%m/%Y"),
                 "collector_name": collector,
@@ -129,14 +152,54 @@ elif menu == "Tag a disease":
                 "severity1_percent": severity1,
                 "latitude": latitude,
                 "longitude": longitude,
-                "survey_location": location
+                "survey_location": location,
+                "photo_filename": photo_filename if photo_filename else ""
             }
 
             # Append new record to CSV (local only, not GitHub)
             new_df = pd.DataFrame([new_record])
-            new_df.to_csv("data_temp.csv", mode="a", header=False, index=False)
-
+            
+            # Check if local CSV exists, if not create it with headers
+            local_csv_path = "data/local_disease_data.csv"
+            if os.path.exists(local_csv_path):
+                new_df.to_csv(local_csv_path, mode="a", header=False, index=False)
+            else:
+                new_df.to_csv(local_csv_path, mode="w", header=True, index=False)
+            
+            # Also append to the main dataframe for immediate viewing
+            global df
+            df = pd.concat([df, new_df], ignore_index=True)
+            
             st.success("✅ Submission successful! Data saved locally to CSV.")
+            
+            # Show preview of uploaded photo if available
+            if uploaded_file is not None:
+                st.markdown("**Uploaded Photo Preview:**")
+                image = Image.open(uploaded_file)
+                st.image(image, caption="Disease Photo", use_column_width=True)
+    
+    # Add export functionality
+    st.markdown("---")
+    st.markdown("### Export Data")
+    
+    if os.path.exists(local_csv_path):
+        local_data = pd.read_csv(local_csv_path)
+        if not local_data.empty:
+            st.download_button(
+                "Download All Local Data",
+                local_data.to_csv(index=False).encode("utf-8"),
+                "local_disease_data.csv",
+                "text/csv",
+                key='download-csv'
+            )
+            
+            # Show local data
+            st.markdown("### Local Data Entries")
+            st.dataframe(local_data)
+        else:
+            st.info("No local data entries yet.")
+    else:
+        st.info("No local data file exists yet.")
 
 # -------------------------------
 # About Page
@@ -146,8 +209,9 @@ else:
     st.markdown("""
     This application supports field crop pathology staff during surveillance activities to upload disease information 
     and visualize disease severity through maps, graphs, and tables.
+    
+    **New Features:**
+    - Photo attachment capability for disease documentation
+    - Local CSV data storage and export functionality
+    - Improved data management
     """)
-
-
-
-
