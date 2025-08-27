@@ -1,5 +1,5 @@
 latitude,longitude,date,collector_name,Agronomist,survey_location,state,post_code,address,field_type,trial,grower,crop,variety,plant_stage,disease1,severity1_percent,disease2,severity2_percent,any_exotic_disease,name_exotic_disease,exotic_severity_percent,symptoms,samples_taken,action
--36.67239756,142.2938537,14/07/2020,Hari Dadu,,Longerenong,VIC,3401,229 Longerenong Road Longerenong Longerenong VIC 3401 AU,Experimental trials,Modelling trial,,Barley,RGT Planet,31,NFNB,5,,NA,NA,NA,,NA,NA,NA
+-36.67239756,142.2938537,14/07/2020,Hari Dadu,Agronomist,Longerenong,VIC,3401,229 Longerenong Road Longerenong Longerenong VIC 3401 AU,Experimental trials,Modelling trial,,Barley,RGT Planet,31,NFNB,5,,NA,NA,NA,,NA,NA,NA
 -36.67255351,142.2942468,14/07/2020,Hari Dadu,,Longerenong,VIC,3401,229 Longerenong Road Longerenong Longerenong VIC 3401 AU,Experimental trials,Hay agronomy,,Oat,Mulgara,25,Red leather leaf,3,,NA,NA,NA,,NA,NA,NA
 -36.67253454,142.2942449,14/07/2020,Hari Dadu,,Longerenong,VIC,3401,229 Longerenong Road Longerenong Longerenong VIC 3401 AU,Experimental trials,Hay agronomy,,Oat,Wintaroo,25,Red leather leaf,3,Bacterial Blight,3,NA,NA,,NA,NA,NA
 -36.72227941,142.1750262,28/07/2020,Hari Dadu,,Longerenong,,3401,229 Longerenong Road Longerenong Longerenong 3401 AU,Experimental trials,Modelling NFNB,,Barley,RGT Planet,32,NFNB,NA,,NA,NA,NA,,NA,NA,NA
