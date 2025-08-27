@@ -5,9 +5,7 @@ import folium
 from streamlit_folium import st_folium
 from datetime import datetime
 import os
-import base64
 from PIL import Image
-import io
 
 # -------------------------------
 # Load CSV
@@ -163,17 +161,19 @@ elif menu == "Tag a disease":
                 "photo_filename": photo_filename if photo_filename else ""
             }
 
-            # Append new record to CSV (local only, not GitHub)
+            # Append new record to CSV
             new_df = pd.DataFrame([new_record])
             
             # Check if local CSV exists, if not create it with headers
             local_csv_path = "data/local_disease_data.csv"
             if os.path.exists(local_csv_path):
-                new_df.to_csv(local_csv_path, mode="a", header=False, index=False)
+                # Append without header
+                new_df.to_csv(local_csv_path, mode='a', header=False, index=False)
             else:
-                new_df.to_csv(local_csv_path, mode="w", header=True, index=False)
+                # Create new file with header
+                new_df.to_csv(local_csv_path, mode='w', header=True, index=False)
             
-            st.success("✅ Submission successful! Data saved locally to CSV.")
+            st.success("✅ Submission successful! Data saved to CSV.")
             
             # Show preview of uploaded photo if available
             if uploaded_file is not None:
