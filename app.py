@@ -123,6 +123,7 @@ elif menu == "Tag a disease":
                 "Agronomist": agronomist,
                 "crop": crop,
                 "variety": variety,
+                "plant_stage": plant stage,
                 "disease1": disease1,
                 "severity1_percent": severity1,
                 "latitude": latitude,
@@ -145,3 +146,4 @@ else:
     This application supports field crop pathology staff during surveillance activities to upload disease information 
     and visualize disease severity through maps, graphs, and tables.
     """)
+
