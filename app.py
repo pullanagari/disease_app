@@ -103,20 +103,24 @@ elif menu == "Tag a disease":
             date = st.date_input("Date", datetime.today())
             collector = st.selectbox("Collector Name", ["Hari Dadu", "Josh Fanning", "Other"])
             crop = st.selectbox("Crop", ["Wheat", "Barley", "Canola", "Lentil"])
+            variety = st.text_input("Variety", "")
         with col2:
             disease1 = st.selectbox("Disease 1", ["Stripe rust", "Leaf rust", "Blackleg"])
             severity1 = st.slider("Severity (%)", 0, 100, 0)
             latitude = st.number_input("Latitude", value=-36.76, step=0.01)
             longitude = st.number_input("Longitude", value=142.21, step=0.01)
         location = st.text_input("Location (Suburb)")
+        field_type = st.text_input("Field Type", "")
+        agronomist = st.text_input("Agronomist", "")
+
         submitted = st.form_submit_button("Submit")
 
         if submitted:
             new_record = {
                 "date": date.strftime("%d/%m/%Y"),
                 "collector_name": collector,
-                "field_type":field_type,
-                "Agronomist":agronomist,
+                "field_type": field_type,
+                "Agronomist": agronomist,
                 "crop": crop,
                 "variety": variety,
                 "disease1": disease1,
@@ -126,11 +130,11 @@ elif menu == "Tag a disease":
                 "survey_location": location
             }
 
-            # Append new record to CSV
+            # Append new record to CSV (local only, not GitHub)
             new_df = pd.DataFrame([new_record])
             new_df.to_csv("data_temp.csv", mode="a", header=False, index=False)
 
-            st.success("✅ Submission successful! Data saved to CSV.")
+            st.success("✅ Submission successful! Data saved locally to CSV.")
 
 # -------------------------------
 # About Page
@@ -140,9 +144,4 @@ else:
     st.markdown("""
     This application supports field crop pathology staff during surveillance activities to upload disease information 
     and visualize disease severity through maps, graphs, and tables.
-
-       """)
-
-
-
-
+    """)
