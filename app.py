@@ -119,6 +119,7 @@ elif menu == "Tag a disease":
             variety = st.text_input("Variety", "")
         with col2:
             disease1 = st.selectbox("Disease 1", ["Stripe rust", "Leaf rust", "Blackleg"])
+            disease2 = st.selectbox("Disease 2", ["Stripe rust", "Leaf rust", "Blackleg"])
             severity1 = st.slider("Severity (%)", 0, 100, 0)
             latitude = st.number_input("Latitude", value=-36.76, step=0.01)
             longitude = st.number_input("Longitude", value=142.21, step=0.01)
@@ -154,6 +155,7 @@ elif menu == "Tag a disease":
                 "variety": variety,
                 "plant_stage": plant_stage,
                 "disease1": disease1,
+                "disease2": disease2,
                 "severity1_percent": severity1,
                 "latitude": latitude,
                 "longitude": longitude,
@@ -219,3 +221,4 @@ else:
     - Local CSV data storage and export functionality
     - Improved data management
     """)
+
