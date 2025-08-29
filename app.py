@@ -19,10 +19,21 @@ os.makedirs("data", exist_ok=True)
 # Function to load data
 @st.cache_data
 def load_data():
-    df = pd.read_csv(csv_url)
+    # Load main CSV from GitHub
+    df_main = pd.read_csv(csv_url)
+    
+    # Load local CSV if it exists
+    local_csv_path = "data/local_disease_data.csv"
+    if os.path.exists(local_csv_path):
+        df_local = pd.read_csv(local_csv_path)
+        # Combine both datasets
+        df_combined = pd.concat([df_main, df_local], ignore_index=True)
+    else:
+        df_combined = df_main
+    
     # Ensure proper datetime parsing
-    df["date"] = pd.to_datetime(df["date"], errors="coerce", dayfirst=True)
-    return df
+    df_combined["date"] = pd.to_datetime(df_combined["date"], errors="coerce", dayfirst=True)
+    return df_combined
 
 # Load initial data
 df = load_data()
@@ -175,6 +186,9 @@ elif menu == "Tag a disease":
                 # Create new file with header
                 new_df.to_csv(local_csv_path, mode='w', header=True, index=False)
             
+            # Clear cache to reload data with the new entry
+            st.cache_data.clear()
+            
             st.success("✅ Submission successful! Data saved to CSV.")
             
             # Show preview of uploaded photo if available
@@ -221,4 +235,3 @@ else:
     - Local CSV data storage and export functionality
     - Improved data management
     """)
-
