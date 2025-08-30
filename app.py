@@ -8,7 +8,7 @@ import os
 from PIL import Image
 
 # -------------------------------
-# Load CSV
+# Load CSV with better caching
 # -------------------------------
 csv_url = "https://raw.githubusercontent.com/pullanagari/Disease_app/main/data_temp.csv"
 
@@ -16,8 +16,8 @@ csv_url = "https://raw.githubusercontent.com/pullanagari/Disease_app/main/data_t
 os.makedirs("uploads", exist_ok=True)
 os.makedirs("data", exist_ok=True)
 
-# Function to load data
-@st.cache_data
+# Function to load data with better caching
+@st.cache_data(ttl=300)  # Cache for 5 minutes
 def load_data():
     # Load main CSV from GitHub
     df_main = pd.read_csv(csv_url)
@@ -35,8 +35,13 @@ def load_data():
     df_combined["date"] = pd.to_datetime(df_combined["date"], errors="coerce", dayfirst=True)
     return df_combined
 
-# Load initial data
-df = load_data()
+# Initialize session state for data if it doesn't exist
+if 'df' not in st.session_state:
+    st.session_state.df = load_data()
+
+# Function to reload data and update session state
+def reload_data():
+    st.session_state.df = load_data()
 
 # -------------------------------
 # Page Layout & Sidebar
@@ -49,6 +54,14 @@ st.set_page_config(
 
 st.sidebar.markdown("## 🌾 Victoria Disease Surveillance")
 menu = st.sidebar.radio("Navigation", ["Disease tracker", "Tag a disease", "About"])
+
+# Add a button to manually refresh data
+if st.sidebar.button("🔄 Refresh Data"):
+    reload_data()
+    st.sidebar.success("Data refreshed!")
+
+# Use the data from session state
+df = st.session_state.df
 
 # -------------------------------
 # Disease Tracker Page
@@ -63,7 +76,10 @@ if menu == "Disease tracker":
     with col2:
         disease = st.selectbox("Choose a Disease", ["All"] + sorted(df["disease1"].dropna().unique()))
     with col3:
-        date_range = st.date_input("Select Date Range", [datetime(2020,1,1), datetime.today()])
+        # Set default date range based on available data
+        min_date = df["date"].min().date() if not df["date"].isna().all() else datetime(2020,1,1).date()
+        max_date = df["date"].max().date() if not df["date"].isna().all() else datetime.today().date()
+        date_range = st.date_input("Select Date Range", [min_date, max_date])
 
     # Filter data
     mask = (
@@ -82,14 +98,21 @@ if menu == "Disease tracker":
         col1.metric("Total Surveys", len(df_filtered))
         col2.metric("Max Severity (%)", int(df_filtered["severity1_percent"].max()))
         col3.metric("Average Severity (%)", round(df_filtered["severity1_percent"].mean(),1))
+    else:
+        st.warning("No data found for the selected filters.")
 
     # Map
     st.markdown("### Map View")
     m = folium.Map(location=[-36.76, 142.21], zoom_start=6)
     for _, row in df_filtered.iterrows():
         if not pd.isna(row["latitude"]) and not pd.isna(row["longitude"]):
-            # Fixed: Combined both severity values in a single popup
-            popup_text = f"{row['survey_location']} (Severity1: {row['severity1_percent']}%, Severity2: {row.get('severity2_percent', 'N/A')}%)"
+            # Create popup text with available data
+            popup_text = f"{row.get('survey_location', 'Unknown')}"
+            if not pd.isna(row.get("severity1_percent")):
+                popup_text += f" | Severity1: {row['severity1_percent']}%"
+            if not pd.isna(row.get("severity2_percent")):
+                popup_text += f" | Severity2: {row['severity2_percent']}%"
+                
             folium.CircleMarker(
                 location=[row["latitude"], row["longitude"]],
                 radius=6,
@@ -108,14 +131,19 @@ if menu == "Disease tracker":
                      labels={"severity1_percent": "Severity (%)"},
                      color="severity1_percent", color_continuous_scale="reds")
         st.plotly_chart(fig, use_container_width=True)
+    else:
+        st.info("No data available for the graph.")
     
     # Table
     st.markdown("### Surveillance Summary")
-    st.dataframe(df_filtered[["date", "crop", "disease1", "survey_location", "severity1_percent"]])
-    st.download_button(
-        "Download CSV", df_filtered.to_csv(index=False).encode("utf-8"),
-        "survey.csv", "text/csv"
-    )
+    if not df_filtered.empty:
+        st.dataframe(df_filtered[["date", "crop", "disease1", "survey_location", "severity1_percent"]])
+        st.download_button(
+            "Download CSV", df_filtered.to_csv(index=False).encode("utf-8"),
+            "survey.csv", "text/csv"
+        )
+    else:
+        st.info("No data available for the selected filters.")
 
 # -------------------------------
 # Tag a Disease Page
@@ -132,13 +160,12 @@ elif menu == "Tag a disease":
             variety = st.text_input("Variety", "")
         with col2:
             disease1 = st.selectbox("Disease 1", ["Stripe rust", "Leaf rust", "Blackleg"])
-            disease2 = st.selectbox("Disease 2", ["Stripe rust", "Leaf rust", "Blackleg"])
-            # Fixed: Added distinct labels for severity sliders
+            disease2 = st.selectbox("Disease 2", ["None"] + ["Stripe rust", "Leaf rust", "Blackleg"])
             severity1 = st.slider("Severity 1 (%)", 0, 100, 0)
             severity2 = st.slider("Severity 2 (%)", 0, 100, 0)
             latitude = st.number_input("Latitude", value=-36.76, step=0.01)
             longitude = st.number_input("Longitude", value=142.21, step=0.01)
-        location = st.text_input("Location (Suburb)")
+        location = st.text_input("Location (Suburb)", "")
         field_type = st.text_input("Field Type", "")
         agronomist = st.text_input("Agronomist", "")
         plant_stage = st.selectbox("Plant Growth Stage",["Emergence", "Tillering", "Stem elongation", "Flowering", "Grain filling", "Maturity"])
@@ -161,6 +188,11 @@ elif menu == "Tag a disease":
                 with open(os.path.join("uploads", photo_filename), "wb") as f:
                     f.write(uploaded_file.getbuffer())
             
+            # Handle "None" selection for disease2
+            if disease2 == "None":
+                disease2 = ""
+                severity2 = 0
+            
             new_record = {
                 "date": date.strftime("%d/%m/%Y"),
                 "collector_name": collector,
@@ -172,7 +204,7 @@ elif menu == "Tag a disease":
                 "disease1": disease1,
                 "disease2": disease2,
                 "severity1_percent": severity1,
-                "severity2_percent": severity2,  # Fixed: Added severity2 field
+                "severity2_percent": severity2,
                 "latitude": latitude,
                 "longitude": longitude,
                 "survey_location": location,
@@ -191,8 +223,9 @@ elif menu == "Tag a disease":
                 # Create new file with header
                 new_df.to_csv(local_csv_path, mode='w', header=True, index=False)
             
-            # Clear cache to reload data with the new entry
+            # Clear cache and reload data
             st.cache_data.clear()
+            reload_data()
             
             st.success("✅ Submission successful! Data saved to CSV.")
             
@@ -239,6 +272,8 @@ else:
     - Photo attachment capability for disease documentation
     - Local CSV data storage and export functionality
     - Improved data management
+    
+    **Tips:**
+    - Use the 'Refresh Data' button in the sidebar to see newly submitted entries
+    - If data doesn't update automatically, try refreshing the page
     """)
-
-
