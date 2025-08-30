@@ -47,12 +47,12 @@ def reload_data():
 # Page Layout & Sidebar
 # -------------------------------
 st.set_page_config(
-    page_title="Victoria Disease Surveillance",
+    page_title="South Australia Disease Surveillance",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-st.sidebar.markdown("## 🌾 Victoria Disease Surveillance")
+st.sidebar.markdown("## 🌾 South Australia Disease Surveillance")
 menu = st.sidebar.radio("Navigation", ["Disease tracker", "Tag a disease", "About"])
 
 # Add a button to manually refresh data
@@ -277,3 +277,4 @@ else:
     - Use the 'Refresh Data' button in the sidebar to see newly submitted entries
     - If data doesn't update automatically, try refreshing the page
     """)
+
