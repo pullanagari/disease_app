@@ -1,91 +1,91 @@
 latitude,longitude,date,collector_name,Agronomist,survey_location,state,post_code,address,field_type,trial,grower,crop,variety,plant_stage,disease1,severity1_percent,disease2,severity2_percent,any_exotic_disease,name_exotic_disease,exotic_severity_percent,symptoms,samples_taken,action
--36.67239756,142.2938537,14/07/2020,Hari Dadu,Agronomist,Longerenong,VIC,3401,229 Longerenong Road Longerenong Longerenong VIC 3401 AU,Experimental trials,Modelling trial,,Barley,RGT Planet,31,NFNB,5,,NA,NA,NA,,NA,NA,NA
--36.67255351,142.2942468,14/07/2020,Hari Dadu,,Longerenong,VIC,3401,229 Longerenong Road Longerenong Longerenong VIC 3401 AU,Experimental trials,Hay agronomy,,Oat,Mulgara,25,Red leather leaf,3,,NA,NA,NA,,NA,NA,NA
--36.67253454,142.2942449,14/07/2020,Hari Dadu,,Longerenong,VIC,3401,229 Longerenong Road Longerenong Longerenong VIC 3401 AU,Experimental trials,Hay agronomy,,Oat,Wintaroo,25,Red leather leaf,3,Bacterial Blight,3,NA,NA,,NA,NA,NA
--36.72227941,142.1750262,28/07/2020,Hari Dadu,,Longerenong,,3401,229 Longerenong Road Longerenong Longerenong 3401 AU,Experimental trials,Modelling NFNB,,Barley,RGT Planet,32,NFNB,NA,,NA,NA,NA,,NA,NA,NA
--36.72238271,142.1750885,28/07/2020,Hari Dadu,,Longernong,VIC,3400,229 Longerenong Road Longernong Longernong VIC 3400 AU,Experimental trials,Modelling,,Barley,Spartacus CL,32,,NA,,NA,NA,NA,,NA,NA,NA
--36.5363839,142.3534356,25/08/2020,Hari Dadu,,Jung,VIC,3401,Jung North Road Jung Jung VIC 3401 AU,Farmers' paddock,,,Oat,,37,Red leather leaf,10,Bacterial Blight,1,NA,NA,,NA,NA,NA
--36.48385701,142.847618,25/08/2020,Hari Dadu,,Rich Avon West,VIC,3480,2393–2563 Minyip-Rich Avon Road Rich Avon West Rich Avon West VIC 3480 AU,Farmers' paddock,,,Oat,,34,Red leather leaf,0,,NA,NA,NA,,NA,NA,NA
--36.50225136,142.3796031,25/08/2020,Hari Dadu,,Kewell,VIC,3390,297–409 Horsham-Minyip Road Kewell Kewell VIC 3390 AU,Farmers' paddock,,,Wheat,,34,Septoria Tritici Blotch,10,,NA,NA,NA,,NA,NA,NA
--36.21808025,143.5985888,27/08/2020,Hari Dadu,,Wychitella North,VIC,3525,Wychitella North Wychitella North VIC 3525 AU,Farmers' paddock,,Adam bird,Oat,Yallara,37,Red leather leaf,5,,NA,NA,NA,,NA,NA,NA
--36.31821687,143.4393032,27/08/2020,Hari Dadu,,Woosang,VIC,3518,McGurks Road Woosang Woosang VIC 3518 AU,Farmers' paddock,,Matt mcgurk,Oat,Mulgara,25,Red leather leaf,2,,NA,NA,NA,,NA,NA,NA
--36.31764847,143.4588261,27/08/2020,Hari Dadu,,Woosang,VIC,3518,Woosang Woosang VIC 3518 AU,Farmers' paddock,,Matt mcgurk,Oat,Mulgara,NA,Red leather leaf,5,,2,NA,NA,,NA,NA,NA
--36.31805869,143.4390179,27/08/2020,Hari Dadu,,Woosang,VIC,3518,McGurks Road Woosang Woosang VIC 3518 AU,Farmers' paddock,,,Barley,,23,NFNB,10,Scald,8,NA,NA,,NA,NA,NA
--35.96866643,142.8207079,12/08/2020,Grant Hollaway,,Karyrie,VIC,3483,Karyrie Karyrie VIC 3483 AU,Farmers' paddock,,,Barley,,25,,NA,,NA,NA,NA,,NA,NA,NA
--35.97039779,142.8199273,12/08/2020,Grant Hollaway,,Karyrie,VIC,3483,Karyrie Karyrie VIC 3483 AU,,,,,,NA,,80,,NA,NA,NA,,NA,NA,NA
--35.84752634,142.7032447,12/08/2020,Grant Hollaway,,Curyo,VIC,3483,Curyo Curyo VIC 3483 AU,NVT,,,Wheat,Yitpi,39,Yellow Spot,25,,NA,NA,NA,,NA,NA,NA
--35.84751741,142.7032953,12/08/2020,Grant Hollaway,,Curyo,VIC,3483,Curyo Curyo VIC 3483 AU,Farmers' paddock,,,Wheat,,33,,NA,,NA,NA,NA,,NA,NA,NA
--35.85481252,142.5697964,12/08/2020,Grant Hollaway,,Beulah,VIC,3395,281 Naylor Road Beulah Beulah VIC 3395 AU,Farmers' paddock,,,Barley,,25,,NA,,NA,NA,NA,,NA,NA,NA
--35.93981034,142.0211347,12/08/2020,Grant Hollaway,,Rainbow,VIC,3424,Miatke Road Rainbow Rainbow VIC 3424 AU,,,,Wheat,,31,Yellow Spot,7,,NA,NA,NA,,NA,NA,NA
--35.82474668,142.1408181,12/08/2020,Grant Hollaway,,Rainbow,VIC,3424,Hopetoun-Rainbow Road Rainbow Rainbow VIC 3424 AU,Farmers' paddock,,,Oat,,39,,NA,,NA,NA,NA,,NA,NA,NA
--35.39481376,142.2052146,12/08/2020,Grant Hollaway,,Patchewollock,VIC,3491,Hopetoun-Walpeup Road Patchewollock Patchewollock VIC 3491 AU,Farmers' paddock,,,Barley,,35,SFNB,5,,NA,NA,NA,,NA,NA,NA
--35.12787495,142.0467063,12/08/2020,Grant Hollaway,,Walpeup,VIC,3507,11 Freeland Lane Walpeup Walpeup VIC 3507 AU,Farmers' paddock,,,Wheat,,35,,NA,,NA,NA,NA,,NA,NA,NA
--35.07136068,142.749298,12/08/2020,Grant Hollaway,,Manangatang,VIC,3546,Manangatang Manangatang VIC 3546 AU,Farmers' paddock,,,Wheat,,31,Yellow Spot,7,,NA,NA,NA,,NA,NA,NA
--36.41200942,141.1854084,09/09/2020,Grant Hollaway,,Kaniva,VIC,3419,Grants and Richs Road Kaniva Kaniva VIC 3419 AU,Farmers' paddock,,,Barley,,35,,NA,,NA,NA,NA,,NA,NA,NA
--35.70256051,142.3934555,09/09/2020,Hari Dadu,,Hopetoun,VIC,3396,Hopetoun Hopetoun VIC 3396 AU,Farmers' paddock,,Kate Wilson,Oat,,71,Red leather leaf,15,,NA,NA,NA,,NA,NA,NA
--35.68190654,142.4572507,09/09/2020,Hari Dadu,,Hopetoun,VIC,3396,Hopetoun Hopetoun VIC 3396 AU,Farmers' paddock,,Kate,Oat,,69,Red leather leaf,20,,NA,NA,NA,,NA,NA,NA
--35.69285516,142.5029998,09/09/2020,Hari Dadu,,Hopetoun,VIC,3396,Hopetoun-Sea Lake Road Hopetoun Hopetoun VIC 3396 AU,Farmers' paddock,,Kate,Oat,,69,Red leather leaf,3,Bacterial Blight,1,NA,NA,,NA,NA,NA
--35.64753758,142.6978709,09/09/2020,Hari Dadu,,Woomelang,VIC,3485,Woomelang Woomelang VIC 3485 AU,Farmers' paddock,,,Oat,,61,Red leather leaf,2,,NA,NA,NA,,NA,NA,NA
--35.26153894,142.7627356,09/09/2020,Hari Dadu,,Pier Milan,VIC,3533,740 Elliots Road Pier Milan Pier Milan VIC 3533 AU,Farmers' paddock,,Matt Elliot,Oat,,61,Red leather leaf,1,,NA,NA,NA,,NA,NA,NA
--35.73661162,142.1726413,15/09/2020,Hari Dadu,,,,NA,Yaapeet,Farmers' paddock,,,Oat,,61,Bacterial Blight,10,Red leather leaf,8,NA,NA,,NA,NA,NA
--35.73721691,142.3120508,15/09/2020,Hari Dadu,,Hopetoun,VIC,3396,Hopetoun-Yaapeet Road Hopetoun Hopetoun VIC 3396 AU,Farmers' paddock,,,Oat,,61,Red leather leaf,0.1,,NA,NA,NA,,NA,NA,NA
--35.56170487,142.3517663,15/09/2020,Hari Dadu,,Patchewollock,VIC,3491,Hopetoun-Walpeup Road Patchewollock Patchewollock VIC 3491 AU,Farmers' paddock,,,Oat,,61,Bacterial Blight,3,Red leather leaf,0.1,NA,NA,,NA,NA,NA
--35.15899827,142.6524355,15/09/2020,Hari Dadu,,Mittyack,VIC,3490,5167–5169 Calder Highway Mittyack Mittyack VIC 3490 AU,Farmers' paddock,,,Oat,,61,,NA,,NA,NA,NA,,NA,NA,NA
--35.27004745,143.0577881,15/09/2020,Hari Dadu,,Chillingollah,VIC,3585,Springfield Road Chillingollah Chillingollah VIC 3585 AU,Farmers' paddock,,,Oat,,61,,NA,,NA,NA,NA,,NA,NA,NA
--35.25675879,143.2820427,15/09/2020,Hari Dadu,,Nyrraby,VIC,3585,Evans Road Nyrraby Nyrraby VIC 3585 AU,Farmers' paddock,,,Oat,,59,Bacterial Blight,2,,NA,NA,NA,,NA,NA,NA
--35.72215043,142.997344,18/09/2020,Hari Dadu,,Birchip-berriwallock,,NA,Birchip-berriwallock,Farmers' paddock,,,Oat,,61,Bacterial Blight,8,Red leather leaf,3,NA,NA,,NA,NA,NA
--35.55810853,143.1364872,18/09/2020,Hari Dadu,,Springfield,VIC,3544,Ultima-Culgoa Road Springfield Springfield VIC 3544 AU,Farmers' paddock,,,Oat,,NA,Bacterial Blight,4,Red leather leaf,1,NA,NA,,NA,NA,NA
--35.57494466,143.3301888,18/09/2020,Hari Dadu,,Meatian,VIC,3585,84–158 Meatian West Road Meatian Meatian VIC 3585 AU,Farmers' paddock,,,Oat,,61,Bacterial Blight,2,,NA,NA,NA,,NA,NA,NA
--35.87708191,143.3053657,18/09/2020,Hari Dadu,,Kalpienung,VIC,3529,Kalpienung Kalpienung VIC 3529 AU,Farmers' paddock,,,Oat,,65,Bacterial Blight,1,,NA,NA,NA,,NA,NA,NA
--36.32910447,141.2997727,25/09/2020,Hari Dadu,,Kaniva,VIC,3419,Broughton Road Kaniva Kaniva VIC 3419 AU,Farmers' paddock,,,Oat,,70,Bacterial Blight,10,,NA,NA,NA,,NA,NA,NA
--36.11162412,141.6782493,25/09/2020,Hari Dadu,,Netherby,VIC,3418,196–380 Lorquon-Netherby Road Netherby Netherby VIC 3418 AU,Farmers' paddock,,,Oat,,61,Red leather leaf,10,Bacterial Blight,2,NA,NA,,NA,NA,NA
--36.73032238,141.85653,25/09/2020,Hari Dadu,,Arapiles,VIC,3409,119–221 Arapiles-Grass Flat Road Arapiles Arapiles VIC 3409 AU,Farmers' paddock,,,Oat,,61,Red leather leaf,4,Bacterial Blight,2,NA,NA,,NA,NA,NA
--38.17679045,144.0268615,1/10/2020,Hari Dadu,,Winchelsea,VIC,3241,Winchelsea Winchelsea VIC 3241 AU,Experimental trials,,FAR,Barley,RGT Planet,71,NFNB,40,Scald,80,NA,NA,,NA,NA,NA
--38.17680986,144.0268294,1/10/2020,Hari Dadu,,Winchelsea,VIC,3241,Winchelsea Winchelsea VIC 3241 AU,Experimental trials,,,Barley,RGT Planet,71,Scald,80,NFNB,40,NA,NA,,NA,NA,NA
--38.176539,144.0270273,1/10/2020,Hari Dadu,,Winchelsea,VIC,3241,Winchelsea Winchelsea VIC 3241 AU,Farmers' paddock,,,Oat,,65,Red leather leaf,10,Bacterial Blight,2,NA,NA,,NA,NA,NA
--36.64030403,142.7950312,6/10/2020,Hari Dadu,,Rupanyup,VIC,3388,Wimmera Highway Rupanyup Rupanyup VIC 3388 AU,Farmers' paddock,,,Oat,,70,Bacterial Blight,25,Red leather leaf,4,NA,NA,,NA,NA,NA
--36.6213458,143.4841976,6/10/2020,Hari Dadu,,Logan,VIC,3475,Wimmera Highway Logan Logan VIC 3475 AU,Farmers' paddock,,,Oat,,69,Red leather leaf,8,,NA,NA,NA,,NA,NA,NA
--36.56785227,143.9601937,6/10/2020,Hari Dadu,,Bridgewater North,VIC,3516,209–413 Bridgewater-Raywood Road Bridgewater North Bridgewater North VIC 3516 AU,Farmers' paddock,,,Oat,,71,Red leather leaf,15,Rust-stem,1,NA,NA,,NA,NA,NA
--36.56777949,143.9596124,6/10/2020,Hari Dadu,,Bridgewater North,VIC,3516,209–413 Bridgewater-Raywood Road Bridgewater North Bridgewater North VIC 3516 AU,Farmers' paddock,,,Barley,,71,Scald,NA,NFNB,NA,NA,NA,,NA,NA,NA
--36.22462611,144.3873948,6/10/2020,Hari Dadu,,Pine Grove,VIC,3573,Pinegrove Road Pine Grove Pine Grove VIC 3573 AU,Farmers' paddock,,,Oat,,71,Red leather leaf,20,,NA,NA,NA,,NA,NA,NA
--36.55403529,143.4053645,6/10/2020,Hari Dadu,,Gowar East,VIC,3477,Gowar East Road Gowar East Gowar East VIC 3477 AU,Farmers' paddock,,,Oat,,61,Bacterial Blight,8,Red leather leaf,6,NA,NA,,NA,NA,NA
--36.05623192,142.1372895,09/09/2020,Grant Hollaway,,Jeparit,VIC,3423,919–1055 Ellam-Willenabrina Road Jeparit Jeparit VIC 3423 AU,Farmers' paddock,,,Wheat,,42,,NA,,NA,NA,NA,,NA,NA,NA
--35.99753663,142.3026663,09/09/2020,Grant Hollaway,,Beulah,VIC,3395,892–1084 Galaquil West Road Beulah Beulah VIC 3395 AU,Farmers' paddock,,,Wheat,,45,,NA,,NA,NA,NA,,NA,NA,NA
--36.22807049,141.8780192,09/09/2020,Grant Hollaway,,Glenlee,VIC,3418,Schwedes Road Glenlee Glenlee VIC 3418 AU,Farmers' paddock,,,Wheat,,39,Yellow Spot,10,,NA,NA,NA,,NA,NA,NA
--35.93821363,142.4319986,09/09/2020,Grant Hollaway,,Beulah,VIC,3395,3621–3697 Birchip-Rainbow Road Beulah Beulah VIC 3395 AU,Farmers' paddock,,,Wheat,,37,Yellow Spot,3,,NA,NA,NA,,NA,NA,NA
--35.84787013,142.7015942,09/09/2020,Grant Hollaway,,Curyo,VIC,3483,Curyo Curyo VIC 3483 AU,NVT,,,Wheat,,33,Rust- Yellow Stripe,1,,NA,NA,NA,,NA,NA,NA
--36.28531822,143.2075362,09/09/2020,Grant Hollaway,,Wooroonook,VIC,3525,St Arnaud-Wycheproof Road Wooroonook Wooroonook VIC 3525 AU,Farmers' paddock,,,Wheat,,37,Yellow Spot,5,,NA,NA,NA,,NA,NA,NA
--36.53821318,142.6031255,09/09/2020,Grant Hollaway,,Rupanyup,VIC,3388,Banyena-Pimpinio Road Rupanyup Rupanyup VIC 3388 AU,Farmers' paddock,,,Barley,,43,SFNB,20,,NA,NA,NA,,NA,NA,NA
--37.53236365,142.8218598,29/09/2020,Grant Hollaway,,Willaura,VIC,3379,Willaura Willaura VIC 3379 AU,NVT,,,Barley,,50,Scald,5,,NA,NA,NA,,NA,NA,NA
--37.53187121,142.8199139,29/09/2020,Grant Hollaway,,Willaura,VIC,3379,Willaura Willaura VIC 3379 AU,NVT,,,Wheat,LRPB Trojan,50,Rust- Yellow Stripe,10,Septoria Tritici Blotch,10,NA,NA,,NA,NA,NA
--36.35244951,141.2359193,30/09/2020,Grant Hollaway,,Kaniva,,NA,Kaniva,Farmers' paddock,,,Wheat,,50,Septoria Tritici Blotch,5,,NA,NA,NA,,NA,NA,NA
--36.00146947,142.5315355,13/10/2020,Grant Hollaway,,Beulah,VIC,3395,Sheep Hills-Bangerang Road Beulah Beulah VIC 3395 AU,Farmers' paddock,,,Wheat,,55,,NA,,NA,NA,NA,,NA,NA,NA
--35.84755895,142.7021567,13/10/2020,Grant Hollaway,,,,NA,Birchip NVT,,,,Wheat,,60,Rust- Yellow Stripe,5,,NA,NA,NA,,NA,NA,NA
--35.83476665,143.3556795,13/10/2020,Grant Hollaway,,Towaninny,VIC,3527,573–2195 Donald-Swan Hill Road Towaninny Towaninny VIC 3527 AU,Farmers' paddock,,,Wheat,,55,Rust- Yellow Stripe,0.1,,NA,NA,NA,,NA,NA,NA
--35.80957082,143.6037037,13/10/2020,Grant Hollaway,,Quambatook,VIC,3540,Normanville Road Quambatook Quambatook VIC 3540 AU,Farmers' paddock,,,Wheat,,65,Crown Rot,0.1,,NA,NA,NA,,NA,NA,NA
--35.80858507,143.7280958,13/10/2020,Grant Hollaway,,Normanville,VIC,3579,Normanville Normanville VIC 3579 AU,NVT,,,Wheat,,65,Crown Rot,0.5,Rust- Yellow Stripe,0.1,NA,NA,,NA,NA,NA
--36.36679463,144.5756573,13/10/2020,Grant Hollaway,,Diggora,VIC,3561,Brick Church Road Diggora Diggora VIC 3561 AU,Farmers' paddock,,,Wheat,,60,Rust- Yellow Stripe,5,,NA,NA,NA,,NA,NA,NA
--36.0992359,145.2205992,13/10/2020,Grant Hollaway,,Nathalia,VIC,3638,Walshs Bridge Road Nathalia Nathalia VIC 3638 AU,Farmers' paddock,,,Wheat,,60,Rust- Yellow Stripe,5,,NA,NA,NA,,NA,NA,NA
--36.09893218,145.3107428,13/10/2020,Grant Hollaway,,Kaarimba,VIC,3635,833–995 Walshs Bridge Road Kaarimba Kaarimba VIC 3635 AU,Farmers' paddock,,,Wheat,,55,,NA,,NA,NA,NA,,NA,NA,NA
--36.05499295,145.7641378,13/10/2020,Grant Hollaway,,Katamatite East,VIC,3649,Yarrawonga-Katamatite Road Katamatite East Katamatite East VIC 3649 AU,Farmers' paddock,,,Wheat,,55,Rust- Yellow Stripe,5,,NA,NA,NA,,NA,NA,NA
--36.08542835,145.9489124,13/10/2020,Grant Hollaway,,Telford,VIC,3730,Telford Telford VIC 3730 AU,NVT,,,Wheat,LRPB Trojan,NA,Rust- Yellow Stripe,60,,NA,NA,NA,,NA,NA,NA
--36.23175467,145.8957114,14/10/2020,Grant Hollaway,,Saint James,VIC,3727,704–938 Devenish Road Saint James Saint James VIC 3727 AU,Farmers' paddock,,,Wheat,,55,,NA,,NA,NA,NA,,NA,NA,NA
--36.35120647,145.6314797,14/10/2020,Grant Hollaway,,Cosgrove,VIC,3631,50–104 Cosgrove-Caniambo Road Cosgrove Cosgrove VIC 3631 AU,Farmers' paddock,,,Wheat,,55,,NA,,NA,NA,NA,,NA,NA,NA
--36.36409536,145.6451103,14/10/2020,Grant Hollaway,,Cosgrove,VIC,3631,415–449 Kellows Road Cosgrove Cosgrove VIC 3631 AU,Farmers' paddock,,,Wheat,,55,Rust- Yellow Stripe,1,,NA,NA,NA,,NA,NA,NA
--36.30343582,145.4985244,14/10/2020,Grant Hollaway,,Congupna,VIC,3633,1150 Boundary Road Congupna Congupna VIC 3633 AU,Farmers' paddock,,,Wheat,,57,Rust- Yellow Stripe,1,,NA,NA,NA,,NA,NA,NA
--36.45943172,144.8528579,14/10/2020,Grant Hollaway,,Carag Carag,VIC,3623,Deviation Road Carag Carag Carag Carag VIC 3623 AU,Farmers' paddock,,,Wheat,,60,,NA,,NA,NA,NA,,NA,NA,NA
--36.46023814,144.8521559,14/10/2020,Grant Hollaway,,Corop,VIC,3559,Deviation Road Corop Corop VIC 3559 AU,Farmers' paddock,,,Barley,,65,SFNB,5,,NA,NA,NA,,NA,NA,NA
--36.4789077,144.7775792,14/10/2020,Grant Hollaway,,Corop,VIC,3559,3814–3942 Heathcote-Rochester Road Corop Corop VIC 3559 AU,Farmers' paddock,,,Wheat,,52,Yellow Spot,5,,NA,NA,NA,,NA,NA,NA
--36.60539154,144.7990892,14/10/2020,Grant Hollaway,,Colbinabbin,VIC,3559,Bakers Bridge Road Colbinabbin Colbinabbin VIC 3559 AU,Farmers' paddock,,,Wheat,,50,,NA,,NA,NA,NA,,NA,NA,NA
--36.25802355,143.6561345,14/10/2020,Grant Hollaway,,Wychitella,VIC,3525,Charlton-Borung Road Wychitella Wychitella VIC 3525 AU,Farmers' paddock,,,Wheat,,65,Rust- Yellow Stripe,1,,NA,NA,NA,,NA,NA,NA
--36.70191481,142.3305563,14/10/2020,Grant Hollaway,,Longerenong,VIC,3401,Drung-Jung Road Longerenong Longerenong VIC 3401 AU,Farmers' paddock,,,Wheat,,55,Barley Yellow Dwarf Virus,5,,NA,NA,NA,,NA,NA,NA
--36.72336046,142.2770165,14/10/2020,Grant Hollaway,,Drung,VIC,3401,393–555 Horsham-Lubeck Road Drung Drung VIC 3401 AU,Farmers' paddock,,,Wheat,,58,,NA,,NA,NA,NA,,NA,NA,NA
--36.73348022,142.1610278,18/10/2020,Grant Hollaway,,Vectis,VIC,3401,Vectis Vectis VIC 3401 AU,Farmers' paddock,,,Wheat,,55,Rust- Yellow Stripe,1,Barley Yellow Dwarf Virus,1,NA,NA,,NA,NA,NA
--37.66388212,142.1195657,20/10/2020,Grant Hollaway,,Hensley Park,VIC,3301,1114–1246 Skene Woolshed Road Hensley Park Hensley Park VIC 3301 AU,Farmers' paddock,,,Wheat,,65,Septoria Tritici Blotch,1,,NA,NA,NA,,NA,NA,NA
--37.54958753,142.7665745,20/10/2020,Grant Hollaway,,Willaura,VIC,3379,Delacombe Way Willaura Willaura VIC 3379 AU,Farmers' paddock,,,Wheat,,51,Septoria Tritici Blotch,1,,NA,NA,NA,,NA,NA,NA
--37.31,141.6,08/12/2021,Josh Fanning,,,,,,Disease nursery,,,Chickpea,,,Ascochyta blight,100,Botrytis grey mold,20,No,,0,,Yes,Mail a sample to collaborators
--36.76,142.21,18/01/2022,Bhanu Kalia,,,,,,Disease nursery,,,Wheat,,,Stripe rust,0,Stripe rust,0,Yes,,0,,Yes,Molecular diagnosis
--36.76,142.21,14/02/2022,Bhanu Kalia,,,,,,Disease nursery,,,Wheat,,,Stripe rust,0,Stripe rust,0,Yes,,0,,Yes,Molecular diagnosis
--36.76,142.21,10/05/2022,Other,,,,,,Other,,,Wheat,,,Stripe rust,0,Stripe rust,0,Yes,,0,,Yes,Molecular diagnosis
-2025-08-01,Hari Dadu,Wheat,calibre,,31,Stripe rust,5,-36.76,142.21,Molecular diagnosis,,,,,,,,,,,,,,
--36.76,142.21,20/08/2025,Bhanu Kalia,,,,,,Disease nursery,,,Wheat,,,Stripe rust,0,Stripe rust,0,Yes,,0,,Yes,Molecular diagnosis
+-36.67239756,142.2938537,14/07/2020,Hari Dadu,raju ,Longerenong,VIC,3401,229 Longerenong Road Longerenong Longerenong VIC 3401 AU,Experimental trials,Modelling trial,,Barley,RGT Planet,31,NFNB,5,rust,10,NA,NA,,NA,NA,NA
+-36.67255351,142.2942468,14/07/2020,Hari Dadu,sheker,Longerenong,VIC,3401,229 Longerenong Road Longerenong Longerenong VIC 3401 AU,Experimental trials,Hay agronomy,,Oat,Mulgara,25,Red leather leaf,3,rust,15,NA,NA,,NA,NA,NA
+-36.67253454,142.2942449,14/07/2020,Hari Dadu,reddy,Longerenong,VIC,3401,229 Longerenong Road Longerenong Longerenong VIC 3401 AU,Experimental trials,Hay agronomy,,Oat,Wintaroo,25,Red leather leaf,3,blotch,25,NA,NA,,NA,NA,NA
+,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,
