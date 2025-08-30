@@ -263,7 +263,7 @@ elif menu == "Tag a disease":
 # About Page
 # -------------------------------
 else:
-    st.markdown("## ℹ️ About Vic Ds App")
+    st.markdown("## ℹ️ About SA Ds App")
     st.markdown("""
     This application supports field crop pathology staff during surveillance activities to upload disease information 
     and visualize disease severity through maps, graphs, and tables.
@@ -277,4 +277,5 @@ else:
     - Use the 'Refresh Data' button in the sidebar to see newly submitted entries
     - If data doesn't update automatically, try refreshing the page
     """)
+
 
