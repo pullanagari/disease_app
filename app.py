@@ -95,6 +95,7 @@ if menu == "Disease tracker":
                 fill=True,
                 fill_color="red",
                 popup=f"{row['survey_location']} ({row['severity1_percent']}%)"
+                popup=f"{row['survey_location']} ({row['severity2_percent']}%)"
             ).add_to(m)
     st_folium(m, width=800, height=450)
 
@@ -106,7 +107,7 @@ if menu == "Disease tracker":
                      labels={"severity1_percent": "Severity (%)"},
                      color="severity1_percent", color_continuous_scale="reds")
         st.plotly_chart(fig, use_container_width=True)
-
+    
     # Table
     st.markdown("### Surveillance Summary")
     st.dataframe(df_filtered[["date", "crop", "disease1", "survey_location", "severity1_percent"]])
@@ -132,6 +133,7 @@ elif menu == "Tag a disease":
             disease1 = st.selectbox("Disease 1", ["Stripe rust", "Leaf rust", "Blackleg"])
             disease2 = st.selectbox("Disease 2", ["Stripe rust", "Leaf rust", "Blackleg"])
             severity1 = st.slider("Severity (%)", 0, 100, 0)
+            severity2 = st.slider("Severity (%)", 0, 100, 0)
             latitude = st.number_input("Latitude", value=-36.76, step=0.01)
             longitude = st.number_input("Longitude", value=142.21, step=0.01)
         location = st.text_input("Location (Suburb)")
@@ -235,3 +237,4 @@ else:
     - Local CSV data storage and export functionality
     - Improved data management
     """)
+
