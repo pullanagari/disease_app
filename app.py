@@ -88,14 +88,15 @@ if menu == "Disease tracker":
     m = folium.Map(location=[-36.76, 142.21], zoom_start=6)
     for _, row in df_filtered.iterrows():
         if not pd.isna(row["latitude"]) and not pd.isna(row["longitude"]):
+            # Fixed: Combined both severity values in a single popup
+            popup_text = f"{row['survey_location']} (Severity1: {row['severity1_percent']}%, Severity2: {row.get('severity2_percent', 'N/A')}%)"
             folium.CircleMarker(
                 location=[row["latitude"], row["longitude"]],
                 radius=6,
                 color="red",
                 fill=True,
                 fill_color="red",
-                popup=f"{row['survey_location']} ({row['severity1_percent']}%)"
-                popup=f"{row['survey_location']} ({row['severity2_percent']}%)"
+                popup=popup_text
             ).add_to(m)
     st_folium(m, width=800, height=450)
 
@@ -132,8 +133,9 @@ elif menu == "Tag a disease":
         with col2:
             disease1 = st.selectbox("Disease 1", ["Stripe rust", "Leaf rust", "Blackleg"])
             disease2 = st.selectbox("Disease 2", ["Stripe rust", "Leaf rust", "Blackleg"])
-            severity1 = st.slider("Severity (%)", 0, 100, 0)
-            severity2 = st.slider("Severity (%)", 0, 100, 0)
+            # Fixed: Added distinct labels for severity sliders
+            severity1 = st.slider("Severity 1 (%)", 0, 100, 0)
+            severity2 = st.slider("Severity 2 (%)", 0, 100, 0)
             latitude = st.number_input("Latitude", value=-36.76, step=0.01)
             longitude = st.number_input("Longitude", value=142.21, step=0.01)
         location = st.text_input("Location (Suburb)")
@@ -170,6 +172,7 @@ elif menu == "Tag a disease":
                 "disease1": disease1,
                 "disease2": disease2,
                 "severity1_percent": severity1,
+                "severity2_percent": severity2,  # Fixed: Added severity2 field
                 "latitude": latitude,
                 "longitude": longitude,
                 "survey_location": location,
@@ -237,4 +240,3 @@ else:
     - Local CSV data storage and export functionality
     - Improved data management
     """)
-
