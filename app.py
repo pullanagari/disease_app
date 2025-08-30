@@ -10,7 +10,7 @@ from PIL import Image
 # -------------------------------
 # Load CSV
 # -------------------------------
-csv_url = "https://raw.githubusercontent.com/pullanagari/Disease_app/main/test.csv"
+csv_url = "https://raw.githubusercontent.com/pullanagari/Disease_app/main/data_temp.csv"
 
 # Create directories if they don't exist
 os.makedirs("uploads", exist_ok=True)
@@ -240,4 +240,5 @@ else:
     - Local CSV data storage and export functionality
     - Improved data management
     """)
+
 
