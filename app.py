@@ -76,7 +76,7 @@ if menu == "Disease tracker":
     col1, col2, col3 = st.columns([1.5, 1, 1])
 
     with col1:
-        crop = st.selectbox("Choose a Crop", df["crop"].dropna().unique())
+        crop = st.selectbox("Choose a Crop", ["All"] + df["crop"].dropna().unique())
     with col2:
         disease = st.selectbox("Choose a Disease", ["All"] + sorted(df["disease1"].dropna().unique()))
     with col3:
@@ -274,3 +274,4 @@ else:
     - If data doesn't update automatically, try refreshing the page
     """
     )
+
