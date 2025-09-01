@@ -8,7 +8,15 @@ import os
 from PIL import Image
 
 # -------------------------------
-# Loading
+# Page config (must be before any Streamlit UI code)
+st.set_page_config(
+    page_title="South Australia Disease Surveillance",
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
+
+# -------------------------------
+# Setup
 csv_url = "https://raw.githubusercontent.com/pullanagari/Disease_app/main/data_temp.csv"
 
 # Create directories if they don't exist
@@ -17,12 +25,14 @@ os.makedirs("data", exist_ok=True)
 
 # Load custom CSS
 def load_css():
-    with open("styles.css") as f:
-        st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
+    if os.path.exists("styles.css"):
+        with open("styles.css") as f:
+            st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
 
 load_css()
 
-# Function to load data with caching
+# -------------------------------
+# Load data with caching
 @st.cache_data(ttl=300)  # Cache for 5 minutes
 def load_data():
     df_main = pd.read_csv(csv_url)
@@ -44,15 +54,8 @@ if "df" not in st.session_state:
 def reload_data():
     st.session_state.df = load_data()
 
-
 # -------------------------------
-st.set_page_config(
-    page_title="South Australia Disease Surveillance",
-    layout="wide",
-    initial_sidebar_state="expanded"
-)
-
-# Hide the top-right "View source" link, menu, and footer
+# Hide Streamlit default UI elements
 hide_code = """
     <style>
     #MainMenu {visibility: hidden;}
@@ -62,6 +65,8 @@ hide_code = """
 """
 st.markdown(hide_code, unsafe_allow_html=True)
 
+# -------------------------------
+# Sidebar
 st.sidebar.markdown("## 🌾 South Australia Disease Surveillance")
 menu = st.sidebar.radio("Navigation", ["Disease tracker", "Tag a disease", "About"])
 
@@ -74,12 +79,10 @@ df = st.session_state.df
 
 # -------------------------------
 # Disease Tracker Page
-
 if menu == "Disease tracker":
     st.markdown("## 🗺 Disease Tracker")
 
     col1, col2, col3 = st.columns([1.5, 1, 1])
-
     with col1:
         crop = st.selectbox("Choose a Crop", ["All"] + sorted(df["crop"].dropna().unique()))
     with col2:
@@ -90,10 +93,7 @@ if menu == "Disease tracker":
         date_range = st.date_input("Select Date Range", [min_date, max_date])
 
     # Filter data
-    mask = (
-        (df["date"] >= pd.to_datetime(date_range[0]))
-        & (df["date"] <= pd.to_datetime(date_range[1]))
-    )
+    mask = (df["date"] >= pd.to_datetime(date_range[0])) & (df["date"] <= pd.to_datetime(date_range[1]))
     if crop != "All":
         mask &= df["crop"] == crop
     if disease != "All":
@@ -113,31 +113,11 @@ if menu == "Disease tracker":
 
     # Map
     st.markdown("### Map View")
-
-    # Color mapping for crops and diseases
-    unique_crops = df["crop"].dropna().unique()
-    crop_colors = px.colors.qualitative.Set2[:len(unique_crops)]
-    crop_color_map = dict(zip(unique_crops, crop_colors))
-
-    # # Define crop-symbol mapping
-    # crop_symbols = {
-    #     "Wheat": "🌾",      
-    #     "Rice": "🍚",       
-    #     "Corn": "🌽",       
-    #     "Barley": "🍺", 
-    #     "Oats": "🌾🌾"
-       
-    # }
-    # st.subheader("Crop Legend")
-    # for crop, symbol in crop_symbols.items():
-    #     st.write(f"{symbol}  {crop}")
-
     unique_diseases = df["disease1"].dropna().unique()
     disease_colors = px.colors.qualitative.Set3[:len(unique_diseases)]
     disease_color_map = dict(zip(unique_diseases, disease_colors))
 
     m = folium.Map(location=[-36.76, 142.21], zoom_start=6)
-
     for _, row in df_filtered.iterrows():
         if not pd.isna(row["latitude"]) and not pd.isna(row["longitude"]):
             popup_text = f"{row.get('survey_location', 'Unknown')}"
@@ -147,7 +127,6 @@ if menu == "Disease tracker":
                 popup_text += f" | Severity2: {row['severity2_percent']}%"
 
             color = disease_color_map.get(row["disease1"], "gray")
-
             folium.CircleMarker(
                 location=[row["latitude"], row["longitude"]],
                 radius=6,
@@ -157,7 +136,7 @@ if menu == "Disease tracker":
                 popup=popup_text,
             ).add_to(m)
 
-    # Add legend manually for diseases
+    # Add legend
     legend_html = """
      <div style="position: fixed; 
      bottom: 50px; left: 50px; width: 200px; height: auto; 
@@ -168,7 +147,6 @@ if menu == "Disease tracker":
     for dis, col in disease_color_map.items():
         legend_html += f'<i style="background:{col};width:15px;height:15px;display:inline-block;margin-right:5px;"></i>{dis}<br>'
     legend_html += "</div>"
-
     m.get_root().html.add_child(folium.Element(legend_html))
 
     st_folium(m, width=800, height=450)
@@ -204,7 +182,6 @@ if menu == "Disease tracker":
 
 # -------------------------------
 # Tag a Disease Page
-
 elif menu == "Tag a disease":
     st.markdown("## 📌 Tag a Disease")
 
@@ -231,7 +208,6 @@ elif menu == "Tag a disease":
         )
 
         uploaded_file = st.file_uploader("Attach Photo (Optional)", type=["png", "jpg", "jpeg"])
-
         submitted = st.form_submit_button("Submit")
 
         if submitted:
@@ -284,7 +260,6 @@ elif menu == "Tag a disease":
 
     st.markdown("---")
     st.markdown("### Export Data")
-
     local_csv_path = "data/local_disease_data.csv"
     if os.path.exists(local_csv_path):
         local_data = pd.read_csv(local_csv_path)
@@ -305,7 +280,6 @@ elif menu == "Tag a disease":
 
 # -------------------------------
 # About Page
-# -------------------------------
 else:
     st.markdown("## ℹ️ About SA Ds App")
     st.markdown(
@@ -323,5 +297,3 @@ else:
     - If data doesn't update automatically, try refreshing the page
     """
     )
- 
-
