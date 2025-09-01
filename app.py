@@ -7,13 +7,6 @@ from datetime import datetime
 import os
 from PIL import Image
 
-# Load custom CSS
-def load_css():
-    with open("styles.css") as f:
-        st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
-
-load_css()
-
 # -------------------------------
 # Loading
 csv_url = "https://raw.githubusercontent.com/pullanagari/Disease_app/main/data_temp.csv"
@@ -62,69 +55,13 @@ hide_code = """
 """
 st.markdown(hide_code, unsafe_allow_html=True)
 
-# Create custom header
-st.markdown("""
-<div class="header">
-    <div class="header-content">
-        <div class="logo">
-            <i class="fas fa-seedling"></i>
-            <h1>South Australia Disease Surveillance</h1>
-        </div>
-    </div>
-</div>
-""", unsafe_allow_html=True)
-
-# Load Font Awesome for icons
-st.markdown('<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">', unsafe_allow_html=True)
-
-# Create navigation tabs
-menu_options = ["Disease tracker", "Tag a disease", "About"]
-menu = st.radio("Navigation", menu_options, label_visibility="collapsed", horizontal=True)
-
-# Style the radio buttons as tabs
-st.markdown("""
-<style>
-    .stRadio > div {
-        display: flex;
-        background: rgba(255, 255, 255, 0.1);
-        border-radius: 50px;
-        padding: 5px;
-        margin-bottom: 20px;
-    }
-    .stRadio > div > label {
-        padding: 10px 20px;
-        border-radius: 50px;
-        transition: all 0.3s ease;
-        font-weight: 500;
-        margin-right: 5px;
-    }
-    .stRadio > div > label:last-child {
-        margin-right: 0;
-    }
-    .stRadio > div > label[data-testid="stRadioLabel"] > div:first-child {
-        background: transparent !important;
-    }
-    .stRadio > div > label[data-testid="stRadioLabel"] {
-        background: transparent;
-        color: #2c3e50 !important;
-    }
-    .stRadio > div > label[data-testid="stRadioLabel"]:hover {
-        background: rgba(52, 152, 219, 0.1) !important;
-    }
-    .stRadio > div > label[data-testid="stRadioLabel"] > div:first-child {
-        background: transparent !important;
-    }
-    div[role="radiogroup"] > label[data-testid="stRadioLabel"]:has(input:checked) {
-        background: #1abc9c !important;
-        color: white !important;
-    }
-</style>
-""", unsafe_allow_html=True)
+st.sidebar.markdown("## 🌾 South Australia Disease Surveillance")
+menu = st.sidebar.radio("Navigation", ["Disease tracker", "Tag a disease", "About"])
 
 # Refresh button
-if st.button("🔄 Refresh Data", key="refresh_button"):
+if st.sidebar.button("🔄 Refresh Data"):
     reload_data()
-    st.success("Data refreshed!")
+    st.sidebar.success("Data refreshed!")
 
 df = st.session_state.df
 
@@ -132,28 +69,18 @@ df = st.session_state.df
 # Disease Tracker Page
 
 if menu == "Disease tracker":
-    st.markdown("""
-    <div class="main-content">
-        <div class="sidebar">
-            <h2 class="sidebar-title"><i class="fas fa-filter"></i> Data Filters</h2>
-    """, unsafe_allow_html=True)
-    
-    with st.container():
-        col1, col2, col3 = st.columns([1.5, 1, 1])
+    st.markdown("## 🗺 Disease Tracker")
 
-        with col1:
-            crop = st.selectbox("Choose a Crop", ["All"] + sorted(df["crop"].dropna().unique()))
-        with col2:
-            disease = st.selectbox("Choose a Disease", ["All"] + sorted(df["disease1"].dropna().unique()))
-        with col3:
-            min_date = df["date"].min().date() if not df["date"].isna().all() else datetime(2020, 1, 1).date()
-            max_date = df["date"].max().date() if not df["date"].isna().all() else datetime.today().date()
-            date_range = st.date_input("Select Date Range", [min_date, max_date])
-    
-    st.markdown("</div>", unsafe_allow_html=True)
-    st.markdown("""
-        <div class="dashboard">
-    """, unsafe_allow_html=True)
+    col1, col2, col3 = st.columns([1.5, 1, 1])
+
+    with col1:
+        crop = st.selectbox("Choose a Crop", ["All"] + sorted(df["crop"].dropna().unique()))
+    with col2:
+        disease = st.selectbox("Choose a Disease", ["All"] + sorted(df["disease1"].dropna().unique()))
+    with col3:
+        min_date = df["date"].min().date() if not df["date"].isna().all() else datetime(2020, 1, 1).date()
+        max_date = df["date"].max().date() if not df["date"].isna().all() else datetime.today().date()
+        date_range = st.date_input("Select Date Range", [min_date, max_date])
 
     # Filter data
     mask = (
@@ -168,58 +95,40 @@ if menu == "Disease tracker":
     df_filtered = df.loc[mask]
 
     # Metrics
-    st.markdown("""
-    <div class="metrics">
-        <div class="metric-card">
-            <div class="metric-title">Total Surveys</div>
-            <div class="metric-value">""" + str(len(df_filtered)) + """</div>
-        </div>
-        <div class="metric-card">
-            <div class="metric-title">Max Severity</div>
-            <div class="metric-value">""" + (str(int(df_filtered["severity1_percent"].max())) + "%" if not df_filtered.empty else "0%") + """</div>
-        </div>
-        <div class="metric-card">
-            <div class="metric-title">Avg. Severity</div>
-            <div class="metric-value">""" + (str(round(df_filtered["severity1_percent"].mean(), 1)) + "%" if not df_filtered.empty else "0%") + """</div>
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
+    st.markdown("### Key Metrics")
+    if not df_filtered.empty:
+        col1, col2, col3 = st.columns(3)
+        col1.metric("Total Surveys", len(df_filtered))
+        col2.metric("Max Severity (%)", int(df_filtered["severity1_percent"].max()))
+        col3.metric("Average Severity (%)", round(df_filtered["severity1_percent"].mean(), 1))
+    else:
+        st.warning("No data found for the selected filters.")
 
     # Map
-    st.markdown("""
-    <div class="card">
-        <div class="card-header">
-            <h2 class="card-title">Map View</h2>
-    """, unsafe_allow_html=True)
-    
-    # Add legend for diseases
+    st.markdown("### Map View")
+
+    # Color mapping for crops and diseases
+    unique_crops = df["crop"].dropna().unique()
+    crop_colors = px.colors.qualitative.Set2[:len(unique_crops)]
+    crop_color_map = dict(zip(unique_crops, crop_colors))
+
+    # # Define crop-symbol mapping
+    # crop_symbols = {
+    #     "Wheat": "🌾",      
+    #     "Rice": "🍚",       
+    #     "Corn": "🌽",       
+    #     "Barley": "🍺", 
+    #     "Oats": "🌾🌾"
+       
+    # }
+    # st.subheader("Crop Legend")
+    # for crop, symbol in crop_symbols.items():
+    #     st.write(f"{symbol}  {crop}")
+
     unique_diseases = df["disease1"].dropna().unique()
     disease_colors = px.colors.qualitative.Set3[:len(unique_diseases)]
     disease_color_map = dict(zip(unique_diseases, disease_colors))
-    
-    legend_html = ""
-    for dis, col in disease_color_map.items():
-        legend_html += f'<div class="legend-item"><div class="legend-color" style="background:{col};"></div><span>{dis}</span></div>'
-    
-    st.markdown(f'<div class="legend">{legend_html}</div>', unsafe_allow_html=True)
-    st.markdown("</div>", unsafe_allow_html=True)
-    
-    # Crop symbols
-    crop_symbols = {
-        "Wheat": "🌾",      
-        "Rice": "🍚",       
-        "Corn": "🌽",       
-        "Barley": "🍺", 
-        "Oats": "🌾🌾"
-    }
-    
-    crop_symbols_html = ""
-    for crop_name, symbol in crop_symbols.items():
-        crop_symbols_html += f'<div class="crop-item">{symbol} {crop_name}</div>'
-    
-    st.markdown(f'<div class="crop-symbols">{crop_symbols_html}</div>', unsafe_allow_html=True)
 
-    # Create map
     m = folium.Map(location=[-36.76, 142.21], zoom_start=6)
 
     for _, row in df_filtered.iterrows():
@@ -256,16 +165,9 @@ if menu == "Disease tracker":
     m.get_root().html.add_child(folium.Element(legend_html))
 
     st_folium(m, width=800, height=450)
-    st.markdown("</div>", unsafe_allow_html=True)
 
     # Graph
-    st.markdown("""
-    <div class="card">
-        <div class="card-header">
-            <h2 class="card-title">Disease Severity Graph</h2>
-        </div>
-    """, unsafe_allow_html=True)
-    
+    st.markdown("### Disease Severity Graph")
     if not df_filtered.empty:
         fig = px.bar(
             df_filtered,
@@ -279,17 +181,9 @@ if menu == "Disease tracker":
         st.plotly_chart(fig, use_container_width=True)
     else:
         st.info("No data available for the graph.")
-    
-    st.markdown("</div>", unsafe_allow_html=True)
 
     # Table
-    st.markdown("""
-    <div class="card">
-        <div class="card-header">
-            <h2 class="card-title">Surveillance Summary</h2>
-        </div>
-    """, unsafe_allow_html=True)
-    
+    st.markdown("### Surveillance Summary")
     if not df_filtered.empty:
         st.dataframe(df_filtered[["date", "crop", "disease1", "survey_location", "severity1_percent"]])
         st.download_button(
@@ -300,23 +194,13 @@ if menu == "Disease tracker":
         )
     else:
         st.info("No data available for the selected filters.")
-    
-    st.markdown("</div>", unsafe_allow_html=True)
-    st.markdown("</div></div>", unsafe_allow_html=True)
 
 # -------------------------------
 # Tag a Disease Page
 
 elif menu == "Tag a disease":
-    st.markdown("""
-    <div class="main-content">
-        <div class="dashboard">
-            <div class="card">
-                <div class="card-header">
-                    <h2 class="card-title">Tag a Disease</h2>
-                </div>
-    """, unsafe_allow_html=True)
-    
+    st.markdown("## 📌 Tag a Disease")
+
     with st.form("disease_form", clear_on_submit=True):
         col1, col2 = st.columns(2)
         with col1:
@@ -391,15 +275,9 @@ elif menu == "Tag a disease":
                 image = Image.open(uploaded_file)
                 st.image(image, caption="Disease Photo", use_column_width=True)
 
-    st.markdown("</div>", unsafe_allow_html=True)
-    
-    st.markdown("""
-    <div class="card">
-        <div class="card-header">
-            <h2 class="card-title">Export Data</h2>
-        </div>
-    """, unsafe_allow_html=True)
-    
+    st.markdown("---")
+    st.markdown("### Export Data")
+
     local_csv_path = "data/local_disease_data.csv"
     if os.path.exists(local_csv_path):
         local_data = pd.read_csv(local_csv_path)
@@ -417,23 +295,12 @@ elif menu == "Tag a disease":
             st.info("No local data entries yet.")
     else:
         st.info("No local data file exists yet.")
-    
-    st.markdown("</div>", unsafe_allow_html=True)
-    st.markdown("</div></div>", unsafe_allow_html=True)
 
 # -------------------------------
 # About Page
 # -------------------------------
 else:
-    st.markdown("""
-    <div class="main-content">
-        <div class="dashboard">
-            <div class="card">
-                <div class="card-header">
-                    <h2 class="card-title">About SA Ds App</h2>
-                </div>
-    """, unsafe_allow_html=True)
-    
+    st.markdown("## ℹ️ About SA Ds App")
     st.markdown(
         """
     This application supports field crop pathology staff during surveillance activities to upload disease information 
@@ -449,12 +316,4 @@ else:
     - If data doesn't update automatically, try refreshing the page
     """
     )
-    
-    st.markdown("</div></div></div>", unsafe_allow_html=True)
-
-# Add footer
-st.markdown("""
-<div class="footer">
-    <p>© 2023 South Australia Disease Surveillance System | Department of Primary Industries and Regions</p>
-</div>
-""", unsafe_allow_html=True)
+ "
