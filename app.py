@@ -66,8 +66,8 @@ def reload_data():
 hide_code = """
     <style>
    
-    .st-emotion-cache-1avcm0n {display: none;}
-    .st-emotion-cache-zq5wmm {visibility: hidden;}
+    [data-testid="stMainMenu"] {display: none;}
+    [data-testid="stToolbar"] {display: none;}
     footer {visibility: hidden;}
 
     
@@ -319,6 +319,7 @@ else:
     - If data doesn't update automatically, try refreshing the page
     """
     )
+
 
 
 
