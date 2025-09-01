@@ -114,6 +114,19 @@ if menu == "Disease tracker":
     crop_colors = px.colors.qualitative.Set2[:len(unique_crops)]
     crop_color_map = dict(zip(unique_crops, crop_colors))
 
+    # Define crop-symbol mapping
+    crop_symbols = {
+        "Wheat": "🌾",      
+        "Rice": "🍚",       
+        "Corn": "🌽",       
+        "Barley": "🍺", 
+        "Oats": "🌾🌾"
+       
+    }
+    st.subheader("Crop Legend")
+    for crop, symbol in crop_symbols.items():
+        st.write(f"{symbol}  {crop}")
+
     unique_diseases = df["disease1"].dropna().unique()
     disease_colors = px.colors.qualitative.Set3[:len(unique_diseases)]
     disease_color_map = dict(zip(unique_diseases, disease_colors))
@@ -305,3 +318,4 @@ else:
     - If data doesn't update automatically, try refreshing the page
     """
     )
+
