@@ -8,8 +8,7 @@ import os
 from PIL import Image
 
 # -------------------------------
-# Load CSV with better caching
-# -------------------------------
+# Loading
 csv_url = "https://raw.githubusercontent.com/pullanagari/Disease_app/main/data_temp.csv"
 
 # Create directories if they don't exist
@@ -38,8 +37,7 @@ if "df" not in st.session_state:
 def reload_data():
     st.session_state.df = load_data()
 
-# -------------------------------
-# Page Layout & Sidebar
+
 # -------------------------------
 st.set_page_config(
     page_title="South Australia Disease Surveillance",
@@ -69,7 +67,7 @@ df = st.session_state.df
 
 # -------------------------------
 # Disease Tracker Page
-# -------------------------------
+
 if menu == "Disease tracker":
     st.markdown("## 🗺 Disease Tracker")
 
@@ -114,18 +112,18 @@ if menu == "Disease tracker":
     crop_colors = px.colors.qualitative.Set2[:len(unique_crops)]
     crop_color_map = dict(zip(unique_crops, crop_colors))
 
-    # Define crop-symbol mapping
-    crop_symbols = {
-        "Wheat": "🌾",      
-        "Rice": "🍚",       
-        "Corn": "🌽",       
-        "Barley": "🍺", 
-        "Oats": "🌾🌾"
+    # # Define crop-symbol mapping
+    # crop_symbols = {
+    #     "Wheat": "🌾",      
+    #     "Rice": "🍚",       
+    #     "Corn": "🌽",       
+    #     "Barley": "🍺", 
+    #     "Oats": "🌾🌾"
        
-    }
-    st.subheader("Crop Legend")
-    for crop, symbol in crop_symbols.items():
-        st.write(f"{symbol}  {crop}")
+    # }
+    # st.subheader("Crop Legend")
+    # for crop, symbol in crop_symbols.items():
+    #     st.write(f"{symbol}  {crop}")
 
     unique_diseases = df["disease1"].dropna().unique()
     disease_colors = px.colors.qualitative.Set3[:len(unique_diseases)]
@@ -199,7 +197,7 @@ if menu == "Disease tracker":
 
 # -------------------------------
 # Tag a Disease Page
-# -------------------------------
+
 elif menu == "Tag a disease":
     st.markdown("## 📌 Tag a Disease")
 
@@ -318,4 +316,5 @@ else:
     - If data doesn't update automatically, try refreshing the page
     """
     )
+
 
