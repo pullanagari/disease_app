@@ -66,7 +66,7 @@ def reload_data():
 hide_code = """
     <style>
    
-    #MainMenu {visibility: hidden;}
+    MainMenu {visibility: hidden;}
     header {visibility: hidden;}
     footer {visibility: hidden;}
     .stApp > header {display: none;}
@@ -322,6 +322,7 @@ else:
     - If data doesn't update automatically, try refreshing the page
     """
     )
+
 
 
 
