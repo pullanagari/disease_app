@@ -6,6 +6,9 @@ from streamlit_folium import st_folium
 from datetime import datetime
 import os
 from PIL import Image
+import streamlit as st
+
+
 
 # -------------------------------
 # Load CSV with better caching
@@ -145,6 +148,15 @@ if menu == "Disease tracker":
     else:
         st.info("No data available for the selected filters.")
 
+# Hide the top-right "View source" link
+hide_code = """
+    <style>
+    #MainMenu {visibility: hidden;}
+    header {visibility: hidden;}
+    footer {visibility: hidden;}
+    </style>
+"""
+st.markdown(hide_code, unsafe_allow_html=True)
 # -------------------------------
 # Tag a Disease Page
 # -------------------------------
@@ -277,5 +289,6 @@ else:
     - Use the 'Refresh Data' button in the sidebar to see newly submitted entries
     - If data doesn't update automatically, try refreshing the page
     """)
+
 
 
