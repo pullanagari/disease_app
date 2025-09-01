@@ -142,6 +142,13 @@ if menu == "Disease tracker":
                 fill_color=color,
                 popup=popup_text,
             ).add_to(m)
+        disease_color_map = {
+        "Oats Rust": "#e41a1c",      # red
+        "Leaf Blight": "#377eb8",    # blue
+        "Powdery Mildew": "#4daf4a", # green
+        "Smut": "#984ea3",           # purple
+        "Other": "#ff7f00"           # orange
+    }
 
     # Add legend
     legend_html = """
@@ -154,8 +161,9 @@ if menu == "Disease tracker":
     for dis, col in disease_color_map.items():
         legend_html += f'<i style="background:{col};width:15px;height:15px;display:inline-block;margin-right:5px;"></i>{dis}<br>'
     legend_html += "</div>"
+    
     m.get_root().html.add_child(folium.Element(legend_html))
-
+    
     st_folium(m, width=800, height=450)
 
     # Graph
@@ -304,4 +312,5 @@ else:
     - If data doesn't update automatically, try refreshing the page
     """
     )
+
 
