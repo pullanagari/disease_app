@@ -68,7 +68,7 @@ hide_code = """
     # .st-emotion-cache-1avcm0n {visibility: hidden;}
     MainMenu {visibility: hidden;}
     # header {visibility: hidden;}
-    footer {visibility: hidden;}
+    # footer {visibility: hidden;}
     </style>
 """
 st.markdown(hide_code, unsafe_allow_html=True)
@@ -313,6 +313,7 @@ else:
     - If data doesn't update automatically, try refreshing the page
     """
     )
+
 
 
 
