@@ -65,9 +65,12 @@ def reload_data():
 # Hide Streamlit default UI elements
 hide_code = """
     <style>
-    # [data-testid="stSidebarUserContent"] {visibility: hidden;}
+   
+    #MainMenu {visibility: hidden;}
     header {visibility: hidden;}
     footer {visibility: hidden;}
+    .stApp > header {display: none;}
+
 
 
     
@@ -319,6 +322,7 @@ else:
     - If data doesn't update automatically, try refreshing the page
     """
     )
+
 
 
 
