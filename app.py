@@ -86,16 +86,14 @@ if menu == "Disease tracker":
 
     # Filter data
     mask = (
-        (df["crop"] == crop)
-        & (df["date"] >= pd.to_datetime(date_range[0]))
+        (df["date"] >= pd.to_datetime(date_range[0]))
         & (df["date"] <= pd.to_datetime(date_range[1]))
     )
     if crop != "All":
         mask &= df["crop"] == crop
-    df_filtered = df.loc[mask]
-    
     if disease != "All":
         mask &= df["disease1"] == disease
+
     df_filtered = df.loc[mask]
 
     # Metrics
@@ -110,7 +108,18 @@ if menu == "Disease tracker":
 
     # Map
     st.markdown("### Map View")
+
+    # Color mapping for crops and diseases
+    unique_crops = df["crop"].dropna().unique()
+    crop_colors = px.colors.qualitative.Set2[:len(unique_crops)]
+    crop_color_map = dict(zip(unique_crops, crop_colors))
+
+    unique_diseases = df["disease1"].dropna().unique()
+    disease_colors = px.colors.qualitative.Set3[:len(unique_diseases)]
+    disease_color_map = dict(zip(unique_diseases, disease_colors))
+
     m = folium.Map(location=[-36.76, 142.21], zoom_start=6)
+
     for _, row in df_filtered.iterrows():
         if not pd.isna(row["latitude"]) and not pd.isna(row["longitude"]):
             popup_text = f"{row.get('survey_location', 'Unknown')}"
@@ -118,14 +127,32 @@ if menu == "Disease tracker":
                 popup_text += f" | Severity1: {row['severity1_percent']}%"
             if not pd.isna(row.get("severity2_percent")):
                 popup_text += f" | Severity2: {row['severity2_percent']}%"
+
+            color = disease_color_map.get(row["disease1"], "gray")
+
             folium.CircleMarker(
                 location=[row["latitude"], row["longitude"]],
                 radius=6,
-                color="red",
+                color=color,
                 fill=True,
-                fill_color="red",
+                fill_color=color,
                 popup=popup_text,
             ).add_to(m)
+
+    # Add legend manually for diseases
+    legend_html = """
+     <div style="position: fixed; 
+     bottom: 50px; left: 50px; width: 200px; height: auto; 
+     background-color: white; border:2px solid grey; z-index:9999; font-size:14px;
+     padding: 10px;">
+     <b>Disease Legend</b><br>
+    """
+    for dis, col in disease_color_map.items():
+        legend_html += f'<i style="background:{col};width:15px;height:15px;display:inline-block;margin-right:5px;"></i>{dis}<br>'
+    legend_html += "</div>"
+
+    m.get_root().html.add_child(folium.Element(legend_html))
+
     st_folium(m, width=800, height=450)
 
     # Graph
@@ -137,8 +164,8 @@ if menu == "Disease tracker":
             y="severity1_percent",
             title=f"{crop} - {disease if disease != 'All' else 'All diseases'}",
             labels={"severity1_percent": "Severity (%)"},
-            color="severity1_percent",
-            color_continuous_scale="reds",
+            color="disease1",
+            color_discrete_map=disease_color_map,
         )
         st.plotly_chart(fig, use_container_width=True)
     else:
@@ -278,6 +305,3 @@ else:
     - If data doesn't update automatically, try refreshing the page
     """
     )
-
-
-
