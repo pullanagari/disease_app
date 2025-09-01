@@ -90,6 +90,10 @@ if menu == "Disease tracker":
         & (df["date"] >= pd.to_datetime(date_range[0]))
         & (df["date"] <= pd.to_datetime(date_range[1]))
     )
+    if crop != "All":
+        mask &= df["crop"] == crop
+    df_filtered = df.loc[mask]
+    
     if disease != "All":
         mask &= df["disease1"] == disease
     df_filtered = df.loc[mask]
@@ -274,5 +278,6 @@ else:
     - If data doesn't update automatically, try refreshing the page
     """
     )
+
 
 
