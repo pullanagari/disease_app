@@ -15,6 +15,13 @@ csv_url = "https://raw.githubusercontent.com/pullanagari/Disease_app/main/data_t
 os.makedirs("uploads", exist_ok=True)
 os.makedirs("data", exist_ok=True)
 
+# Load custom CSS
+def load_css():
+    with open("styles.css") as f:
+        st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
+
+load_css()
+
 # Function to load data with caching
 @st.cache_data(ttl=300)  # Cache for 5 minutes
 def load_data():
@@ -316,4 +323,5 @@ else:
     - If data doesn't update automatically, try refreshing the page
     """
     )
- "
+ 
+
