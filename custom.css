@@ -1,7 +1,7 @@
 /* custom.css */
 /* Main page styling */
 .main {
-    background-color: #f8f9fa;
+    background-color: #dfe0e1;
 }
 
 /* Sidebar styling */
@@ -48,4 +48,5 @@ h1, h2, h3 {
 folium-map {
     border-radius: 10px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+
 }
