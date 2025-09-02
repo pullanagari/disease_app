@@ -258,8 +258,10 @@ elif menu == "Tag a disease":
             disease2 = st.selectbox("Disease 2", ["None"] + ["Stripe rust", "Leaf rust", "Blackleg"])
             severity1 = st.slider("Severity 1 (%)", 0, 100, 0)
             severity2 = st.slider("Severity 2 (%)", 0, 100, 0)
-            latitude = st.number_input("Latitude", value=-36.76, step=None)
-            longitude = st.number_input("Longitude", value=142.21, step=0.01)
+            latitude = st.text_input("Latitude", "-36.76")
+            longitude = st.text_input("Longitude", "142.21")
+            # latitude = st.number_input("Latitude", value=-36.76, step=0.01)
+            # longitude = st.number_input("Longitude", value=142.21, step=0.01)
         location = st.text_input("Location (Suburb)", "")
         field_type = st.text_input("Field Type", "")
         agronomist = st.text_input("Agronomist", "")
@@ -359,6 +361,7 @@ else:
     - If data doesn't update automatically, try refreshing the page
     """
     )
+
 
 
 
