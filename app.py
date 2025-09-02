@@ -259,7 +259,7 @@ elif menu == "Tag a disease":
         col1, col2 = st.columns(2)
         with col1:
             date = st.date_input("Date", datetime.today())
-            collector = st.selectbox("Collector Name", ["Hari Dadu", "Josh Fanning", "Other"])
+            collector = st.selectbox("Collector Name", ["Hari Dadu", "Rohan Kimber", "Tara Garrard","Moshen Khani", "Kul Adhikari", "Mark Butt","Marzena Krysinka-Kaczmarek","Michelle Russ","Entesar Abood", "Milica Grcic", "Others"])
             crop = st.selectbox("Crop", ["Wheat", "Barley", "Canola", "Lentil"])
             variety = st.text_input("Variety", "")
         with col2:
@@ -367,6 +367,7 @@ else:
     - If data doesn't update automatically, try refreshing the page
     """
     )
+
 
 
 
