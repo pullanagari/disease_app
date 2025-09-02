@@ -33,11 +33,11 @@ load_css()
 
 
 # Load custom JavaScript
-def load_js():
-    with open("script.js") as f:
-        st.markdown(f'<script>{f.read()}</script>', unsafe_allow_html=True)
+# def load_js():
+#     with open("script.js") as f:
+#         st.markdown(f'<script>{f.read()}</script>', unsafe_allow_html=True)
 
-load_js()
+# load_js()
 # -------------------------------
 # Load data with caching
 @st.cache_data(ttl=300)  # Cache for 5 minutes
@@ -370,6 +370,7 @@ else:
     - If data doesn't update automatically, try refreshing the page
     """
     )
+
 
 
 
