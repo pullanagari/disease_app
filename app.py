@@ -87,9 +87,6 @@ hide_ui = """
 """
 
 st.markdown(hide_ui, unsafe_allow_html=True)
-
-# -------------------------------
-# Sidebar
 st.sidebar.markdown("## 🌾 South Australia Disease Surveillance")
 menu = st.sidebar.radio("Navigation", ["Disease tracker", "Tag a disease", "About"])
 
@@ -359,46 +356,3 @@ else:
     - If data doesn't update automatically, try refreshing the page
     """
     )
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
