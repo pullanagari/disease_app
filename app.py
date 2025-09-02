@@ -65,7 +65,7 @@ def reload_data():
 hide_code = """
     <style>
     /* Hide the default Streamlit menu and footer */
-    #MainMenu {visibility: hidden;}
+    MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
     
     /* Keep the sidebar visible */
@@ -349,6 +349,7 @@ else:
     - If data doesn't update automatically, try refreshing the page
     """
     )
+
 
 
 
