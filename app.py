@@ -92,6 +92,9 @@ if st.sidebar.button("🔄 Refresh Data"):
 df = st.session_state.df
 
 # -------------------------------
+# ... (previous imports and setup code remains the same)
+
+# -------------------------------
 # Disease Tracker Page
 if menu == "Disease tracker":
     st.markdown("## 🗺 Disease Tracker")
@@ -125,119 +128,88 @@ if menu == "Disease tracker":
     else:
         st.warning("No data found for the selected filters.")
 
-    # Map
-    st.markdown("### Map View")
-    unique_diseases = df["disease1"].dropna().unique()
-    disease_colors = px.colors.qualitative.Set3[:len(unique_diseases)]
-    disease_color_map = dict(zip(unique_diseases, disease_colors))
+    # Create tabs for Map and Graph
+    tab1, tab2 = st.tabs(["🗺️ Map", "📊 Graph"])
 
-    m = folium.Map(location=[-36.76, 142.21], zoom_start=6)
-    # for _, row in df_filtered.iterrows():
-    #     if not pd.isna(row["latitude"]) and not pd.isna(row["longitude"]):
-    #         popup_text = f"{row.get('survey_location', 'Unknown')}"
-    #         if not pd.isna(row.get("severity1_percent")):
-    #             popup_text += f" | Severity1: {row['severity1_percent']}%"
-    #         if not pd.isna(row.get("severity2_percent")):
-    #             popup_text += f" | Severity2: {row['severity2_percent']}%"
+    with tab1:
+        st.markdown("### Map View")
+        unique_diseases = df["disease1"].dropna().unique()
+        disease_colors = px.colors.qualitative.Set3[:len(unique_diseases)]
+        disease_color_map = dict(zip(unique_diseases, disease_colors))
 
-    #         color = disease_color_map.get(row["disease1"], "gray")
-    #         folium.CircleMarker(
-    #             location=[row["latitude"], row["longitude"]],
-    #             radius=6,
-    #             color=color,
-    #             fill=True,
-    #             fill_color=color,
-    #             popup=popup_text,
-    #         ).add_to(m)
-    #     disease_color_map = {
-    #     "Oats Rust": "#e41a1c",      # red
-    #     "Leaf Blight": "#377eb8",    # blue
-    #     "Powdery Mildew": "#4daf4a", # green
-    #     "Smut": "#984ea3",           # purple
-    #     "Other": "#ff7f00"           # orange
-    # }
+        m = folium.Map(location=[-36.76, 142.21], zoom_start=6)
+        
+        # Add markers
+        for _, row in df_filtered.iterrows():
+            if not pd.isna(row["latitude"]) and not pd.isna(row["longitude"]):
+                popup_text = f"{row.get('survey_location', 'Unknown')}"
+                if not pd.isna(row.get("severity1_percent")):
+                    popup_text += f" | Severity1: {row['severity1_percent']}%"
+                if not pd.isna(row.get("severity2_percent")):
+                    popup_text += f" | Severity2: {row['severity2_percent']}%"
+        
+                color = disease_color_map.get(row["disease1"], "gray")
+                folium.CircleMarker(
+                    location=[row["latitude"], row["longitude"]],
+                    radius=6,
+                    color=color,
+                    fill=True,
+                    fill_color=color,
+                    popup=popup_text,
+                ).add_to(m)
+        
+        # Create dynamic legend HTML
+        legend_html = """
+        <div style="
+            position: fixed; 
+            bottom: 50px; left: 50px; width: 200px; height: auto; 
+            background-color: white; border:2px solid grey; z-index:9999; font-size:14px;
+            padding: 10px;">
+        <b>Disease Legend</b><br>
+        """
+        
+        for dis, col in disease_color_map.items():
+            legend_html += f'<i style="background:{col};width:15px;height:15px;display:inline-block;margin-right:5px;"></i>{dis}<br>'
+        
+        legend_html += "</div>"
+        
+        # Add legend to map
+        m.get_root().html.add_child(folium.Element(legend_html))
+        
+        st_folium(m, width=800, height=450)
 
+    with tab2:
+        st.markdown("### Disease Severity Graph")
+        
+        # X-axis selection
+        x_axis = st.selectbox("X-Axis", ["Crop", "Location", "Disease"])
+        
+        if not df_filtered.empty:
+            # Determine x-axis column based on selection
+            if x_axis == "Crop":
+                x_col = "crop"
+                title = f"Disease Severity by Crop"
+            elif x_axis == "Location":
+                x_col = "survey_location"
+                title = f"Disease Severity by Location"
+            else:  # Disease
+                x_col = "disease1"
+                title = f"Disease Severity by Disease Type"
+            
+            fig = px.bar(
+                df_filtered,
+                x=x_col,
+                y="severity1_percent",
+                title=title,
+                labels={"severity1_percent": "Severity (%)", x_col: x_axis},
+                color="disease1",
+                color_discrete_map=disease_color_map,
+            )
+            st.plotly_chart(fig, use_container_width=True)
+        else:
+            st.info("No data available for the graph.")
 
-
-    # Add markers
-    for _, row in df_filtered.iterrows():
-        if not pd.isna(row["latitude"]) and not pd.isna(row["longitude"]):
-            popup_text = f"{row.get('survey_location', 'Unknown')}"
-            if not pd.isna(row.get("severity1_percent")):
-                popup_text += f" | Severity1: {row['severity1_percent']}%"
-            if not pd.isna(row.get("severity2_percent")):
-                popup_text += f" | Severity2: {row['severity2_percent']}%"
-    
-            color = disease_color_map.get(row["disease1"], "gray")
-            folium.CircleMarker(
-                location=[row["latitude"], row["longitude"]],
-                radius=6,
-                color=color,
-                fill=True,
-                fill_color=color,
-                popup=popup_text,
-            ).add_to(m)
-    
-    # Create dynamic legend HTML
-    legend_html = """
-    <div style="
-        position: fixed; 
-        bottom: 50px; left: 50px; width: 200px; height: auto; 
-        background-color: white; border:2px solid grey; z-index:9999; font-size:14px;
-        padding: 10px;">
-    <b>Disease Legend</b><br>
-    """
-    
-    for dis, col in disease_color_map.items():
-        legend_html += f'<i style="background:{col};width:15px;height:15px;display:inline-block;margin-right:5px;"></i>{dis}<br>'
-    
-    legend_html += "</div>"
-    
-    # Add legend to map
-    m.get_root().html.add_child(folium.Element(legend_html))
-
-
-
-
-
-
-
-
-
-    
-    # # Add legend
-    # legend_html = """
-    #  <div style="position: fixed; 
-    #  bottom: 50px; left: 50px; width: 200px; height: auto; 
-    #  background-color: white; border:2px solid grey; z-index:9999; font-size:14px;
-    #  padding: 10px;">
-    #  <b>Disease Legend</b><br>
-    # """
-    # for dis, col in disease_color_map.items():
-    #     legend_html += f'<i style="background:{col};width:15px;height:15px;display:inline-block;margin-right:5px;"></i>{dis}<br>'
-    # legend_html += "</div>"
-    
-    # m.get_root().html.add_child(folium.Element(legend_html))
-    
-    st_folium(m, width=800, height=450)
-
-    # Graph
-    st.markdown("### Disease Severity Graph")
-    if not df_filtered.empty:
-        fig = px.bar(
-            df_filtered,
-            x="survey_location",
-            y="severity1_percent",
-            title=f"{crop} - {disease if disease != 'All' else 'All diseases'}",
-            labels={"severity1_percent": "Severity (%)"},
-            color="disease1",
-            color_discrete_map=disease_color_map,
-        )
-        st.plotly_chart(fig, use_container_width=True)
-    else:
-        st.info("No data available for the graph.")
-
-    # Table
+    # Table (kept outside tabs as it was)
     st.markdown("### Surveillance Summary")
     if not df_filtered.empty:
         st.dataframe(df_filtered[["date", "crop", "disease1", "survey_location", "severity1_percent"]])
@@ -249,6 +221,8 @@ if menu == "Disease tracker":
         )
     else:
         st.info("No data available for the selected filters.")
+
+# ... (rest of the code remains the same)
 
 # -------------------------------
 # Tag a Disease Page
@@ -370,6 +344,7 @@ else:
     - If data doesn't update automatically, try refreshing the page
     """
     )
+
 
 
 
