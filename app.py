@@ -239,27 +239,6 @@ if menu == "Disease tracker":
 # -------------------------------
 # Tag a Disease Page
 # After submission/export section
-st.markdown("### 📷 Download Uploaded Photos")
-
-upload_folder = "uploads"
-if os.path.exists(upload_folder):
-    files = os.listdir(upload_folder)
-    image_files = [f for f in files if f.lower().endswith(("png", "jpg", "jpeg"))]
-
-    if image_files:
-        for img_file in image_files:
-            file_path = os.path.join(upload_folder, img_file)
-            with open(file_path, "rb") as f:
-                st.download_button(
-                    label=f"Download {img_file}",
-                    data=f,
-                    file_name=img_file,
-                    mime="image/jpeg" if img_file.endswith(("jpg", "jpeg")) else "image/png"
-                )
-    else:
-        st.info("No photos uploaded yet.")
-else:
-    st.info("Upload folder does not exist yet.")
 
 elif menu == "Tag a disease":
     st.markdown("## 📌 Tag a Disease")
@@ -380,6 +359,7 @@ else:
     - If data doesn't update automatically, try refreshing the page
     """
     )
+
 
 
 
