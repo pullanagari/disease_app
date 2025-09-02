@@ -66,8 +66,8 @@ def reload_data():
 hide_code = """
     <style>
    
-    # [data-testid="stMainMenu"] {display: none;}
-    # [data-testid="stToolbar"] {display: none;}
+    [data-testid="stMainMenu"] {display: none;}
+    [data-testid="stToolbar"] {display: none;}
     footer {visibility: hidden;}
 
     
@@ -350,6 +350,7 @@ else:
     - If data doesn't update automatically, try refreshing the page
     """
     )
+
 
 
 
