@@ -174,13 +174,13 @@ if menu == "Disease tracker":
         <b>Disease Legend</b><br>
         """
         
-        for dis, col in disease_color_map.items():
-            legend_html += f'<i style="background:{col};width:15px;height:15px;display:inline-block;margin-right:5px;"></i>{dis}<br>'
+        # for dis, col in disease_color_map.items():
+        #     legend_html += f'<i style="background:{col};width:15px;height:15px;display:inline-block;margin-right:5px;"></i>{dis}<br>'
         
-        legend_html += "</div>"
+        # legend_html += "</div>"
         
-        # Add legend to map
-        m.get_root().html.add_child(folium.Element(legend_html))
+        # # Add legend to map
+        # m.get_root().html.add_child(folium.Element(legend_html))
         
         st_folium(m, width=800, height=450)
 
@@ -356,3 +356,4 @@ else:
     - If data doesn't update automatically, try refreshing the page
     """
     )
+
