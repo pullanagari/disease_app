@@ -62,15 +62,14 @@ def reload_data():
     st.session_state.df = load_data()
 
 # -------------------------------
+import streamlit as st
+
+# -------------------------------
+# Hide Streamlit default UI elements (only share + code links, keep main menu)
 hide_code = """
     <style>
-    [data-testid="stMainMenu"] {display: none;}
-    [data-testid="stToolbar"] {display: none;}
-    footer {visibility: hidden;}
-    .st-emotion-cache-1avcm0n {visibility: hidden;}
-    MainMenu {visibility: hidden;}
-    header {visibility: hidden;}
-    footer {visibility: hidden;}
+    [data-testid="stToolbar"] {display: none;}  /* Hides top-right toolbar (Share, </> code) */
+    footer {visibility: hidden;}               /* Hides Streamlit footer */
     </style>
 """
 st.markdown(hide_code, unsafe_allow_html=True)
@@ -90,6 +89,33 @@ if "df" not in st.session_state:
     st.session_state.df = None
 df = st.session_state.df
 
+# -------------------------------
+# Main Content
+if menu == "Disease tracker":
+    st.title("🦠 Disease Tracker")
+    if df is not None:
+        st.dataframe(df)
+    else:
+        st.info("No data loaded yet. Please refresh.")
+
+elif menu == "Tag a disease":
+    st.title("🏷️ Tag a Disease")
+    disease_name = st.text_input("Enter disease name:")
+    if st.button("Save Tag"):
+        if disease_name.strip():
+            st.success(f"Disease '{disease_name}' tagged successfully!")
+        else:
+            st.warning("Please enter a valid disease name.")
+
+elif menu == "About":
+    st.title("ℹ️ About")
+    st.write("""
+    This app is part of the **South Australia Disease Surveillance** project.  
+    
+    - 📊 Track disease outbreaks  
+    - 🏷️ Tag and manage disease records  
+    - 🌾 Built with Streamlit  
+    """)
 
 # -------------------------------
 # Disease Tracker Page
@@ -347,6 +373,7 @@ else:
     - If data doesn't update automatically, try refreshing the page
     """
     )
+
 
 
 
