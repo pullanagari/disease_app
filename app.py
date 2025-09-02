@@ -62,34 +62,20 @@ def reload_data():
     st.session_state.df = load_data()
 
 # -------------------------------
-hide_code = """
+hide_ui = """
     <style>
-    /* Hide the Streamlit footer */
-    footer {visibility: hidden;}
-
     /* Hide top-right toolbar (Share, Code, etc.) */
-    [data-testid="stToolbar"] {visibility: hidden !important;}
+    [data-testid="stToolbar"] {display: none !important;}
 
-    /* Keep the main menu (top-left) visible */
+    /* Hide footer */
+    footer {display: none !important;}
+
+    /* Keep main menu (hamburger) visible */
     #MainMenu {visibility: visible !important;}
-
-    /* Keep header (Streamlit banner area) visible */
-    header {visibility: visible !important;}
-
-    /* --- Force sidebar always visible --- */
-    [data-testid="stSidebar"] {
-        visibility: visible !important;
-        transform: none !important;   /* cancel collapse animation */
-    }
-    [data-testid="stSidebarCollapseButton"] {
-        display: none !important;  /* hide the << button */
-    }
-    </style>
+</style>
 """
 
-st.markdown(hide_code, unsafe_allow_html=True)
-
-
+st.markdown(hide_ui, unsafe_allow_html=True)
 
 # -------------------------------
 # Sidebar
@@ -362,6 +348,7 @@ else:
     - If data doesn't update automatically, try refreshing the page
     """
     )
+
 
 
 
