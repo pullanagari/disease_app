@@ -259,11 +259,14 @@ elif menu == "Tag a disease":
         col1, col2 = st.columns(2)
         with col1:
             date = st.date_input("Date", datetime.today())
-            collector = st.selectbox("Collector Name", ["Hari Dadu", "Rohan Kimber", "Tara Garrard","Moshen Khani", "Kul Adhikari", "Mark Butt","Marzena Krysinka-Kaczmarek","Michelle Russ","Entesar Abood", "Milica Grcic", "Others"])
-            crop = st.selectbox("Crop", ["Wheat", "Barley", "Canola", "Lentil"])
+            collector = st.selectbox("Collector Name", ["Hari Dadu", "Rohan Kimber", "Tara Garrard","Moshen Khani", "Kul Adhikari", "Mark Butt","Marzena Krysinka-Kaczmarek","Michelle Russ","Entesar Abood", "Milica Grcic", "Other"])
+            crop = st.selectbox("Crop", ["Wheat", "Barley", "Canola", "Lentil", "Oats","Faba beans","Vetch","Field peas","Chcickpea", "Other"])
             variety = st.text_input("Variety", "")
         with col2:
-            disease1 = st.selectbox("Disease 1", ["Stripe rust", "Leaf rust", "Blackleg"])
+            disease1 = st.selectbox("Disease 1", ["Stripe rust", "Leaf rust", "Stem rust", "Septoria tritici blotch", "Yellow leaf spot", "Powdery mildew", 
+                                                  "Eye spot", "Black point", "Smut", "Spot form net blotch", "Net form net blotch", "Scald", "Red Leather Leaf",
+                                                  "Septoria avenae blotch", "Bacterial blight", "Ascochyta Blight", "Botrytis Grey Mold", "Sclerotinia white mould", 
+                                                  "Chocolate Spot","Cercospora leaf spot", "Downy mildew","Black Spot", "Root Disease" "Virus", "Blackleg", "Other"])
             disease2 = st.selectbox("Disease 2", ["None"] + ["Stripe rust", "Leaf rust", "Blackleg"])
             severity1 = st.slider("Severity 1 (%)", 0, 100, 0)
             severity2 = st.slider("Severity 2 (%)", 0, 100, 0)
@@ -367,6 +370,7 @@ else:
     - If data doesn't update automatically, try refreshing the page
     """
     )
+
 
 
 
