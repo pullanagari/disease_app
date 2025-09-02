@@ -72,6 +72,17 @@ hide_ui = """
 
     /* Keep main menu (hamburger) visible */
     #MainMenu {visibility: visible !important;}
+
+    /* --- Force sidebar always visible and wide --- */
+    [data-testid="stSidebar"] {
+        min-width: 250px !important;  /* adjust width */
+        max-width: 300px !important;
+    }
+
+    /* Optional: prevent collapse completely */
+    [data-testid="stSidebarCollapseButton"] {
+        display: none !important;
+    }
 </style>
 """
 
@@ -348,6 +359,7 @@ else:
     - If data doesn't update automatically, try refreshing the page
     """
     )
+
 
 
 
