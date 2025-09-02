@@ -24,12 +24,12 @@ os.makedirs("uploads", exist_ok=True)
 os.makedirs("data", exist_ok=True)
 
 # Load custom CSS
-# def load_css():
-#     if os.path.exists("styles.css"):
-#         with open("styles.css") as f:
-#             st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
+def load_css():
+    if os.path.exists("styles.css"):
+        with open("styles.css") as f:
+            st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
 
-# load_css()
+load_css()
 
 
 # Load custom JavaScript
@@ -359,6 +359,7 @@ else:
     - If data doesn't update automatically, try refreshing the page
     """
     )
+
 
 
 
