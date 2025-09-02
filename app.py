@@ -69,7 +69,7 @@ hide_code = """
     [data-testid="stToolbar"] {display: none;}
     footer {visibility: hidden;}
     .st-emotion-cache-1avcm0n {visibility: hidden;}
-    # MainMenu {visibility: hidden;}
+    MainMenu {visibility: none;}
     header {visibility: hidden;}
     footer {visibility: hidden;}
     </style>
@@ -347,6 +347,7 @@ else:
     - If data doesn't update automatically, try refreshing the page
     """
     )
+
 
 
 
