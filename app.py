@@ -132,6 +132,34 @@ if menu == "Disease tracker":
     disease_color_map = dict(zip(unique_diseases, disease_colors))
 
     m = folium.Map(location=[-36.76, 142.21], zoom_start=6)
+    # for _, row in df_filtered.iterrows():
+    #     if not pd.isna(row["latitude"]) and not pd.isna(row["longitude"]):
+    #         popup_text = f"{row.get('survey_location', 'Unknown')}"
+    #         if not pd.isna(row.get("severity1_percent")):
+    #             popup_text += f" | Severity1: {row['severity1_percent']}%"
+    #         if not pd.isna(row.get("severity2_percent")):
+    #             popup_text += f" | Severity2: {row['severity2_percent']}%"
+
+    #         color = disease_color_map.get(row["disease1"], "gray")
+    #         folium.CircleMarker(
+    #             location=[row["latitude"], row["longitude"]],
+    #             radius=6,
+    #             color=color,
+    #             fill=True,
+    #             fill_color=color,
+    #             popup=popup_text,
+    #         ).add_to(m)
+    #     disease_color_map = {
+    #     "Oats Rust": "#e41a1c",      # red
+    #     "Leaf Blight": "#377eb8",    # blue
+    #     "Powdery Mildew": "#4daf4a", # green
+    #     "Smut": "#984ea3",           # purple
+    #     "Other": "#ff7f00"           # orange
+    # }
+
+
+
+    # Add markers
     for _, row in df_filtered.iterrows():
         if not pd.isna(row["latitude"]) and not pd.isna(row["longitude"]):
             popup_text = f"{row.get('survey_location', 'Unknown')}"
@@ -139,7 +167,7 @@ if menu == "Disease tracker":
                 popup_text += f" | Severity1: {row['severity1_percent']}%"
             if not pd.isna(row.get("severity2_percent")):
                 popup_text += f" | Severity2: {row['severity2_percent']}%"
-
+    
             color = disease_color_map.get(row["disease1"], "gray")
             folium.CircleMarker(
                 location=[row["latitude"], row["longitude"]],
@@ -149,27 +177,47 @@ if menu == "Disease tracker":
                 fill_color=color,
                 popup=popup_text,
             ).add_to(m)
-        disease_color_map = {
-        "Oats Rust": "#e41a1c",      # red
-        "Leaf Blight": "#377eb8",    # blue
-        "Powdery Mildew": "#4daf4a", # green
-        "Smut": "#984ea3",           # purple
-        "Other": "#ff7f00"           # orange
-    }
-
-    # Add legend
+    
+    # Create dynamic legend HTML
     legend_html = """
-     <div style="position: fixed; 
-     bottom: 50px; left: 50px; width: 200px; height: auto; 
-     background-color: white; border:2px solid grey; z-index:9999; font-size:14px;
-     padding: 10px;">
-     <b>Disease Legend</b><br>
+    <div style="
+        position: fixed; 
+        bottom: 50px; left: 50px; width: 200px; height: auto; 
+        background-color: white; border:2px solid grey; z-index:9999; font-size:14px;
+        padding: 10px;">
+    <b>Disease Legend</b><br>
     """
+    
     for dis, col in disease_color_map.items():
         legend_html += f'<i style="background:{col};width:15px;height:15px;display:inline-block;margin-right:5px;"></i>{dis}<br>'
+    
     legend_html += "</div>"
     
+    # Add legend to map
     m.get_root().html.add_child(folium.Element(legend_html))
+
+
+
+
+
+
+
+
+
+    
+    # # Add legend
+    # legend_html = """
+    #  <div style="position: fixed; 
+    #  bottom: 50px; left: 50px; width: 200px; height: auto; 
+    #  background-color: white; border:2px solid grey; z-index:9999; font-size:14px;
+    #  padding: 10px;">
+    #  <b>Disease Legend</b><br>
+    # """
+    # for dis, col in disease_color_map.items():
+    #     legend_html += f'<i style="background:{col};width:15px;height:15px;display:inline-block;margin-right:5px;"></i>{dis}<br>'
+    # legend_html += "</div>"
+    
+    # m.get_root().html.add_child(folium.Element(legend_html))
     
     st_folium(m, width=800, height=450)
 
@@ -319,6 +367,7 @@ else:
     - If data doesn't update automatically, try refreshing the page
     """
     )
+
 
 
 
