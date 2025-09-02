@@ -62,16 +62,18 @@ def reload_data():
     st.session_state.df = load_data()
 
 # -------------------------------
-# Hide Streamlit default UI elements
 hide_code = """
     <style>
-    # [data-testid="stMainMenu"] {display: none;}
-    [data-testid="stToolbar"] {display: none;}
+    /* Hide the default Streamlit menu and footer */
+    #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
-    .st-emotion-cache-1avcm0n {visibility: hidden;}
-    MainMenu {visibility: none;}
-    header {visibility: hidden;}
-    footer {visibility: hidden;}
+    
+    /* Keep the sidebar visible */
+    .st-emotion-cache-1avcm0n {visibility: visible !important;}
+    header {visibility: visible !important;}
+    
+    /* Adjust spacing to account for hidden elements */
+    .stApp {margin-top: -50px;}
     </style>
 """
 st.markdown(hide_code, unsafe_allow_html=True)
@@ -347,6 +349,7 @@ else:
     - If data doesn't update automatically, try refreshing the page
     """
     )
+
 
 
 
