@@ -64,19 +64,22 @@ def reload_data():
 # -------------------------------
 hide_code = """
     <style>
-    /* Hide the default Streamlit menu and footer */
-    MainMenu {visibility: hidden;}
+    /* Hide the Streamlit footer */
     footer {visibility: hidden;}
     
-    /* Keep the sidebar visible */
-    .st-emotion-cache-1avcm0n {visibility: visible !important;}
-    header {visibility: visible !important;}
+    /* Hide top-right toolbar (Share, Code, etc.) */
+    [data-testid="stToolbar"] {visibility: hidden !important;}
     
-    /* Adjust spacing to account for hidden elements */
-    .stApp {margin-top: -50px;}
+    /* Keep the main menu (top-left) visible */
+    #MainMenu {visibility: visible !important;}
+    
+    /* Keep header (Streamlit banner area) visible */
+    header {visibility: visible !important;}
     </style>
 """
+
 st.markdown(hide_code, unsafe_allow_html=True)
+
 
 # -------------------------------
 # Sidebar
@@ -349,6 +352,7 @@ else:
     - If data doesn't update automatically, try refreshing the page
     """
     )
+
 
 
 
