@@ -66,19 +66,29 @@ hide_code = """
     <style>
     /* Hide the Streamlit footer */
     footer {visibility: hidden;}
-    
+
     /* Hide top-right toolbar (Share, Code, etc.) */
     [data-testid="stToolbar"] {visibility: hidden !important;}
-    
+
     /* Keep the main menu (top-left) visible */
     #MainMenu {visibility: visible !important;}
-    
+
     /* Keep header (Streamlit banner area) visible */
     header {visibility: visible !important;}
+
+    /* --- Force sidebar always visible --- */
+    [data-testid="stSidebar"] {
+        visibility: visible !important;
+        transform: none !important;   /* cancel collapse animation */
+    }
+    [data-testid="stSidebarCollapseButton"] {
+        display: none !important;  /* hide the << button */
+    }
     </style>
 """
 
 st.markdown(hide_code, unsafe_allow_html=True)
+
 
 
 # -------------------------------
@@ -352,6 +362,7 @@ else:
     - If data doesn't update automatically, try refreshing the page
     """
     )
+
 
 
 
