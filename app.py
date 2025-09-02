@@ -209,10 +209,17 @@ if menu == "Disease tracker":
         else:
             st.info("No data available for the graph.")
 
-    # Table (kept outside tabs as it was)
+   
     st.markdown("### Surveillance Summary")
     if not df_filtered.empty:
-        st.dataframe(df_filtered[["date", "crop", "disease1", "survey_location", "severity1_percent"]])
+        # Option to show all columns or just selected ones
+        show_all_columns = st.checkbox("Show all columns", value=False)
+        
+        if show_all_columns:
+            st.dataframe(df_filtered)
+        else:
+            st.dataframe(df_filtered[["date", "crop", "disease1", "survey_location", "severity1_percent"]])
+        
         st.download_button(
             "Download CSV",
             df_filtered.to_csv(index=False).encode("utf-8"),
@@ -221,9 +228,8 @@ if menu == "Disease tracker":
         )
     else:
         st.info("No data available for the selected filters.")
-
-# ... (rest of the code remains the same)
-
+    
+    
 # -------------------------------
 # Tag a Disease Page
 elif menu == "Tag a disease":
@@ -344,6 +350,7 @@ else:
     - If data doesn't update automatically, try refreshing the page
     """
     )
+
 
 
 
