@@ -62,29 +62,29 @@ def reload_data():
     st.session_state.df = load_data()
 
 # -------------------------------
-hide_ui = """
-    <style>
-    /* Hide top-right toolbar (Share, Code, etc.) */
-    [data-testid="stToolbar"] {display: none !important;}
+# hide_ui = """
+#     <style>
+#     /* Hide top-right toolbar (Share, Code, etc.) */
+#     [data-testid="stToolbar"] {display: none !important;}
 
-    /* Hide footer */
-    footer {display: none !important;}
+#     /* Hide footer */
+#     footer {display: none !important;}
 
-    /* Keep main menu (hamburger) visible */
-    #MainMenu {visibility: visible !important;}
+#     /* Keep main menu (hamburger) visible */
+#     #MainMenu {visibility: visible !important;}
 
-    /* --- Force sidebar always visible and wide --- */
-    [data-testid="stSidebar"] {
-        min-width: 250px !important;  /* adjust width */
-        max-width: 300px !important;
-    }
+#     /* --- Force sidebar always visible and wide --- */
+#     [data-testid="stSidebar"] {
+#         min-width: 250px !important;  /* adjust width */
+#         max-width: 300px !important;
+#     }
 
-    /* Optional: prevent collapse completely */
-    [data-testid="stSidebarCollapseButton"] {
-        display: none !important;
-    }
-</style>
-"""
+#     /* Optional: prevent collapse completely */
+#     [data-testid="stSidebarCollapseButton"] {
+#         display: none !important;
+#     }
+# </style>
+# """
 
 fix_sidebar_overlap = """
 <style>
@@ -387,6 +387,7 @@ else:
     - If data doesn't update automatically, try refreshing the page
     """
     )
+
 
 
 
