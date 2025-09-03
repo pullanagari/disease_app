@@ -112,7 +112,7 @@ fix_sidebar_overlap = """
 st.markdown(fix_sidebar_overlap, unsafe_allow_html=True)
 
 
-# st.markdown(hide_ui, unsafe_allow_html=True)
+st.markdown(hide_ui, unsafe_allow_html=True)
 st.sidebar.markdown("## 🌾 South Australia Disease Surveillance")
 menu = st.sidebar.radio("Navigation", ["Disease tracker", "Tag a disease", "About"])
 
@@ -387,6 +387,7 @@ else:
     - If data doesn't update automatically, try refreshing the page
     """
     )
+
 
 
 
