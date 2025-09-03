@@ -246,7 +246,10 @@ elif menu == "Tag a disease":
                                                   "Eye spot", "Black point", "Smut", "Spot form net blotch", "Net form net blotch", "Scald", "Red Leather Leaf",
                                                   "Septoria avenae blotch", "Bacterial blight", "Ascochyta Blight", "Botrytis Grey Mold", "Sclerotinia white mould", 
                                                   "Chocolate Spot","Cercospora leaf spot", "Downy mildew","Black Spot", "Root Disease" "Virus", "Blackleg", "Other"])
-            disease2 = st.selectbox("Disease 2", ["None"] + ["Stripe rust", "Leaf rust", "Blackleg"])
+            disease2 = st.selectbox("Disease 2", ["None"] + ["Stripe rust", "Leaf rust", "Stem rust", "Septoria tritici blotch", "Yellow leaf spot", "Powdery mildew", 
+                                                  "Eye spot", "Black point", "Smut", "Spot form net blotch", "Net form net blotch", "Scald", "Red Leather Leaf",
+                                                  "Septoria avenae blotch", "Bacterial blight", "Ascochyta Blight", "Botrytis Grey Mold", "Sclerotinia white mould", 
+                                                  "Chocolate Spot","Cercospora leaf spot", "Downy mildew","Black Spot", "Root Disease" "Virus", "Blackleg", "Other"])
             severity1 = st.slider("Severity 1 (%)", 0, 100, 0)
             severity2 = st.slider("Severity 2 (%)", 0, 100, 0)
             latitude = st.text_input("Latitude", "-36.76")
@@ -352,6 +355,7 @@ else:
     - If data doesn't update automatically, try refreshing the page
     """
     )
+
 
 
 
