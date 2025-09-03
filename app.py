@@ -108,6 +108,31 @@ force_sidebar_mobile = """
 """
 st.markdown(force_sidebar_mobile, unsafe_allow_html=True)
 
+fix_sidebar_overlap = """
+<style>
+/* Ensure sidebar does not overlap main content */
+@media (max-width: 768px) {
+    [data-testid="stSidebar"] {
+        position: fixed !important;
+        left: 0;
+        top: 0;
+        height: 100%;
+        z-index: 100;
+        transform: none !important;
+        visibility: visible !important;
+        display: block !important;
+        width: 250px !important;  /* adjust width */
+    }
+
+    /* Push main content to the right of the sidebar */
+    [data-testid="stAppViewContainer"] {
+        margin-left: 250px !important;  /* same as sidebar width */
+    }
+}
+</style>
+"""
+st.markdown(fix_sidebar_overlap, unsafe_allow_html=True)
+
 st.markdown(hide_ui, unsafe_allow_html=True)
 st.sidebar.markdown("## 🌾 South Australia Disease Surveillance")
 menu = st.sidebar.radio("Navigation", ["Disease tracker", "Tag a disease", "About"])
@@ -383,6 +408,7 @@ else:
     - If data doesn't update automatically, try refreshing the page
     """
     )
+
 
 
 
