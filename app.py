@@ -62,57 +62,22 @@ def reload_data():
     st.session_state.df = load_data()
 
 # -------------------------------
-hide_ui = """
-    <style>
-    /* Hide top-right toolbar (Share, Code, etc.) */
-    [data-testid="stToolbar"] {display: none !important;}
-
-    /* Hide footer */
-    footer {display: none !important;}
-
-    /* Keep main menu (hamburger) visible */
-    #MainMenu {visibility: visible !important;}
-
-    /* --- Force sidebar always visible and wide --- */
-    [data-testid="stSidebar"] {
-        min-width: 250px !important;  /* adjust width */
-        max-width: 300px !important;
-    }
-
-    /* Optional: prevent collapse completely */
-    [data-testid="stSidebarCollapseButton"] {
-        display: none !important;
-    }
-</style>
-"""
-
-fix_sidebar_overlap = """
+sidebar_mobile_friendly = """
 <style>
-/* Ensure sidebar does not overlap main content */
-@media (max-width: 768px) {
-    [data-testid="stSidebar"] {
-        position: fixed !important;
-        left: 0;
-        top: 0;
-        height: 100%;
-        z-index: 100;
-        transform: none !important;
-        visibility: visible !important;
-        display: block !important;
-        width: 250px !important;  /* adjust width */
-    }
+/* Prevent sidebar from collapsing but don’t fix it */
+[data-testid="stSidebarCollapseButton"] {
+    display: none !important;
+}
 
-    /* Push main content to the right of the sidebar */
-    [data-testid="stAppViewContainer"] {
-        margin-left: 250px !important;  /* same as sidebar width */
-    }
+/* Optional: control sidebar width */
+[data-testid="stSidebar"] {
+    min-width: 250px !important;
+    max-width: 300px !important;
 }
 </style>
 """
-st.markdown(fix_sidebar_overlap, unsafe_allow_html=True)
+st.markdown(sidebar_mobile_friendly, unsafe_allow_html=True)
 
-
-st.markdown(hide_ui, unsafe_allow_html=True)
 st.sidebar.markdown("## 🌾 South Australia Disease Surveillance")
 menu = st.sidebar.radio("Navigation", ["Disease tracker", "Tag a disease", "About"])
 
@@ -387,6 +352,7 @@ else:
     - If data doesn't update automatically, try refreshing the page
     """
     )
+
 
 
 
