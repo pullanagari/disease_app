@@ -85,6 +85,28 @@ hide_ui = """
     }
 </style>
 """
+force_sidebar_mobile = """
+<style>
+/* Force sidebar visible on mobile */
+@media (max-width: 768px) {
+    [data-testid="stSidebar"] {
+        display: block !important;
+        visibility: visible !important;
+        transform: none !important;
+        position: fixed !important;
+        top: 0;
+        left: 0;
+        height: 100%;
+        z-index: 999;
+    }
+    /* Hide collapse button */
+    [data-testid="stSidebarCollapseButton"] {
+        display: none !important;
+    }
+}
+</style>
+"""
+st.markdown(force_sidebar_mobile, unsafe_allow_html=True)
 
 st.markdown(hide_ui, unsafe_allow_html=True)
 st.sidebar.markdown("## 🌾 South Australia Disease Surveillance")
@@ -361,6 +383,7 @@ else:
     - If data doesn't update automatically, try refreshing the page
     """
     )
+
 
 
 
