@@ -179,7 +179,7 @@ if menu == "Disease tracker":
         # m.get_root().html.add_child(folium.Element(legend_html))
     
         # ✅ Render the map only once
-        # st_folium(m, width=800, height=450)
+        st_folium(m, width=800, height=450)
 
     with tab2:
         st.markdown("### Disease Severity Graph")
@@ -361,6 +361,7 @@ else:
     - If data doesn't update automatically, try refreshing the page
     """
     )
+
 
 
 
