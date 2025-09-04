@@ -137,7 +137,7 @@ if menu == "Disease tracker":
         # ✅ Create the map only once
         m = folium.Map(location=[-36.76, 142.21], zoom_start=6)
     
-        # ✅ Add markers for filtered rows
+        # ✅ Add markers
         for _, row in df_filtered.iterrows():
             if not pd.isna(row["latitude"]) and not pd.isna(row["longitude"]):
                 popup_text = f"{row.get('survey_location', 'Unknown')}"
@@ -164,52 +164,7 @@ if menu == "Disease tracker":
                     popup=popup_text,
                 ).add_to(m)
     
-        # ✅ Render the map only once
-        st_folium(m, width=800, height=450)
-
-    # with tab1:
-    #     st.markdown("### Map View")
-    #     unique_diseases = df["disease1"].dropna().unique()
-    #     disease_colors = px.colors.qualitative.Set3[:len(unique_diseases)]
-    #     disease_color_map = dict(zip(unique_diseases, disease_colors))
-
-    #     m = folium.Map(location=[-36.76, 142.21], zoom_start=6)
-        
-    #     # Add markers
-    #      # Add markers
-    # # Add markers
-    # for _, row in df_filtered.iterrows():
-    #     if not pd.isna(row["latitude"]) and not pd.isna(row["longitude"]):
-    #         popup_text = f"{row.get('survey_location', 'Unknown')}"
-            
-    #         # ✅ Disease1 with severity in brackets
-    #         if not pd.isna(row.get("disease1")):
-    #             if not pd.isna(row.get("severity1_percent")):
-    #                 popup_text += f" | Disease1: {row['disease1']} ({row['severity1_percent']}%)"
-    #             else:
-    #                 popup_text += f" | Disease1: {row['disease1']}"
-    
-    #         # ✅ Disease2 with severity in brackets
-    #         if not pd.isna(row.get("disease2")) and row["disease2"] != "":
-    #             if not pd.isna(row.get("severity2_percent")):
-    #                 popup_text += f" | Disease2: {row['disease2']} ({row['severity2_percent']}%)"
-    #             else:
-    #                 popup_text += f" | Disease2: {row['disease2']}"
-    
-    #         # ✅ Color still based on disease1
-    #         color = disease_color_map.get(row["disease1"], "gray")
-    #         folium.CircleMarker(
-    #             location=[row["latitude"], row["longitude"]],
-    #             radius=6,
-    #             color=color,
-    #             fill=True,
-    #             fill_color=color,
-    #             popup=popup_text,
-    #         ).add_to(m)
-
-
-        
-        # Create dynamic legend HTML
+        # ✅ Add legend if you want
         legend_html = """
         <div style="
             position: fixed; 
@@ -218,15 +173,12 @@ if menu == "Disease tracker":
             padding: 10px;">
         <b>Disease Legend</b><br>
         """
-        
-        # for dis, col in disease_color_map.items():
-        #     legend_html += f'<i style="background:{col};width:15px;height:15px;display:inline-block;margin-right:5px;"></i>{dis}<br>'
-        
-        # legend_html += "</div>"
-        
-        # # Add legend to map
-        # m.get_root().html.add_child(folium.Element(legend_html))
-        
+        for dis, col in disease_color_map.items():
+            legend_html += f'<i style="background:{col};width:15px;height:15px;display:inline-block;margin-right:5px;"></i>{dis}<br>'
+        legend_html += "</div>"
+        m.get_root().html.add_child(folium.Element(legend_html))
+    
+        # ✅ Render the map only once
         st_folium(m, width=800, height=450)
 
     with tab2:
@@ -409,6 +361,7 @@ else:
     - If data doesn't update automatically, try refreshing the page
     """
     )
+
 
 
 
