@@ -138,32 +138,32 @@ if menu == "Disease tracker":
         
         # Add markers
          # Add markers
-for _, row in df_filtered.iterrows():
-    if not pd.isna(row["latitude"]) and not pd.isna(row["longitude"]):
-        popup_text = f"{row.get('survey_location', 'Unknown')}"
-        
-        # ✅ Add disease name(s)
-        if not pd.isna(row.get("disease1")):
-            popup_text += f" | Disease1: {row['disease1']}"
-        if not pd.isna(row.get("disease2")) and row["disease2"] != "":
-            popup_text += f" | Disease2: {row['disease2']}"
-
-        # ✅ Add severity % values
-        if not pd.isna(row.get("severity1_percent")):
-            popup_text += f" | Severity1: {row['severity1_percent']}%"
-        if not pd.isna(row.get("severity2_percent")):
-            popup_text += f" | Severity2: {row['severity2_percent']}%"
-
-        # ✅ Color still based on disease1
-        color = disease_color_map.get(row["disease1"], "gray")
-        folium.CircleMarker(
-            location=[row["latitude"], row["longitude"]],
-            radius=6,
-            color=color,
-            fill=True,
-            fill_color=color,
-            popup=popup_text,
-        ).add_to(m)
+    for _, row in df_filtered.iterrows():
+        if not pd.isna(row["latitude"]) and not pd.isna(row["longitude"]):
+            popup_text = f"{row.get('survey_location', 'Unknown')}"
+            
+            # ✅ Add disease name(s)
+            if not pd.isna(row.get("disease1")):
+                popup_text += f" | Disease1: {row['disease1']}"
+            if not pd.isna(row.get("disease2")) and row["disease2"] != "":
+                popup_text += f" | Disease2: {row['disease2']}"
+    
+            # ✅ Add severity % values
+            if not pd.isna(row.get("severity1_percent")):
+                popup_text += f" | Severity1: {row['severity1_percent']}%"
+            if not pd.isna(row.get("severity2_percent")):
+                popup_text += f" | Severity2: {row['severity2_percent']}%"
+    
+            # ✅ Color still based on disease1
+            color = disease_color_map.get(row["disease1"], "gray")
+            folium.CircleMarker(
+                location=[row["latitude"], row["longitude"]],
+                radius=6,
+                color=color,
+                fill=True,
+                fill_color=color,
+                popup=popup_text,
+            ).add_to(m)
 
         
         # Create dynamic legend HTML
@@ -366,6 +366,7 @@ else:
     - If data doesn't update automatically, try refreshing the page
     """
     )
+
 
 
 
