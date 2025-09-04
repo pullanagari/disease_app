@@ -128,44 +128,44 @@ if menu == "Disease tracker":
     # Create tabs for Map and Graph
     tab1, tab2 = st.tabs(["🗺️ Map", "📊 Graph"])
     with tab1:
-    st.markdown("### Map View")
-
-    unique_diseases = df["disease1"].dropna().unique()
-    disease_colors = px.colors.qualitative.Set3[:len(unique_diseases)]
-    disease_color_map = dict(zip(unique_diseases, disease_colors))
-
-    # ✅ Create the map only once
-    m = folium.Map(location=[-36.76, 142.21], zoom_start=6)
-
-    # ✅ Add markers for filtered rows
-    for _, row in df_filtered.iterrows():
-        if not pd.isna(row["latitude"]) and not pd.isna(row["longitude"]):
-            popup_text = f"{row.get('survey_location', 'Unknown')}"
-
-            if not pd.isna(row.get("disease1")):
-                if not pd.isna(row.get("severity1_percent")):
-                    popup_text += f" | Disease1: {row['disease1']} ({row['severity1_percent']}%)"
-                else:
-                    popup_text += f" | Disease1: {row['disease1']}"
-
-            if not pd.isna(row.get("disease2")) and row["disease2"] != "":
-                if not pd.isna(row.get("severity2_percent")):
-                    popup_text += f" | Disease2: {row['disease2']} ({row['severity2_percent']}%)"
-                else:
-                    popup_text += f" | Disease2: {row['disease2']}"
-
-            color = disease_color_map.get(row["disease1"], "gray")
-            folium.CircleMarker(
-                location=[row["latitude"], row["longitude"]],
-                radius=6,
-                color=color,
-                fill=True,
-                fill_color=color,
-                popup=popup_text,
-            ).add_to(m)
-
-    # ✅ Render the map only once
-    st_folium(m, width=800, height=450)
+        st.markdown("### Map View")
+    
+        unique_diseases = df["disease1"].dropna().unique()
+        disease_colors = px.colors.qualitative.Set3[:len(unique_diseases)]
+        disease_color_map = dict(zip(unique_diseases, disease_colors))
+    
+        # ✅ Create the map only once
+        m = folium.Map(location=[-36.76, 142.21], zoom_start=6)
+    
+        # ✅ Add markers for filtered rows
+        for _, row in df_filtered.iterrows():
+            if not pd.isna(row["latitude"]) and not pd.isna(row["longitude"]):
+                popup_text = f"{row.get('survey_location', 'Unknown')}"
+    
+                if not pd.isna(row.get("disease1")):
+                    if not pd.isna(row.get("severity1_percent")):
+                        popup_text += f" | Disease1: {row['disease1']} ({row['severity1_percent']}%)"
+                    else:
+                        popup_text += f" | Disease1: {row['disease1']}"
+    
+                if not pd.isna(row.get("disease2")) and row["disease2"] != "":
+                    if not pd.isna(row.get("severity2_percent")):
+                        popup_text += f" | Disease2: {row['disease2']} ({row['severity2_percent']}%)"
+                    else:
+                        popup_text += f" | Disease2: {row['disease2']}"
+    
+                color = disease_color_map.get(row["disease1"], "gray")
+                folium.CircleMarker(
+                    location=[row["latitude"], row["longitude"]],
+                    radius=6,
+                    color=color,
+                    fill=True,
+                    fill_color=color,
+                    popup=popup_text,
+                ).add_to(m)
+    
+        # ✅ Render the map only once
+        st_folium(m, width=800, height=450)
 
     # with tab1:
     #     st.markdown("### Map View")
@@ -409,6 +409,7 @@ else:
     - If data doesn't update automatically, try refreshing the page
     """
     )
+
 
 
 
