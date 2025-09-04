@@ -165,21 +165,21 @@ if menu == "Disease tracker":
                 ).add_to(m)
     
         # ✅ Add legend if you want
-        legend_html = """
-        <div style="
-            position: fixed; 
-            bottom: 50px; left: 50px; width: 200px; height: auto; 
-            background-color: white; border:2px solid grey; z-index:9999; font-size:14px;
-            padding: 10px;">
-        <b>Disease Legend</b><br>
-        """
-        for dis, col in disease_color_map.items():
-            legend_html += f'<i style="background:{col};width:15px;height:15px;display:inline-block;margin-right:5px;"></i>{dis}<br>'
-        legend_html += "</div>"
-        m.get_root().html.add_child(folium.Element(legend_html))
+        # legend_html = """
+        # <div style="
+        #     position: fixed; 
+        #     bottom: 50px; left: 50px; width: 200px; height: auto; 
+        #     background-color: white; border:2px solid grey; z-index:9999; font-size:14px;
+        #     padding: 10px;">
+        # <b>Disease Legend</b><br>
+        # """
+        # for dis, col in disease_color_map.items():
+        #     legend_html += f'<i style="background:{col};width:15px;height:15px;display:inline-block;margin-right:5px;"></i>{dis}<br>'
+        # legend_html += "</div>"
+        # m.get_root().html.add_child(folium.Element(legend_html))
     
         # ✅ Render the map only once
-        st_folium(m, width=800, height=450)
+        # st_folium(m, width=800, height=450)
 
     with tab2:
         st.markdown("### Disease Severity Graph")
@@ -361,6 +361,7 @@ else:
     - If data doesn't update automatically, try refreshing the page
     """
     )
+
 
 
 
