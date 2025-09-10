@@ -17,6 +17,16 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
+# Hide GitHub logo / link in the header
+hide_github_logo = """
+<style>
+a[href*="github.com"] {
+    display: none !important;
+}
+</style>
+"""
+st.markdown(hide_github_logo, unsafe_allow_html=True)
+
 
 
 # -------------------------------
@@ -35,15 +45,6 @@ def load_css():
 
 load_css()
 
-# Hide GitHub logo / link in the header
-hide_github_logo = """
-<style>
-a[href*="github.com"] {
-    display: none !important;
-}
-</style>
-"""
-st.markdown(hide_github_logo, unsafe_allow_html=True)
 
 
 # -------------------------------
@@ -413,6 +414,7 @@ else:
     - You can download your data using the export feature on the "Tag a disease" page
     """
     )
+
 
 
 
