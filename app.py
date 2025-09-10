@@ -16,33 +16,26 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# -------------------------------
-# Hide GitHub link and other Streamlit elements
-hide_streamlit_style = """
+# Alternative CSS to hide GitHub link
+hide_github_link_style = """
     <style>
-    /* Hide GitHub link */
-    .stApp > header {
+    /* Hide GitHub button */
+    .stApp > div > div > div > div > div > section > div > div:nth-child(1) > div > div:nth-child(3) > div {
         display: none;
     }
     
-    /* Hide hamburger menu */
-    #MainMenu {
-        visibility: hidden;
+    /* Adjust layout to account for removed element */
+    .stApp > div > div > div > div > div > section > div > div:nth-child(1) > div {
+        justify-content: flex-start !important;
     }
     
-    /* Hide footer */
-    footer {
-        visibility: hidden;
-    }
-    
-    /* Hide the Streamlit branding */
-    #root > div:nth-child(1) > div > div > div > div > section > div {
-        padding-top: 0rem;
+    /* Hide menu button if needed */
+    .stApp > div > div > div > div > div > section > div > div:nth-child(1) > div > div:nth-child(1) > button {
+        display: none;
     }
     </style>
 """
-st.markdown(hide_streamlit_style, unsafe_allow_html=True)
-
+st.markdown(hide_github_link_style, unsafe_allow_html=True)
 # -------------------------------
 # Setup
 csv_url = "https://raw.githubusercontent.com/pullanagari/Disease_app/main/data_temp.csv"
@@ -426,5 +419,6 @@ else:
     - You can download your data using the export feature on the "Tag a disease" page
     """
     )
+
 
 
