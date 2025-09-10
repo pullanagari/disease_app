@@ -18,6 +18,17 @@ st.set_page_config(
 )
 
 # -------------------------------
+# Hide GitHub link
+hide_github_link_style = """
+    <style>
+    .stApp a[title='View on GitHub'] {
+        display: none;
+    }
+    </style>
+"""
+st.markdown(hide_github_link_style, unsafe_allow_html=True)
+
+# -------------------------------
 # Setup
 csv_url = "https://raw.githubusercontent.com/pullanagari/Disease_app/main/data_temp.csv"
 
@@ -32,6 +43,7 @@ def load_css():
             st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
 
 load_css()
+
 
 # -------------------------------
 # Improved data persistence functions
@@ -400,3 +412,4 @@ else:
     - You can download your data using the export feature on the "Tag a disease" page
     """
     )
+
