@@ -9,7 +9,6 @@ from PIL import Image
 import json
 import requests
 
-# -------------------------------
 # Page config (must be before any Streamlit UI code)
 st.set_page_config(
     page_title="South Australia Disease Surveillance",
@@ -18,15 +17,31 @@ st.set_page_config(
 )
 
 # -------------------------------
-# Hide GitHub link
-hide_github_link_style = """
+# Hide GitHub link and other Streamlit elements
+hide_streamlit_style = """
     <style>
-    .stApp a[title='View on GitHub'] {
+    /* Hide GitHub link */
+    .stApp > header {
         display: none;
+    }
+    
+    /* Hide hamburger menu */
+    #MainMenu {
+        visibility: hidden;
+    }
+    
+    /* Hide footer */
+    footer {
+        visibility: hidden;
+    }
+    
+    /* Hide the Streamlit branding */
+    #root > div:nth-child(1) > div > div > div > div > section > div {
+        padding-top: 0rem;
     }
     </style>
 """
-st.markdown(hide_github_link_style, unsafe_allow_html=True)
+st.markdown(hide_streamlit_style, unsafe_allow_html=True)
 
 # -------------------------------
 # Setup
@@ -43,7 +58,6 @@ def load_css():
             st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
 
 load_css()
-
 
 # -------------------------------
 # Improved data persistence functions
@@ -412,4 +426,5 @@ else:
     - You can download your data using the export feature on the "Tag a disease" page
     """
     )
+
 
