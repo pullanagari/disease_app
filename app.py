@@ -6,9 +6,8 @@ from streamlit_folium import st_folium
 from datetime import datetime
 import os
 from PIL import Image
-import json
-import requests
 
+# -------------------------------
 # Page config (must be before any Streamlit UI code)
 st.set_page_config(
     page_title="South Australia Disease Surveillance",
@@ -16,26 +15,6 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Alternative CSS to hide GitHub link
-hide_github_link_style = """
-    <style>
-    /* Hide GitHub button */
-    .stApp > div > div > div > div > div > section > div > div:nth-child(1) > div > div:nth-child(3) > div {
-        display: none;
-    }
-    
-    /* Adjust layout to account for removed element */
-    .stApp > div > div > div > div > div > section > div > div:nth-child(1) > div {
-        justify-content: flex-start !important;
-    }
-    
-    /* Hide menu button if needed */
-    .stApp > div > div > div > div > div > section > div > div:nth-child(1) > div > div:nth-child(1) > button {
-        display: none;
-    }
-    </style>
-"""
-st.markdown(hide_github_link_style, unsafe_allow_html=True)
 # -------------------------------
 # Setup
 csv_url = "https://raw.githubusercontent.com/pullanagari/Disease_app/main/data_temp.csv"
@@ -51,6 +30,48 @@ def load_css():
             st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
 
 load_css()
+
+# -------------------------------
+# Hide GitHub link and other Streamlit elements
+hide_github_style = """
+    <style>
+    /* Hide GitHub link */
+    .stApp a[href*='github.com'] {
+        display: none !important;
+    }
+    
+    /* Hide the menu button */
+    #MainMenu {
+        visibility: hidden;
+    }
+    
+    /* Hide the footer */
+    footer {
+        visibility: hidden;
+    }
+    
+    /* Hide the Streamlit branding */
+    .stApp > header:first-of-type {
+        display: none !important;
+    }
+    
+    /* Adjust layout to account for removed elements */
+    .stApp > div:first-of-type {
+        padding-top: 0rem;
+    }
+    
+    /* Specific targeting for GitHub button in newer Streamlit versions */
+    div[data-testid="stToolbar"] {
+        display: none !important;
+    }
+    
+    /* Hide the "deployed with Streamlit" text */
+    .stApp > footer:first-of-type {
+        display: none !important;
+    }
+    </style>
+"""
+st.markdown(hide_github_style, unsafe_allow_html=True)
 
 # -------------------------------
 # Improved data persistence functions
@@ -419,6 +440,3 @@ else:
     - You can download your data using the export feature on the "Tag a disease" page
     """
     )
-
-
-
