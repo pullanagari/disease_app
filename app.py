@@ -11,11 +11,23 @@ import requests
 
 # -------------------------------
 # Page config (must be before any Streamlit UI code)
+# st.set_page_config(
+#     page_title="South Australia Disease Surveillance",
+#     layout="wide",
+#     initial_sidebar_state="expanded"
+# )
+
 st.set_page_config(
     page_title="South Australia Disease Surveillance",
     layout="wide",
-    initial_sidebar_state="expanded"
+    initial_sidebar_state="expanded",
+    menu_items={   # 👈 Add this block
+        "Get Help": None,
+        "Report a bug": None,
+        "About": None
+    }
 )
+
 
 # -------------------------------
 # Setup
@@ -400,4 +412,5 @@ else:
     - You can download your data using the export feature on the "Tag a disease" page
     """
     )
+
 
