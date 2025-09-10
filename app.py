@@ -6,6 +6,8 @@ from streamlit_folium import st_folium
 from datetime import datetime
 import os
 from PIL import Image
+import json
+import requests
 
 # -------------------------------
 # Page config (must be before any Streamlit UI code)
@@ -31,27 +33,57 @@ def load_css():
 
 load_css()
 
+# -------------------------------
+# Improved data persistence functions
+def get_local_data_path():
+    """Get the path to the local data file with proper handling for cloud deployments"""
+    return os.path.join("data", "local_disease_data.csv")
 
-# Load custom JavaScript
-# def load_js():
-#     with open("script.js") as f:
-#         st.markdown(f'<script>{f.read()}</script>', unsafe_allow_html=True)
+def save_local_data(df):
+    """Save local data with error handling"""
+    try:
+        local_path = get_local_data_path()
+        df.to_csv(local_path, index=False)
+        return True
+    except Exception as e:
+        st.error(f"Error saving data: {e}")
+        return False
 
-# load_js()
+def load_local_data():
+    """Load local data with error handling"""
+    local_path = get_local_data_path()
+    if os.path.exists(local_path):
+        try:
+            return pd.read_csv(local_path)
+        except Exception as e:
+            st.error(f"Error loading local data: {e}")
+            return pd.DataFrame()
+    return pd.DataFrame()
+
 # -------------------------------
 # Load data with caching
 @st.cache_data(ttl=300)  # Cache for 5 minutes
 def load_data():
-    df_main = pd.read_csv(csv_url)
+    try:
+        df_main = pd.read_csv(csv_url)
+    except Exception as e:
+        st.error(f"Error loading remote data: {e}")
+        df_main = pd.DataFrame()
 
-    local_csv_path = "data/local_disease_data.csv"
-    if os.path.exists(local_csv_path):
-        df_local = pd.read_csv(local_csv_path)
+    df_local = load_local_data()
+    
+    if not df_local.empty and not df_main.empty:
         df_combined = pd.concat([df_main, df_local], ignore_index=True)
-    else:
+    elif not df_local.empty:
+        df_combined = df_local
+    elif not df_main.empty:
         df_combined = df_main
+    else:
+        df_combined = pd.DataFrame()
 
-    df_combined["date"] = pd.to_datetime(df_combined["date"], errors="coerce", dayfirst=True)
+    if not df_combined.empty:
+        df_combined["date"] = pd.to_datetime(df_combined["date"], errors="coerce", dayfirst=True)
+    
     return df_combined
 
 # Initialize session state
@@ -59,12 +91,14 @@ if "df" not in st.session_state:
     st.session_state.df = load_data()
 
 def reload_data():
+    st.cache_data.clear()
     st.session_state.df = load_data()
+    st.success("Data reloaded!")
 
 # -------------------------------
 sidebar_mobile_friendly = """
 <style>
-/* Prevent sidebar from collapsing but don’t fix it */
+/* Prevent sidebar from collapsing but don't fix it */
 [data-testid="stSidebarCollapseButton"] {
     display: none !important;
 }
@@ -84,17 +118,29 @@ menu = st.sidebar.radio("Navigation", ["Disease tracker", "Tag a disease", "Abou
 # Refresh button
 if st.sidebar.button("🔄 Refresh Data"):
     reload_data()
-    st.sidebar.success("Data refreshed!")
 
 # Make sure df exists in session state
 if "df" not in st.session_state:
-    st.session_state.df = None
+    st.session_state.df = pd.DataFrame()
 df = st.session_state.df
 
 # -------------------------------
 # Disease Tracker Page
 if menu == "Disease tracker":
     st.markdown("## 🗺 Disease Tracker")
+
+    # Check if we have data
+    if df.empty:
+        st.warning("No data available. Please check your data sources.")
+        st.stop()
+    
+    # Ensure we have the required columns
+    required_columns = ["date", "crop", "disease1", "severity1_percent", "latitude", "longitude", "survey_location"]
+    missing_columns = [col for col in required_columns if col not in df.columns]
+    
+    if missing_columns:
+        st.error(f"Missing required columns in data: {missing_columns}")
+        st.stop()
 
     col1, col2, col3 = st.columns([1.5, 1, 1])
     with col1:
@@ -134,10 +180,10 @@ if menu == "Disease tracker":
         disease_colors = px.colors.qualitative.Set3[:len(unique_diseases)]
         disease_color_map = dict(zip(unique_diseases, disease_colors))
     
-        # ✅ Create the map only once
+        # Create the map only once
         m = folium.Map(location=[-36.76, 142.21], zoom_start=6)
     
-        # ✅ Add markers
+        # Add markers
         for _, row in df_filtered.iterrows():
             if not pd.isna(row["latitude"]) and not pd.isna(row["longitude"]):
                 popup_text = f"{row.get('survey_location', 'Unknown')}"
@@ -164,21 +210,7 @@ if menu == "Disease tracker":
                     popup=popup_text,
                 ).add_to(m)
     
-        # ✅ Add legend if you want
-        # legend_html = """
-        # <div style="
-        #     position: fixed; 
-        #     bottom: 50px; left: 50px; width: 200px; height: auto; 
-        #     background-color: white; border:2px solid grey; z-index:9999; font-size:14px;
-        #     padding: 10px;">
-        # <b>Disease Legend</b><br>
-        # """
-        # for dis, col in disease_color_map.items():
-        #     legend_html += f'<i style="background:{col};width:15px;height:15px;display:inline-block;margin-right:5px;"></i>{dis}<br>'
-        # legend_html += "</div>"
-        # m.get_root().html.add_child(folium.Element(legend_html))
-    
-        # ✅ Render the map only once
+        # Render the map
         st_folium(m, width=800, height=450)
 
     with tab2:
@@ -235,8 +267,6 @@ if menu == "Disease tracker":
     
 # -------------------------------
 # Tag a Disease Page
-# After submission/export section
-
 elif menu == "Tag a disease":
     st.markdown("## 📌 Tag a Disease")
 
@@ -260,8 +290,6 @@ elif menu == "Tag a disease":
             severity2 = st.slider("Severity 2 (%)", 0, 100, 0)
             latitude = st.text_input("Latitude", "-36.76")
             longitude = st.text_input("Longitude", "142.21")
-            # latitude = st.number_input("Latitude", value=-36.76, step=0.01)
-            # longitude = st.number_input("Longitude", value=142.21, step=0.01)
         location = st.text_input("Location (Suburb)", "")
         field_type = st.text_input("Field Type", "")
         agronomist = st.text_input("Agronomist", "")
@@ -274,72 +302,79 @@ elif menu == "Tag a disease":
         submitted = st.form_submit_button("Submit")
 
         if submitted:
-            photo_filename = None
-            if uploaded_file is not None:
-                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-                file_extension = uploaded_file.name.split(".")[-1]
-                photo_filename = f"disease_photo_{timestamp}.{file_extension}"
-                with open(os.path.join("uploads", photo_filename), "wb") as f:
-                    f.write(uploaded_file.getbuffer())
-
-            if disease2 == "None":
-                disease2 = ""
-                severity2 = 0
-
-            new_record = {
-                "date": date.strftime("%d/%m/%Y"),
-                "collector_name": collector,
-                "field_type": field_type,
-                "Agronomist": agronomist,
-                "crop": crop,
-                "variety": variety,
-                "plant_stage": plant_stage,
-                "disease1": disease1,
-                "disease2": disease2,
-                "severity1_percent": severity1,
-                "severity2_percent": severity2,
-                "latitude": latitude,
-                "longitude": longitude,
-                "survey_location": location,
-                "photo_filename": photo_filename if photo_filename else "",
-            }
-
-            new_df = pd.DataFrame([new_record])
-            local_csv_path = "data/local_disease_data.csv"
-            if os.path.exists(local_csv_path):
-                new_df.to_csv(local_csv_path, mode="a", header=False, index=False)
+            # Validate required fields
+            if not all([crop, disease1, location]):
+                st.error("Please fill in all required fields: Crop, Disease 1, and Location")
             else:
-                new_df.to_csv(local_csv_path, mode="w", header=True, index=False)
+                photo_filename = None
+                if uploaded_file is not None:
+                    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                    file_extension = uploaded_file.name.split(".")[-1]
+                    photo_filename = f"disease_photo_{timestamp}.{file_extension}"
+                    with open(os.path.join("uploads", photo_filename), "wb") as f:
+                        f.write(uploaded_file.getbuffer())
 
-            st.cache_data.clear()
-            reload_data()
+                if disease2 == "None":
+                    disease2 = ""
+                    severity2 = 0
 
-            st.success("✅ Submission successful! Data saved to CSV.")
+                new_record = {
+                    "date": date.strftime("%d/%m/%Y"),
+                    "collector_name": collector,
+                    "field_type": field_type,
+                    "Agronomist": agronomist,
+                    "crop": crop,
+                    "variety": variety,
+                    "plant_stage": plant_stage,
+                    "disease1": disease1,
+                    "disease2": disease2,
+                    "severity1_percent": severity1,
+                    "severity2_percent": severity2,
+                    "latitude": float(latitude) if latitude else -36.76,
+                    "longitude": float(longitude) if longitude else 142.21,
+                    "survey_location": location,
+                    "photo_filename": photo_filename if photo_filename else "",
+                }
 
-            if uploaded_file is not None:
-                st.markdown("**Uploaded Photo Preview:**")
-                image = Image.open(uploaded_file)
-                st.image(image, caption="Disease Photo", use_column_width=True)
+                # Load existing local data
+                local_data = load_local_data()
+                
+                # Append new record
+                new_df = pd.DataFrame([new_record])
+                if local_data.empty:
+                    updated_data = new_df
+                else:
+                    updated_data = pd.concat([local_data, new_df], ignore_index=True)
+                
+                # Save updated data
+                if save_local_data(updated_data):
+                    st.success("✅ Submission successful! Data saved to local storage.")
+                    
+                    # Clear cache and reload data
+                    reload_data()
+                    
+                    if uploaded_file is not None:
+                        st.markdown("**Uploaded Photo Preview:**")
+                        image = Image.open(uploaded_file)
+                        st.image(image, caption="Disease Photo", use_column_width=True)
+                else:
+                    st.error("Failed to save data. Please try again.")
 
     st.markdown("---")
     st.markdown("### Export Data")
-    local_csv_path = "data/local_disease_data.csv"
-    if os.path.exists(local_csv_path):
-        local_data = pd.read_csv(local_csv_path)
-        if not local_data.empty:
-            st.download_button(
-                "Download All Local Data",
-                local_data.to_csv(index=False).encode("utf-8"),
-                "local_disease_data.csv",
-                "text/csv",
-                key="download-csv",
-            )
-            st.markdown("### Local Data Entries")
-            st.dataframe(local_data)
-        else:
-            st.info("No local data entries yet.")
+    local_data = load_local_data()
+    if not local_data.empty:
+        st.download_button(
+            "Download All Local Data",
+            local_data.to_csv(index=False).encode("utf-8"),
+            "local_disease_data.csv",
+            "text/csv",
+            key="download-csv",
+        )
+        st.markdown("### Local Data Entries")
+        st.dataframe(local_data)
     else:
-        st.info("No local data file exists yet.")
+        st.info("No local data entries yet.")
 
 
 # -------------------------------
@@ -359,31 +394,9 @@ else:
     **Tips:**  
     - Use the 'Refresh Data' button in the sidebar to see newly submitted entries  
     - If data doesn't update automatically, try refreshing the page
+    
+    **Data Persistence:**
+    - Your submitted data is now saved to a local file that persists across sessions
+    - You can download your data using the export feature on the "Tag a disease" page
     """
     )
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
