@@ -69,6 +69,39 @@ hide_github_style = """
     .stApp > footer:first-of-type {
         display: none !important;
     }
+    
+    /* Mobile responsive improvements */
+    @media (max-width: 768px) {
+        /* Make sidebar more accessible on mobile */
+        [data-testid="stSidebar"] {
+            width: 100% !important;
+            min-width: 100% !important;
+            max-width: 100% !important;
+        }
+        
+        /* Ensure sidebar content is visible */
+        .sidebar .sidebar-content {
+            padding: 1rem;
+        }
+        
+        /* Make radio buttons more touch-friendly */
+        .stRadio label {
+            padding: 12px 15px;
+            margin-bottom: 8px;
+            font-size: 16px;
+        }
+        
+        /* Adjust main content padding */
+        .main .block-container {
+            padding: 1rem;
+        }
+        
+        /* Make buttons more touch-friendly */
+        .stButton button {
+            width: 100%;
+            padding: 12px;
+        }
+    }
     </style>
 """
 st.markdown(hide_github_style, unsafe_allow_html=True)
@@ -136,23 +169,46 @@ def reload_data():
     st.success("Data reloaded!")
 
 # -------------------------------
-sidebar_mobile_friendly = """
-<style>
-/* Prevent sidebar from collapsing but don't fix it */
-[data-testid="stSidebarCollapseButton"] {
-    display: none !important;
-}
-
-/* Optional: control sidebar width */
-[data-testid="stSidebar"] {
-    min-width: 250px !important;
-    max-width: 300px !important;
-}
-</style>
-"""
-st.markdown(sidebar_mobile_friendly, unsafe_allow_html=True)
-
+# Mobile-friendly sidebar
 st.sidebar.markdown("## 🌾 South Australia Disease Surveillance")
+
+# Add a mobile menu button that's only visible on small screens
+mobile_menu = """
+    <style>
+    @media (min-width: 769px) {
+        .mobile-menu-btn {
+            display: none;
+        }
+    }
+    @media (max-width: 768px) {
+        .mobile-menu-btn {
+            display: block;
+            width: 100%;
+            margin-bottom: 10px;
+            padding: 12px;
+            background-color: #f0f2f6;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            text-align: center;
+            font-weight: bold;
+        }
+    }
+    </style>
+    <button class="mobile-menu-btn" onclick="toggleSidebar()">☰ Menu</button>
+    <script>
+    function toggleSidebar() {
+        const sidebar = document.querySelector('[data-testid="stSidebar"]');
+        if (sidebar.style.display === 'none') {
+            sidebar.style.display = 'block';
+        } else {
+            sidebar.style.display = 'none';
+        }
+    }
+    </script>
+"""
+st.sidebar.markdown(mobile_menu, unsafe_allow_html=True)
+
+# Navigation options
 menu = st.sidebar.radio("Navigation", ["Disease tracker", "Tag a disease", "About"])
 
 # Refresh button
@@ -182,7 +238,8 @@ if menu == "Disease tracker":
         st.error(f"Missing required columns in data: {missing_columns}")
         st.stop()
 
-    col1, col2, col3 = st.columns([1.5, 1, 1])
+    # Use columns with responsive layout
+    col1, col2, col3 = st.columns([1, 1, 1])
     with col1:
         crop = st.selectbox("Choose a Crop", ["All"] + sorted(df["crop"].dropna().unique()))
     with col2:
@@ -311,6 +368,7 @@ elif menu == "Tag a disease":
     st.markdown("## 📌 Tag a Disease")
 
     with st.form("disease_form", clear_on_submit=True):
+        # Use responsive columns for mobile
         col1, col2 = st.columns(2)
         with col1:
             date = st.date_input("Date", datetime.today())
@@ -438,5 +496,9 @@ else:
     **Data Persistence:**
     - Your submitted data is now saved to a local file that persists across sessions
     - You can download your data using the export feature on the "Tag a disease" page
+    
+    **Mobile Usage:**
+    - On mobile devices, use the Menu button to access navigation options
+    - The sidebar may be hidden by default on small screens
     """
     )
