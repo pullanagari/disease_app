@@ -264,7 +264,7 @@ if menu == "Disease tracker":
     
     # Add to the "Export Data" section
     st.markdown("### Download Photos")
-    if not local_data.empty() and "photo_filename" in local_data.columns:
+    if not local_data.empty and "photo_filename" in local_data.columns:
         # Get photos that exist
         photo_files = [f for f in local_data["photo_filename"].dropna() if os.path.exists(os.path.join("uploads", f))]
         
@@ -280,7 +280,7 @@ if menu == "Disease tracker":
                         mime="image/jpeg"
                     )
         else:
-            st.info("No photos available for download.")   
+            st.info("No photos available for download.")
 # -------------------------------
 # Tag a Disease Page
 elif menu == "Tag a disease":
@@ -416,6 +416,7 @@ else:
     - You can download your data using the export feature on the "Tag a disease" page
     """
     )
+
 
 
 
