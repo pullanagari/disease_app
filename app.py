@@ -312,6 +312,107 @@ if menu == "Disease tracker":
     
 # -------------------------------
 # Tag a Disease Page
+# elif menu == "Tag a disease":
+#     st.markdown("## 📌 Tag a Disease")
+
+#     with st.form("disease_form", clear_on_submit=True):
+#         col1, col2 = st.columns(2)
+#         with col1:
+#             date = st.date_input("Date", datetime.today())
+#             collector = st.selectbox("Collector Name", ["Hari Dadu", "Rohan Kimber", "Tara Garrard","Moshen Khani", "Kul Adhikari", "Mark Butt","Marzena Krysinka-Kaczmarek","Michelle Russ","Entesar Abood", "Milica Grcic", "Other"])
+#             crop = st.selectbox("Crop", ["Wheat", "Barley", "Canola", "Lentil", "Oats","Faba beans","Vetch","Field peas","Chcickpea", "Other"])
+#             variety = st.text_input("Variety", "")
+#         with col2:
+#             disease1 = st.selectbox("Disease 1", ["Stripe rust", "Leaf rust", "Stem rust", "Septoria tritici blotch", "Yellow leaf spot", "Powdery mildew", 
+#                                                   "Eye spot", "Black point", "Smut", "Spot form net blotch", "Net form net blotch", "Scald", "Red Leather Leaf",
+#                                                   "Septoria avenae blotch", "Bacterial blight", "Ascochyta Blight", "Botrytis Grey Mold", "Sclerotinia white mould", 
+#                                                   "Chocolate Spot","Cercospora leaf spot", "Downy mildew","Black Spot", "Root Disease" "Virus", "Blackleg", "Other"])
+#             disease2 = st.selectbox("Disease 2", ["None"] + ["Stripe rust", "Leaf rust", "Stem rust", "Septoria tritici blotch", "Yellow leaf spot", "Powdery mildew", 
+#                                                   "Eye spot", "Black point", "Smut", "Spot form net blotch", "Net form net blotch", "Scald", "Red Leather Leaf",
+#                                                   "Septoria avenae blotch", "Bacterial blight", "Ascochyta Blight", "Botrytis Grey Mold", "Sclerotinia white mould", 
+#                                                   "Chocolate Spot","Cercospora leaf spot", "Downy mildew","Black Spot", "Root Disease" "Virus", "Blackleg", "Other"])
+#             disease3 = st.selectbox("Disease 3", ["None"] + ["Stripe rust", "Leaf rust", "Stem rust", "Septoria tritici blotch", "Yellow leaf spot", "Powdery mildew", 
+#                                                   "Eye spot", "Black point", "Smut", "Spot form net blotch", "Net form net blotch", "Scald", "Red Leather Leaf",
+#                                                   "Septoria avenae blotch", "Bacterial blight", "Ascochyta Blight", "Botrytis Grey Mold", "Sclerotinia white mould", 
+#                                                   "Chocolate Spot","Cercospora leaf spot", "Downy mildew","Black Spot", "Root Disease" "Virus", "Blackleg", "Other"])
+#             severity1 = st.slider("Severity 1 (%)", 0, 100, 0)
+#             severity2 = st.slider("Severity 2 (%)", 0, 100, 0)
+#             severity3 = st.slider("Severity 2 (%)", 0, 100, 0)
+#             latitude = st.text_input("Latitude", "-36.76")
+#             longitude = st.text_input("Longitude", "142.21")
+#         location = st.text_input("Location (Suburb)", "")
+#         field_type = st.text_input("Field Type", "")
+#         agronomist = st.text_input("Agronomist", "")
+#         plant_stage = st.selectbox(
+#             "Plant Growth Stage",
+#             ["Emergence", "Tillering", "Stem elongation", "Flowering", "Grain filling", "Maturity"],
+#         )
+
+#         uploaded_file = st.file_uploader("Attach Photo (Optional)", type=["png", "jpg", "jpeg"])
+#         submitted = st.form_submit_button("Submit")
+
+#         if submitted:
+#             # Validate required fields
+#             if not all([crop, disease1, location]):
+#                 st.error("Please fill in all required fields: Crop, Disease 1, and Location")
+#             else:
+#                 photo_filename = None
+#                 if uploaded_file is not None:
+#                     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+#                     file_extension = uploaded_file.name.split(".")[-1]
+#                     photo_filename = f"disease_photo_{timestamp}.{file_extension}"
+#                     with open(os.path.join("uploads", photo_filename), "wb") as f:
+#                         f.write(uploaded_file.getbuffer())
+
+#                 if disease2 == "None":
+#                     disease2 = ""
+#                     severity2 = 0
+
+#                 new_record = {
+#                     "date": date.strftime("%d/%m/%Y"),
+#                     "collector_name": collector,
+#                     "field_type": field_type,
+#                     "Agronomist": agronomist,
+#                     "crop": crop,
+#                     "variety": variety,
+#                     "plant_stage": plant_stage,
+#                     "disease1": disease1,
+#                     "disease2": disease2,
+#                     "disease3": disease3,
+#                     "severity1_percent": severity1,
+#                     "severity2_percent": severity2,
+#                     "severity3_percent": severity3,
+#                     "latitude": float(latitude) if latitude else -36.76,
+#                     "longitude": float(longitude) if longitude else 142.21,
+#                     "survey_location": location,
+#                     "photo_filename": photo_filename if photo_filename else "",
+#                 }
+
+#                 # Load existing local data
+#                 local_data = load_local_data()
+                
+#                 # Append new record
+#                 new_df = pd.DataFrame([new_record])
+#                 if local_data.empty:
+#                     updated_data = new_df
+#                 else:
+#                     updated_data = pd.concat([local_data, new_df], ignore_index=True)
+                
+#                 # Save updated data
+#                 if save_local_data(updated_data):
+#                     st.success("✅ Submission successful! Data saved to local storage.")
+                    
+#                     # Clear cache and reload data
+#                     reload_data()
+                    
+#                     if uploaded_file is not None:
+#                         st.markdown("**Uploaded Photo Preview:**")
+#                         image = Image.open(uploaded_file)
+#                         st.image(image, caption="Disease Photo", use_column_width=True)
+#                 else:
+#                     st.error("Failed to save data. Please try again.")
+# -------------------------------
+# Tag a Disease Page
 elif menu == "Tag a disease":
     st.markdown("## 📌 Tag a Disease")
 
@@ -319,8 +420,16 @@ elif menu == "Tag a disease":
         col1, col2 = st.columns(2)
         with col1:
             date = st.date_input("Date", datetime.today())
-            collector = st.selectbox("Collector Name", ["Hari Dadu", "Rohan Kimber", "Tara Garrard","Moshen Khani", "Kul Adhikari", "Mark Butt","Marzena Krysinka-Kaczmarek","Michelle Russ","Entesar Abood", "Milica Grcic", "Other"])
-            crop = st.selectbox("Crop", ["Wheat", "Barley", "Canola", "Lentil", "Oats","Faba beans","Vetch","Field peas","Chcickpea", "Other"])
+            collector = st.selectbox(
+                "Collector Name",
+                ["Hari Dadu", "Rohan Kimber", "Tara Garrard","Moshen Khani", "Kul Adhikari", 
+                 "Mark Butt","Marzena Krysinka-Kaczmarek","Michelle Russ","Entesar Abood", 
+                 "Milica Grcic", "Other"]
+            )
+            crop = st.selectbox(
+                "Crop", ["Wheat", "Barley", "Canola", "Lentil", "Oats","Faba beans",
+                         "Vetch","Field peas","Chcickpea", "Other"]
+            )
             variety = st.text_input("Variety", "")
         with col2:
             disease1 = st.selectbox("Disease 1", ["Stripe rust", "Leaf rust", "Stem rust", "Septoria tritici blotch", "Yellow leaf spot", "Powdery mildew", 
@@ -335,11 +444,13 @@ elif menu == "Tag a disease":
                                                   "Eye spot", "Black point", "Smut", "Spot form net blotch", "Net form net blotch", "Scald", "Red Leather Leaf",
                                                   "Septoria avenae blotch", "Bacterial blight", "Ascochyta Blight", "Botrytis Grey Mold", "Sclerotinia white mould", 
                                                   "Chocolate Spot","Cercospora leaf spot", "Downy mildew","Black Spot", "Root Disease" "Virus", "Blackleg", "Other"])
+            
             severity1 = st.slider("Severity 1 (%)", 0, 100, 0)
             severity2 = st.slider("Severity 2 (%)", 0, 100, 0)
-            severity3 = st.slider("Severity 2 (%)", 0, 100, 0)
+            severity3 = st.slider("Severity 3 (%)", 0, 100, 0)
             latitude = st.text_input("Latitude", "-36.76")
             longitude = st.text_input("Longitude", "142.21")
+
         location = st.text_input("Location (Suburb)", "")
         field_type = st.text_input("Field Type", "")
         agronomist = st.text_input("Agronomist", "")
@@ -347,26 +458,25 @@ elif menu == "Tag a disease":
             "Plant Growth Stage",
             ["Emergence", "Tillering", "Stem elongation", "Flowering", "Grain filling", "Maturity"],
         )
+        field_notes = st.text_area("Field Notes (Optional)")
 
         uploaded_file = st.file_uploader("Attach Photo (Optional)", type=["png", "jpg", "jpeg"])
         submitted = st.form_submit_button("Submit")
 
         if submitted:
-            # Validate required fields
             if not all([crop, disease1, location]):
                 st.error("Please fill in all required fields: Crop, Disease 1, and Location")
             else:
                 photo_filename = None
                 if uploaded_file is not None:
                     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-                    file_extension = uploaded_file.name.split(".")[-1]
-                    photo_filename = f"disease_photo_{timestamp}.{file_extension}"
+                    ext = uploaded_file.name.split(".")[-1]
+                    photo_filename = f"disease_photo_{timestamp}.{ext}"
                     with open(os.path.join("uploads", photo_filename), "wb") as f:
                         f.write(uploaded_file.getbuffer())
 
-                if disease2 == "None":
-                    disease2 = ""
-                    severity2 = 0
+                if disease2 == "None": disease2, severity2 = "", 0
+                if disease3 == "None": disease3, severity3 = "", 0
 
                 new_record = {
                     "date": date.strftime("%d/%m/%Y"),
@@ -386,31 +496,28 @@ elif menu == "Tag a disease":
                     "longitude": float(longitude) if longitude else 142.21,
                     "survey_location": location,
                     "photo_filename": photo_filename if photo_filename else "",
+                    "field_notes": field_notes,
                 }
 
                 # Load existing local data
                 local_data = load_local_data()
-                
-                # Append new record
-                new_df = pd.DataFrame([new_record])
-                if local_data.empty:
-                    updated_data = new_df
-                else:
-                    updated_data = pd.concat([local_data, new_df], ignore_index=True)
-                
-                # Save updated data
+                updated_data = pd.concat([local_data, pd.DataFrame([new_record])], ignore_index=True) if not local_data.empty else pd.DataFrame([new_record])
+
                 if save_local_data(updated_data):
-                    st.success("✅ Submission successful! Data saved to local storage.")
-                    
-                    # Clear cache and reload data
+                    st.success("✅ Submission successful! Data saved locally.")
                     reload_data()
-                    
-                    if uploaded_file is not None:
-                        st.markdown("**Uploaded Photo Preview:**")
-                        image = Image.open(uploaded_file)
-                        st.image(image, caption="Disease Photo", use_column_width=True)
+                    if uploaded_file:
+                        st.image(Image.open(uploaded_file), caption="Disease Photo", use_column_width=True)
                 else:
                     st.error("Failed to save data. Please try again.")
+
+
+
+
+
+
+
+    
 
     st.markdown("---")
     st.markdown("### Export Data")
@@ -452,6 +559,7 @@ else:
     - You can download your data using the export feature on the "Tag a disease" page
     """
     )
+
 
 
 
