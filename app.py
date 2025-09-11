@@ -470,9 +470,13 @@ elif menu == "Resources":
         """
     )
 
+st.set_page_config(page_title="My App", layout="wide")
+
+# --- Your app code here ---
+
+# Hide the "Made with Streamlit" footer
 hide_footer = """
 <style>
-/* Hide "Made with Streamlit" footer */
 footer {visibility: hidden;}
 div[data-testid="stFooter"] {visibility: hidden;}
 </style>
