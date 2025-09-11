@@ -116,7 +116,7 @@ sidebar_mobile_friendly = """
 st.markdown(sidebar_mobile_friendly, unsafe_allow_html=True)
 
 st.sidebar.markdown("## 🌾 South Australia Disease Surveillance")
-menu = st.sidebar.radio("Navigation", ["Disease tracker", "Tag a disease", "About"])
+menu = st.sidebar.radio("Navigation", ["Disease tracker", "Tag a disease", "About","Resources"])
 
 # Refresh button
 if st.sidebar.button("🔄 Refresh Data"):
@@ -429,7 +429,7 @@ elif menu == "Tag a disease":
 
 # -------------------------------
 # About Page
-else:
+elif:
     st.markdown("## ℹ️ About SA Ds App")
     st.markdown(
         """
@@ -450,6 +450,19 @@ else:
     - You can download your data using the export feature on the "Tag a disease" page
     """
     )
+else:
+    st.title("About This App")
+
+    st.markdown(
+        """
+        ### Resources
+        - 🌱 [UteGuide: Disease Identification](https://uteguides.net.au/UteGuides/Details/8b4db434-297c-42d3-8ebe-e6b6520ea4e2)  
+        - 📘 [Streamlit Documentation](https://docs.streamlit.io/)  
+        - 🐼 [Pandas Documentation](https://pandas.pydata.org/docs/)  
+        """
+    )
+    
+
 
 
 
