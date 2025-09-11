@@ -294,18 +294,6 @@ if menu == "Disease tracker":
             mime="application/zip",
         )
 
-        # zip_buffer = io.BytesIO()
-        # with zipfile.ZipFile(zip_buffer, "w") as zf:
-        #     for _, row in df_photos.iterrows():
-        #         photo_path = os.path.join("uploads", row["photo_filename"])
-        #         if os.path.exists(photo_path):
-        #             zf.write(photo_path, arcname=row["photo_filename"])
-        # st.download_button(
-        #     "Download All Photos (ZIP)",
-        #     data=zip_buffer.getvalue(),
-        #     file_name="disease_photos.zip",
-        #     mime="application/zip",
-        # )
     else:
         st.info("No photos available for the selected filters.")
 
@@ -358,6 +346,11 @@ elif menu == "Tag a disease":
             ["Emergence", "Tillering", "Stem elongation", "Flowering", "Grain filling", "Maturity"],
         )
         field_notes = st.text_area("Field Notes (Optional)")
+        sample_taken = st.selectbox("Sample Taken", ["Yes", "No", "N/A"])
+        molecular_diagnosis = st.multiselect(
+            "Molecular Diagnosis",
+            ["Mail", "Report Back", "Single Spore"]
+        )
 
         uploaded_file = st.file_uploader("Attach Photo (Optional)", type=["png", "jpg", "jpeg"])
         submitted = st.form_submit_button("Submit")
@@ -458,6 +451,7 @@ else:
     - You can download your data using the export feature on the "Tag a disease" page
     """
     )
+
 
 
 
