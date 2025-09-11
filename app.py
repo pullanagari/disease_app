@@ -21,7 +21,7 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded"
 )
-st.set_page_config(page_title="My App", layout="wide")
+
 
 # loading old data
 
@@ -473,25 +473,7 @@ elif menu == "Resources":
 
 
 
-# --- Your app code here ---
 
-hide_streamlit_style = """
-<style>
-/* Hide Streamlit footer ("Made with Streamlit") */
-footer {visibility: hidden !important; height: 0px !important;}
-
-/* Hide hamburger menu (top-right) */
-header > div:nth-child(1) {display: none !important;}
-
-/* Optional: remove extra padding from footer */
-.css-18e3th9 {padding-bottom: 0rem !important;}
-</style>
-"""
-st.markdown(hide_streamlit_style, unsafe_allow_html=True)
-
-# --- Your app code ---
-st.title("Hello Streamlit!")
-st.write("Footer and top-right credits should now be hidden.")
 
 
 
