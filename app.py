@@ -470,3 +470,11 @@ elif menu == "Resources":
         """
     )
 
+hide_footer = """
+<style>
+/* Hide "Made with Streamlit" footer */
+footer {visibility: hidden;}
+div[data-testid="stFooter"] {visibility: hidden;}
+</style>
+"""
+st.markdown(hide_footer, unsafe_allow_html=True)
