@@ -429,7 +429,7 @@ elif menu == "Tag a disease":
 
 # -------------------------------
 # About Page
-elif:
+else:
     st.markdown("## ℹ️ About SA Ds App")
     st.markdown(
         """
@@ -462,6 +462,7 @@ else:
         """
     )
     
+
 
 
 
