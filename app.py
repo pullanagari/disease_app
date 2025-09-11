@@ -262,12 +262,6 @@ if menu == "Disease tracker":
     else:
         st.info("No data available for the selected filters.")
     
-    # Add to the "Export Data" section
-        st.markdown("### Local Data Entries")
-    st.dataframe(local_data)
-        st.markdown("### Local Data Entries")
-    st.dataframe(local_data)
-    
     
 # -------------------------------
 # Tag a Disease Page
@@ -407,8 +401,4 @@ else:
 
 
 
-
-
-
-
-
+"
