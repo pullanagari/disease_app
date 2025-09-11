@@ -271,18 +271,7 @@ if menu == "Disease tracker":
     df_photos = df_filtered[df_filtered["photo_filename"].notna() & (df_filtered["photo_filename"] != "")]
     
     if not df_photos.empty:
-        # Download individual photos
-        st.markdown("**Individual Photos:**")
-        for _, row in df_photos.iterrows():
-            photo_path = os.path.join("uploads", row["photo_filename"])
-            if os.path.exists(photo_path):
-                with open(photo_path, "rb") as f:
-                    st.download_button(
-                        label=f"Download {row['photo_filename']}",
-                        data=f.read(),
-                        file_name=row["photo_filename"],
-                        mime="image/jpeg",
-                    )
+        
     
         # Download all photos as ZIP
         # Download all photos as ZIP
@@ -450,6 +439,7 @@ else:
     - You can download your data using the export feature on the "Tag a disease" page
     """
     )
+
 
 
 
