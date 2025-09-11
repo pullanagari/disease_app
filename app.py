@@ -311,7 +311,7 @@ elif menu == "Tag a disease":
                 "Collector Name",
                 ["Hari Dadu", "Rohan Kimber", "Tara Garrard","Moshen Khani", "Kul Adhikari", 
                  "Mark Butt","Marzena Krysinka-Kaczmarek","Michelle Russ","Entesar Abood", 
-                 "Milica Grcic", "Other"]
+                 "Milica Grcic", "Nicole Thompson","Blake Gontar" "Other"]
             )
             crop = st.selectbox(
                 "Crop", ["Wheat", "Barley", "Canola", "Lentil", "Oats","Faba beans",
@@ -348,8 +348,8 @@ elif menu == "Tag a disease":
         field_notes = st.text_area("Field Notes (Optional)")
         sample_taken = st.selectbox("Sample Taken", ["Yes", "No", "N/A"])
         molecular_diagnosis = st.multiselect(
-            "Molecular Diagnosis",
-            ["Mail", "Report Back", "Single Spore"]
+            "Action",
+            ["Molecular diagnosis", "Mail a sample to collaborators", "Report back to farmers", "Single Spore isolation"]
         )
 
         uploaded_file = st.file_uploader("Attach Photo (Optional)", type=["png", "jpg", "jpeg"])
@@ -402,14 +402,7 @@ elif menu == "Tag a disease":
                         st.image(Image.open(uploaded_file), caption="Disease Photo", use_column_width=True)
                 else:
                     st.error("Failed to save data. Please try again.")
-
-
-
-
-
-
-
-    
+   
 
     st.markdown("---")
     st.markdown("### Export Data")
@@ -451,6 +444,7 @@ else:
     - You can download your data using the export feature on the "Tag a disease" page
     """
     )
+
 
 
 
