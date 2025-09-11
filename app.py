@@ -320,6 +320,10 @@ elif menu == "Tag a disease":
                          "Vetch","Field peas","Chcickpea", "Other"]
             )
             variety = st.text_input("Variety", "")
+            plant_stage = st.selectbox(
+            "Plant Growth Stage",
+            ["Emergence", "Tillering", "Stem elongation", "Flowering", "Grain filling", "Maturity"],
+            )
         with col2:
             disease1 = st.selectbox("Disease 1", ["Stripe rust", "Leaf rust", "Stem rust", "Septoria tritici blotch", "Yellow leaf spot", "Powdery mildew", 
                                                   "Eye spot", "Black point", "Smut", "Spot form net blotch", "Net form net blotch", "Scald", "Red Leather Leaf",
@@ -343,10 +347,10 @@ elif menu == "Tag a disease":
         location = st.text_input("Location (Suburb)", "")
         field_type = st.text_input("Field Type", "")
         agronomist = st.text_input("Agronomist", "")
-        plant_stage = st.selectbox(
-            "Plant Growth Stage",
-            ["Emergence", "Tillering", "Stem elongation", "Flowering", "Grain filling", "Maturity"],
-        )
+        # plant_stage = st.selectbox(
+        #     "Plant Growth Stage",
+        #     ["Emergence", "Tillering", "Stem elongation", "Flowering", "Grain filling", "Maturity"],
+        # )
         field_notes = st.text_area("Field Notes (Optional)")
         sample_taken = st.selectbox("Sample Taken", ["Yes", "No", "N/A"])
         molecular_diagnosis = st.multiselect(
@@ -446,6 +450,7 @@ else:
     - You can download your data using the export feature on the "Tag a disease" page
     """
     )
+
 
 
 
