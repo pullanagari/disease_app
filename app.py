@@ -201,8 +201,8 @@ if menu == "Disease tracker":
                     else:
                         popup_text += f" | Disease2: {row['disease2']}"
                         
-                 if not pd.isna(row.get("disease1")):
-                    if not pd.isna(row.get("severity1_percent")):
+                 if not pd.isna(row.get("disease3")):
+                    if not pd.isna(row.get("severity3_percent")):
                         popup_text += f" | Disease3: {row['disease3']} ({row['severity3_percent']}%)"
                     else:
                         popup_text += f" | Disease3: {row['disease3']}"
@@ -452,6 +452,7 @@ else:
     - You can download your data using the export feature on the "Tag a disease" page
     """
     )
+
 
 
 
