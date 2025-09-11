@@ -1,4 +1,1 @@
-latitude,longitude,date,collector_name,Agronomist,survey_location,state,post_code,address,field_type,trial,grower,crop,variety,plant_stage,disease1,severity1_percent,disease2,severity2_percent,any_exotic_disease,name_exotic_disease,exotic_severity_percent,symptoms,samples_taken,action
-,,,,,,,,,,,,,,,,,,,,,,,,
-,,,,,,,,,,,,,,,,,,,,,,,,
-,,,,,,,,,,,,,,,,,,,,,,,,
+latitude,longitude,date,collector_name,Agronomist,survey_location,state,post_code,address,field_type,trial,grower,crop,variety,plant_stage,disease1,severity1_percent,disease2,severity2_percent,any_exotic_disease,name_exotic_disease,exotic_severity_percent,symptoms,samples_taken,action,photo_filename
