@@ -21,6 +21,7 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded"
 )
+st.set_page_config(page_title="My App", layout="wide")
 
 # loading old data
 
@@ -471,7 +472,6 @@ elif menu == "Resources":
     )
 
 
-st.set_page_config(page_title="My App", layout="wide")
 
 # --- Your app code here ---
 
@@ -487,4 +487,5 @@ footer {visibility: hidden !important;}
 </style>
 """
 st.markdown(hide_streamlit_style, unsafe_allow_html=True)
+
 
