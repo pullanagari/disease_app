@@ -311,7 +311,7 @@ elif menu == "Tag a disease":
                 "Collector Name",
                 ["Hari Dadu", "Rohan Kimber", "Tara Garrard","Moshen Khani", "Kul Adhikari", 
                  "Mark Butt","Marzena Krysinka-Kaczmarek","Michelle Russ","Entesar Abood", 
-                 "Milica Grcic", "Nicole Thompson","Blake Gontar" "Other"]
+                 "Milica Grcic", "Nicole Thompson","Blake Gontar", "Other"]
             )
             crop = st.selectbox(
                 "Crop", ["Wheat", "Barley", "Canola", "Lentil", "Oats","Faba beans",
@@ -444,6 +444,7 @@ else:
     - You can download your data using the export feature on the "Tag a disease" page
     """
     )
+
 
 
 
