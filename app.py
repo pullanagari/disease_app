@@ -8,6 +8,9 @@ import os
 from PIL import Image
 import json
 import requests
+import io
+import zipfile
+
 
 # -------------------------------
 
@@ -282,6 +285,7 @@ if menu == "Disease tracker":
                     )
     
         # Download all photos as ZIP
+        # Download all photos as ZIP
         zip_buffer = io.BytesIO()
         with zipfile.ZipFile(zip_buffer, "w") as zf:
             for _, row in df_photos.iterrows():
@@ -294,6 +298,19 @@ if menu == "Disease tracker":
             file_name="disease_photos.zip",
             mime="application/zip",
         )
+
+        # zip_buffer = io.BytesIO()
+        # with zipfile.ZipFile(zip_buffer, "w") as zf:
+        #     for _, row in df_photos.iterrows():
+        #         photo_path = os.path.join("uploads", row["photo_filename"])
+        #         if os.path.exists(photo_path):
+        #             zf.write(photo_path, arcname=row["photo_filename"])
+        # st.download_button(
+        #     "Download All Photos (ZIP)",
+        #     data=zip_buffer.getvalue(),
+        #     file_name="disease_photos.zip",
+        #     mime="application/zip",
+        # )
     else:
         st.info("No photos available for the selected filters.")
 
@@ -433,6 +450,7 @@ else:
     - You can download your data using the export feature on the "Tag a disease" page
     """
     )
+
 
 
 
