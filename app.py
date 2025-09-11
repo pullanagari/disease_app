@@ -268,33 +268,7 @@ if menu == "Disease tracker":
         st.markdown("### Local Data Entries")
     st.dataframe(local_data)
     
-    # Add photo download functionality here
-    st.markdown("### Download Photos")
-    if not local_data.empty and "photo_filename" in local_data.columns:
-        # Get photos that exist
-        photo_files = [f for f in local_data["photo_filename"].dropna() 
-                      if f and os.path.exists(os.path.join("uploads", f))]
-        
-        if photo_files:
-            selected_photo = st.selectbox("Select a photo to download", photo_files)
-            
-            if selected_photo:
-                try:
-                    with open(os.path.join("uploads", selected_photo), "rb") as file:
-                        st.download_button(
-                            label="Download selected photo",
-                            data=file,
-                            file_name=selected_photo,
-                            mime="image/jpeg"
-                        )
-                except FileNotFoundError:
-                    st.error(f"Photo {selected_photo} not found in uploads directory.")
-        else:
-            st.info("No photos available for download.")
-else:
-    st.info("No local data entries yet.")
     
-
 # -------------------------------
 # Tag a Disease Page
 elif menu == "Tag a disease":
@@ -430,6 +404,7 @@ else:
     - You can download your data using the export feature on the "Tag a disease" page
     """
     )
+
 
 
 
