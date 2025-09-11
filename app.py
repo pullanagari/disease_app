@@ -113,6 +113,12 @@ sidebar_mobile_friendly = """
 }
 </style>
 """
+hide_menu_style = """
+    <style>
+        #MainMenu {visibility: hidden;}
+    </style>
+"""
+st.markdown(hide_menu_style, unsafe_allow_html=True)
 st.markdown(sidebar_mobile_friendly, unsafe_allow_html=True)
 
 st.sidebar.markdown("## 🌾 South Australia Disease Surveillance")
@@ -463,6 +469,7 @@ elif menu == "Resources":
         - [SARDI Biosecurity](https://pir.sa.gov.au/sardi/crop_sciences/plant_health_and_biosecurity)
         """
     )
+
 
 
 
