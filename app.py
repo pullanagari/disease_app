@@ -429,7 +429,9 @@ elif menu == "Tag a disease":
 
 # -------------------------------
 # About Page
-else:
+# -------------------------------
+# About & Resources Page
+elif menu == "About":
     st.markdown("## ℹ️ About SA Ds App")
     st.markdown(
         """
@@ -450,31 +452,16 @@ else:
     - You can download your data using the export feature on the "Tag a disease" page
     """
     )
-else:
-    st.title("About This App")
 
+elif menu == "Resources":
+    st.title("📚 Resources")
     st.markdown(
         """
-        ### Resources
         - 🌱 [UteGuide: Disease Identification](https://uteguides.net.au/UteGuides/Details/8b4db434-297c-42d3-8ebe-e6b6520ea4e2)  
         - 📘 [Streamlit Documentation](https://docs.streamlit.io/)  
         - 🐼 [Pandas Documentation](https://pandas.pydata.org/docs/)  
         """
     )
-    
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
