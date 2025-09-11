@@ -458,10 +458,10 @@ elif menu == "Resources":
     st.markdown(
         """
         - 🌱 [UteGuide: Disease Identification](https://uteguides.net.au/UteGuides/Details/8b4db434-297c-42d3-8ebe-e6b6520ea4e2)  
-        - 📘 [Streamlit Documentation](https://docs.streamlit.io/)  
-        - 🐼 [Pandas Documentation](https://pandas.pydata.org/docs/)  
+        -    [GRDC](https://nvt.grdc.com.au/nvt-disease-ratings)
         """
     )
+
 
 
 
