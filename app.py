@@ -200,6 +200,12 @@ if menu == "Disease tracker":
                         popup_text += f" | Disease2: {row['disease2']} ({row['severity2_percent']}%)"
                     else:
                         popup_text += f" | Disease2: {row['disease2']}"
+                        
+                 if not pd.isna(row.get("disease1")):
+                    if not pd.isna(row.get("severity1_percent")):
+                        popup_text += f" | Disease3: {row['disease3']} ({row['severity3_percent']}%)"
+                    else:
+                        popup_text += f" | Disease3: {row['disease3']}"
     
                 color = disease_color_map.get(row["disease1"], "gray")
                 folium.CircleMarker(
@@ -325,8 +331,13 @@ elif menu == "Tag a disease":
                                                   "Eye spot", "Black point", "Smut", "Spot form net blotch", "Net form net blotch", "Scald", "Red Leather Leaf",
                                                   "Septoria avenae blotch", "Bacterial blight", "Ascochyta Blight", "Botrytis Grey Mold", "Sclerotinia white mould", 
                                                   "Chocolate Spot","Cercospora leaf spot", "Downy mildew","Black Spot", "Root Disease" "Virus", "Blackleg", "Other"])
+            disease3 = st.selectbox("Disease 3", ["None"] + ["Stripe rust", "Leaf rust", "Stem rust", "Septoria tritici blotch", "Yellow leaf spot", "Powdery mildew", 
+                                                  "Eye spot", "Black point", "Smut", "Spot form net blotch", "Net form net blotch", "Scald", "Red Leather Leaf",
+                                                  "Septoria avenae blotch", "Bacterial blight", "Ascochyta Blight", "Botrytis Grey Mold", "Sclerotinia white mould", 
+                                                  "Chocolate Spot","Cercospora leaf spot", "Downy mildew","Black Spot", "Root Disease" "Virus", "Blackleg", "Other"])
             severity1 = st.slider("Severity 1 (%)", 0, 100, 0)
             severity2 = st.slider("Severity 2 (%)", 0, 100, 0)
+            severity3 = st.slider("Severity 2 (%)", 0, 100, 0)
             latitude = st.text_input("Latitude", "-36.76")
             longitude = st.text_input("Longitude", "142.21")
         location = st.text_input("Location (Suburb)", "")
@@ -367,8 +378,10 @@ elif menu == "Tag a disease":
                     "plant_stage": plant_stage,
                     "disease1": disease1,
                     "disease2": disease2,
+                    "disease3": disease3,
                     "severity1_percent": severity1,
                     "severity2_percent": severity2,
+                    "severity3_percent": severity3,
                     "latitude": float(latitude) if latitude else -36.76,
                     "longitude": float(longitude) if longitude else 142.21,
                     "survey_location": location,
@@ -439,6 +452,7 @@ else:
     - You can download your data using the export feature on the "Tag a disease" page
     """
     )
+
 
 
 
