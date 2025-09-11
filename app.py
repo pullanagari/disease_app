@@ -119,7 +119,7 @@ hide_menu_style = """
     </style>
 """
 st.markdown(hide_menu_style, unsafe_allow_html=True)
-# st.markdown(sidebar_mobile_friendly, unsafe_allow_html=True)
+st.markdown(sidebar_mobile_friendly, unsafe_allow_html=True)
 
 st.sidebar.markdown("## 🌾 South Australia Disease Surveillance")
 menu = st.sidebar.radio("Navigation", ["Disease tracker", "Tag a disease", "About","Resources"])
@@ -469,6 +469,7 @@ elif menu == "Resources":
         - [SARDI Biosecurity](https://pir.sa.gov.au/sardi/crop_sciences/plant_health_and_biosecurity)
         """
     )
+
 
 
 
