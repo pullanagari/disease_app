@@ -10,6 +10,8 @@ import json
 import requests
 import io
 import zipfile
+import flush_database
+
 
 
 # -------------------------------
@@ -444,6 +446,7 @@ else:
     - You can download your data using the export feature on the "Tag a disease" page
     """
     )
+
 
 
 
