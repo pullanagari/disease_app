@@ -457,10 +457,13 @@ elif menu == "Resources":
     st.title("📚 Resources")
     st.markdown(
         """
-        - 🌱 [UteGuide: Disease Identification](https://uteguides.net.au/UteGuides/Details/8b4db434-297c-42d3-8ebe-e6b6520ea4e2)  
-        -    [GRDC](https://nvt.grdc.com.au/nvt-disease-ratings)
+        - [UteGuide: Disease Identification](https://uteguides.net.au/UteGuides/Details/8b4db434-297c-42d3-8ebe-e6b6520ea4e2)  
+        - [NVT Disease ratings](https://nvt.grdc.com.au/nvt-disease-ratings)
+        - [SARDI Molecular diagnostics](https://pir.sa.gov.au/sardi/services/molecular_diagnostics)
+        - [SARDI Biosecurity](https://pir.sa.gov.au/sardi/crop_sciences/plant_health_and_biosecurity)
         """
     )
+
 
 
 
