@@ -262,40 +262,40 @@ if menu == "Disease tracker":
     else:
         st.info("No data available for the selected filters.")
 
-st.markdown("### 📸 Download Photos")
-
-# Filter only rows with photos
-df_photos = df_filtered[df_filtered["photo_filename"].notna() & (df_filtered["photo_filename"] != "")]
-
-if not df_photos.empty:
-    # Download individual photos
-    st.markdown("**Individual Photos:**")
-    for _, row in df_photos.iterrows():
-        photo_path = os.path.join("uploads", row["photo_filename"])
-        if os.path.exists(photo_path):
-            with open(photo_path, "rb") as f:
-                st.download_button(
-                    label=f"Download {row['photo_filename']}",
-                    data=f.read(),
-                    file_name=row["photo_filename"],
-                    mime="image/jpeg",
-                )
-
-    # Download all photos as ZIP
-    zip_buffer = io.BytesIO()
-    with zipfile.ZipFile(zip_buffer, "w") as zf:
+    st.markdown("### 📸 Download Photos")
+    
+    # Filter only rows with photos
+    df_photos = df_filtered[df_filtered["photo_filename"].notna() & (df_filtered["photo_filename"] != "")]
+    
+    if not df_photos.empty:
+        # Download individual photos
+        st.markdown("**Individual Photos:**")
         for _, row in df_photos.iterrows():
             photo_path = os.path.join("uploads", row["photo_filename"])
             if os.path.exists(photo_path):
-                zf.write(photo_path, arcname=row["photo_filename"])
-    st.download_button(
-        "Download All Photos (ZIP)",
-        data=zip_buffer.getvalue(),
-        file_name="disease_photos.zip",
-        mime="application/zip",
-    )
-else:
-    st.info("No photos available for the selected filters.")
+                with open(photo_path, "rb") as f:
+                    st.download_button(
+                        label=f"Download {row['photo_filename']}",
+                        data=f.read(),
+                        file_name=row["photo_filename"],
+                        mime="image/jpeg",
+                    )
+    
+        # Download all photos as ZIP
+        zip_buffer = io.BytesIO()
+        with zipfile.ZipFile(zip_buffer, "w") as zf:
+            for _, row in df_photos.iterrows():
+                photo_path = os.path.join("uploads", row["photo_filename"])
+                if os.path.exists(photo_path):
+                    zf.write(photo_path, arcname=row["photo_filename"])
+        st.download_button(
+            "Download All Photos (ZIP)",
+            data=zip_buffer.getvalue(),
+            file_name="disease_photos.zip",
+            mime="application/zip",
+        )
+    else:
+        st.info("No photos available for the selected filters.")
 
     
 # -------------------------------
@@ -433,6 +433,7 @@ else:
     - You can download your data using the export feature on the "Tag a disease" page
     """
     )
+
 
 
 
