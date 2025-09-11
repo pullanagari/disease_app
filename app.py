@@ -470,15 +470,21 @@ elif menu == "Resources":
         """
     )
 
+
 st.set_page_config(page_title="My App", layout="wide")
 
 # --- Your app code here ---
 
-# Hide the "Made with Streamlit" footer
-hide_footer = """
+# Hide Streamlit footer, menu, and hamburger button
+hide_streamlit_style = """
 <style>
-footer {visibility: hidden;}
-div[data-testid="stFooter"] {visibility: hidden;}
+/* Hide Streamlit footer */
+footer {visibility: hidden !important;}
+/* Hide hamburger menu (top-right) */
+#MainMenu {visibility: hidden !important;}
+/* Optional: remove extra padding at bottom */
+.reportview-container .main footer {display: none;}
 </style>
 """
-st.markdown(hide_footer, unsafe_allow_html=True)
+st.markdown(hide_streamlit_style, unsafe_allow_html=True)
+
