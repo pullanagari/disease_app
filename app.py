@@ -10,15 +10,15 @@ import json
 import requests
 
 # -------------------------------
-# Page config (must be before any Streamlit UI code)
+
 st.set_page_config(
     page_title="South Australia Disease Surveillance",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# -------------------------------
-# Setup
+# loading old data
+
 csv_url = "https://raw.githubusercontent.com/pullanagari/Disease_app/main/data_temp.csv"
 
 # Create directories if they don't exist
@@ -33,8 +33,7 @@ def load_css():
 
 load_css()
 
-# -------------------------------
-# Improved data persistence functions
+
 def get_local_data_path():
     """Get the path to the local data file with proper handling for cloud deployments"""
     return os.path.join("data", "local_disease_data.csv")
@@ -60,8 +59,7 @@ def load_local_data():
             return pd.DataFrame()
     return pd.DataFrame()
 
-# -------------------------------
-# Load data with caching
+
 @st.cache_data(ttl=300)  # Cache for 5 minutes
 def load_data():
     try:
@@ -95,7 +93,7 @@ def reload_data():
     st.session_state.df = load_data()
     st.success("Data reloaded!")
 
-# -------------------------------
+
 sidebar_mobile_friendly = """
 <style>
 /* Prevent sidebar from collapsing but don't fix it */
@@ -400,4 +398,5 @@ else:
     - You can download your data using the export feature on the "Tag a disease" page
     """
     )
+
 
