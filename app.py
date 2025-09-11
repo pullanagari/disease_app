@@ -99,19 +99,19 @@ def reload_data():
     st.success("Data reloaded!")
 
 
-# sidebar_mobile_friendly = """
-# <style>
-# /* Prevent sidebar from collapsing but don't fix it */
-# [data-testid="stSidebarCollapseButton"] {
-#     display: none !important;
-# }
+sidebar_mobile_friendly = """
+<style>
+/* Prevent sidebar from collapsing but don't fix it */
+[data-testid="stSidebarCollapseButton"] {
+    display: none !important;
+}
 
-# /* Optional: control sidebar width */
-# [data-testid="stSidebar"] {
-#     min-width: 250px !important;
-#     max-width: 300px !important;
-# }
-# </style>
+/* Optional: control sidebar width */
+[data-testid="stSidebar"] {
+    min-width: 250px !important;
+    max-width: 300px !important;
+}
+</style>
 """
 hide_menu_style = """
     <style>
@@ -469,6 +469,7 @@ elif menu == "Resources":
         - [SARDI Biosecurity](https://pir.sa.gov.au/sardi/crop_sciences/plant_health_and_biosecurity)
         """
     )
+
 
 
 
