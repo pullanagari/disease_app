@@ -470,32 +470,3 @@ elif menu == "Resources":
         """
     )
 
-
-custom_css = """
-<style>
-/* Hide top-right menu */
-div[data-testid="stToolbar"] {visibility: hidden;}
-
-/* Hide footer */
-div[data-testid="stFooter"] {visibility: hidden;}
-
-/* Desktop only: hide sidebar collapse button */
-@media (min-width: 768px) {
-    button[data-testid="stSidebarCollapseButton"] {display: none;}
-}
-</style>
-"""
-st.markdown(custom_css, unsafe_allow_html=True)
-
-
-
-
-
-
-
-
-
-
-
-
-
