@@ -370,53 +370,53 @@ elif menu == "Tag a disease":
         submitted = st.form_submit_button("Submit")
 
         if submitted:
-        if not all([crop, disease1, location]):
-            st.error("Please fill in all required fields: Crop, Disease 1, and Location")
-        else:
-            photo_filename = None
-            if uploaded_file is not None:
-                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-                ext = uploaded_file.name.split(".")[-1]
-                photo_filename = f"disease_photo_{timestamp}.{ext}"
-                with open(os.path.join("uploads", photo_filename), "wb") as f:
-                    f.write(uploaded_file.getbuffer())
-    
-            if disease2 == "None": disease2, severity2 = "", 0
-            if disease3 == "None": disease3, severity3 = "", 0
-    
-            new_record = {
-                "date": date.strftime("%d/%m/%Y"),
-                "collector_name": collector,
-                "field_type": field_type,
-                "Agronomist": agronomist,
-                "crop": crop,
-                "variety": variety,
-                "plant_stage": plant_stage,
-                "disease1": disease1,
-                "disease2": disease2,
-                "disease3": disease3,
-                "severity1_percent": severity1,
-                "severity2_percent": severity2,
-                "severity3_percent": severity3,
-                "latitude": float(latitude) if latitude else -36.76,
-                "longitude": float(longitude) if longitude else 142.21,
-                "survey_location": location,
-                "photo_filename": photo_filename if photo_filename else "",
-                "field_notes": field_notes,
-            }
-    
-            # Load existing local data
-            local_data = load_local_data()
-            updated_data = pd.concat([local_data, pd.DataFrame([new_record])], ignore_index=True) if not local_data.empty else pd.DataFrame([new_record])
-    
-            if save_local_data(updated_data):
-                st.success("✅ Submission successful! Data saved locally.")
-                # Force a complete reload of all data
-                reload_data()  # This will update the session state with the new data
-                if uploaded_file:
-                    st.image(Image.open(uploaded_file), caption="Disease Photo", use_column_width=True)
+            if not all([crop, disease1, location]):
+                st.error("Please fill in all required fields: Crop, Disease 1, and Location")
             else:
-                st.error("Failed to save data. Please try again.")
+                photo_filename = None
+                if uploaded_file is not None:
+                    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                    ext = uploaded_file.name.split(".")[-1]
+                    photo_filename = f"disease_photo_{timestamp}.{ext}"
+                    with open(os.path.join("uploads", photo_filename), "wb") as f:
+                        f.write(uploaded_file.getbuffer())
+        
+                if disease2 == "None": disease2, severity2 = "", 0
+                if disease3 == "None": disease3, severity3 = "", 0
+        
+                new_record = {
+                    "date": date.strftime("%d/%m/%Y"),
+                    "collector_name": collector,
+                    "field_type": field_type,
+                    "Agronomist": agronomist,
+                    "crop": crop,
+                    "variety": variety,
+                    "plant_stage": plant_stage,
+                    "disease1": disease1,
+                    "disease2": disease2,
+                    "disease3": disease3,
+                    "severity1_percent": severity1,
+                    "severity2_percent": severity2,
+                    "severity3_percent": severity3,
+                    "latitude": float(latitude) if latitude else -36.76,
+                    "longitude": float(longitude) if longitude else 142.21,
+                    "survey_location": location,
+                    "photo_filename": photo_filename if photo_filename else "",
+                    "field_notes": field_notes,
+                }
+        
+                # Load existing local data
+                local_data = load_local_data()
+                updated_data = pd.concat([local_data, pd.DataFrame([new_record])], ignore_index=True) if not local_data.empty else pd.DataFrame([new_record])
+        
+                if save_local_data(updated_data):
+                    st.success("✅ Submission successful! Data saved locally.")
+                    # Force a complete reload of all data
+                    reload_data()  # This will update the session state with the new data
+                    if uploaded_file:
+                        st.image(Image.open(uploaded_file), caption="Disease Photo", use_column_width=True)
+                else:
+                    st.error("Failed to save data. Please try again.")
    
 
     st.markdown("---")
@@ -472,6 +472,7 @@ elif menu == "Resources":
         - [SARDI Biosecurity](https://pir.sa.gov.au/sardi/crop_sciences/plant_health_and_biosecurity)
         """
     )
+
 
 
 
