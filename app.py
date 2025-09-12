@@ -74,15 +74,28 @@ def load_local_data():
 
 # -------------------------------
 # Load data with caching
+# -------------------------------
+# Load data with caching (LOCAL ONLY)
 @st.cache_data(ttl=300)
 def load_data():
-    try:
-        df_main = pd.read_csv(csv_url)
-    except Exception as e:
-        st.error(f"Error loading remote data: {e}")
-        df_main = pd.DataFrame()
-
     df_local = load_local_data()
+
+    if df_local.empty:
+        return pd.DataFrame()
+
+    # --- Fix date parsing ---
+    if "date" in df_local.columns:
+        df_local["date"] = pd.to_datetime(
+            df_local["date"],
+            errors="coerce",
+            dayfirst=True
+        )
+
+    # Drop duplicates if same survey got appended
+    df_local = df_local.drop_duplicates()
+
+    return df_local
+
 
     # Combine both
     if not df_local.empty and not df_main.empty:
@@ -482,6 +495,7 @@ elif menu == "Resources":
         - [SARDI Biosecurity](https://pir.sa.gov.au/sardi/crop_sciences/plant_health_and_biosecurity)
         """
     )
+
 
 
 
