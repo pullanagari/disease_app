@@ -354,10 +354,6 @@ elif menu == "Tag a disease":
         location = st.text_input("Location (Suburb)", "")
         field_type = st.text_input("Field Type", "")
         agronomist = st.text_input("Agronomist", "")
-        # plant_stage = st.selectbox(
-        #     "Plant Growth Stage",
-        #     ["Emergence", "Tillering", "Stem elongation", "Flowering", "Grain filling", "Maturity"],
-        # )
         field_notes = st.text_area("Field Notes (Optional)")
         sample_taken = st.selectbox("Sample Taken", ["Yes", "No", "N/A"])
         molecular_diagnosis = st.multiselect(
@@ -372,11 +368,14 @@ elif menu == "Tag a disease":
             if not all([crop, disease1, location]):
                 st.error("Please fill in all required fields: Crop, Disease 1, and Location")
             else:
+                # Generate unique ID
+                timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
+                unique_id = f"{collector.replace(' ', '_')}_{crop.replace(' ', '_')}_{timestamp}"
+                
                 photo_filename = None
                 if uploaded_file is not None:
-                    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
                     ext = uploaded_file.name.split(".")[-1]
-                    photo_filename = f"disease_photo_{timestamp}.{ext}"
+                    photo_filename = f"{unique_id}.{ext}"
                     with open(os.path.join("uploads", photo_filename), "wb") as f:
                         f.write(uploaded_file.getbuffer())
 
@@ -384,6 +383,7 @@ elif menu == "Tag a disease":
                 if disease3 == "None": disease3, severity3 = "", 0
 
                 new_record = {
+                    "id": unique_id,  # Add unique ID
                     "date": date.strftime("%d/%m/%Y"),
                     "collector_name": collector,
                     "field_type": field_type,
@@ -402,6 +402,8 @@ elif menu == "Tag a disease":
                     "survey_location": location,
                     "photo_filename": photo_filename if photo_filename else "",
                     "field_notes": field_notes,
+                    "sample_taken": sample_taken,
+                    "molecular_diagnosis": ", ".join(molecular_diagnosis) if molecular_diagnosis else "",
                 }
 
                 # Load existing local data
@@ -470,6 +472,7 @@ elif menu == "Resources":
         - [SARDI Biosecurity](https://pir.sa.gov.au/sardi/crop_sciences/plant_health_and_biosecurity)
         """
     )
+
 
 
 
