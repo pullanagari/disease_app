@@ -119,10 +119,10 @@ def load_data():
 if "df" not in st.session_state:
     st.session_state.df = load_data()
 
-# def reload_data():
-#     st.cache_data.clear()
-#     st.session_state.df = load_data()
-#     st.success("Data reloaded!")
+def reload_data():
+    st.cache_data.clear()
+    st.session_state.df = load_data()
+    st.success("Data reloaded!")
 
 # -------------------------------
 sidebar_mobile_friendly = """
@@ -482,6 +482,7 @@ elif menu == "Resources":
         - [SARDI Biosecurity](https://pir.sa.gov.au/sardi/crop_sciences/plant_health_and_biosecurity)
         """
     )
+
 
 
 
