@@ -12,16 +12,15 @@ import io
 import zipfile
 
 # -------------------------------
-
+# Page config (must be before any Streamlit UI code)
 st.set_page_config(
     page_title="South Australia Disease Surveillance",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-
-# loading old data
-
+# -------------------------------
+# Setup
 csv_url = "https://raw.githubusercontent.com/pullanagari/Disease_app/main/data_temp.csv"
 
 # Create directories if they don't exist
@@ -36,7 +35,18 @@ def load_css():
 
 load_css()
 
+# Hide GitHub logo
+hide_github_logo = """
+<style>
+.css-1v0mbdj {
+    display: none !important;
+}
+</style>
+"""
+st.markdown(hide_github_logo, unsafe_allow_html=True)
 
+# -------------------------------
+# Improved data persistence functions
 def get_local_data_path():
     """Get the path to the local data file with proper handling for cloud deployments"""
     return os.path.join("data", "local_disease_data.csv")
@@ -62,7 +72,8 @@ def load_local_data():
             return pd.DataFrame()
     return pd.DataFrame()
 
-
+# -------------------------------
+# Load data with caching
 @st.cache_data(ttl=300)  # Cache for 5 minutes
 def load_data():
     try:
@@ -96,7 +107,7 @@ def reload_data():
     st.session_state.df = load_data()
     st.success("Data reloaded!")
 
-
+# -------------------------------
 sidebar_mobile_friendly = """
 <style>
 /* Prevent sidebar from collapsing but don't fix it */
@@ -111,16 +122,10 @@ sidebar_mobile_friendly = """
 }
 </style>
 """
-hide_menu_style = """
-    <style>
-        #MainMenu {visibility: hidden;}
-    </style>
-"""
-st.markdown(hide_menu_style, unsafe_allow_html=True)
 st.markdown(sidebar_mobile_friendly, unsafe_allow_html=True)
 
 st.sidebar.markdown("## 🌾 South Australia Disease Surveillance")
-menu = st.sidebar.radio("Navigation", ["Disease tracker", "Tag a disease", "About","Resources"])
+menu = st.sidebar.radio("Navigation", ["Disease tracker", "Tag a disease", "About", "Resources"])
 
 # Refresh button
 if st.sidebar.button("🔄 Refresh Data"):
@@ -283,9 +288,6 @@ if menu == "Disease tracker":
     df_photos = df_filtered[df_filtered["photo_filename"].notna() & (df_filtered["photo_filename"] != "")]
     
     if not df_photos.empty:
-        
-    
-        # Download all photos as ZIP
         # Download all photos as ZIP
         zip_buffer = io.BytesIO()
         with zipfile.ZipFile(zip_buffer, "w") as zf:
@@ -369,15 +371,15 @@ elif menu == "Tag a disease":
                 photo_filename = None
                 if uploaded_file is not None:
                     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-                    ext = uploaded_file.name.split(".")[-1]
-                    photo_filename = f"disease_photo_{timestamp}.{ext}"
+                    file_extension = uploaded_file.name.split(".")[-1]
+                    photo_filename = f"disease_photo_{timestamp}.{file_extension}"
                     with open(os.path.join("uploads", photo_filename), "wb") as f:
                         f.write(uploaded_file.getbuffer())
 
-                if disease2 == "None": 
+                if disease2 == "None":
                     disease2 = ""
                     severity2 = 0
-                if disease3 == "None": 
+                if disease3 == "None":
                     disease3 = ""
                     severity3 = 0
 
@@ -415,15 +417,16 @@ elif menu == "Tag a disease":
                 # Save updated data
                 if save_local_data(updated_data):
                     st.success("✅ Submission successful! Data saved to local storage.")
+                    
                     # Clear cache and reload data
                     reload_data()
+                    
                     if uploaded_file is not None:
                         st.markdown("**Uploaded Photo Preview:**")
                         image = Image.open(uploaded_file)
                         st.image(image, caption="Disease Photo", use_column_width=True)
                 else:
                     st.error("Failed to save data. Please try again.")
-   
 
     st.markdown("---")
     st.markdown("### Export Data")
@@ -444,8 +447,6 @@ elif menu == "Tag a disease":
 
 # -------------------------------
 # About Page
-# -------------------------------
-# About & Resources Page
 elif menu == "About":
     st.markdown("## ℹ️ About SA Ds App")
     st.markdown(
