@@ -216,7 +216,7 @@ if menu == "Disease tracker":
         st.stop()
     
     # Ensure we have the required columns
-    required_columns = ["date", "crop", "disease1", "severity1_percent", "latitude", "longitude", "survey_location"]
+    required_columns = ["sample_id", "date", "crop", "disease1", "severity1_percent", "latitude", "longitude", "survey_location"]
     missing_columns = [col for col in required_columns if col not in df.columns]
     
     if missing_columns:
@@ -536,6 +536,7 @@ elif menu == "Resources":
         - [SARDI Biosecurity](https://pir.sa.gov.au/sardi/crop_sciences/plant_health_and_biosecurity)
         """
     )
+
 
 
 
