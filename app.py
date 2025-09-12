@@ -10,7 +10,7 @@ import json
 import requests
 import io
 import zipfile
-
+import re
 
 # -------------------------------
 # Page config (must be before any Streamlit UI code)
@@ -73,7 +73,43 @@ def load_local_data():
             return pd.DataFrame()
     return pd.DataFrame()
 
+def save_to_local(new_row):
+    file_path = "data/local_disease_data.csv"
 
+    if os.path.exists(file_path):
+        df = pd.read_csv(file_path)
+        df = pd.concat([df, pd.DataFrame([new_row])], ignore_index=True)
+    else:
+        df = pd.DataFrame([new_row])
+
+    df.to_csv(file_path, index=False)
+
+
+
+#----------------------------
+# Adding unique ID
+
+
+def get_next_sample_id():
+    file_path = "data/local_disease_data.csv"
+
+    try:
+        df = pd.read_csv(file_path)
+
+        if "sample_id" in df.columns and not df.empty:
+            last_id = df["sample_id"].iloc[-1]
+            # Extract number from SARDI25001
+            match = re.search(r"SARDI(\d+)", str(last_id))
+            if match:
+                next_num = int(match.group(1)) + 1
+            else:
+                next_num = 25001
+        else:
+            next_num = 25001
+    except FileNotFoundError:
+        next_num = 25001
+
+    return f"SARDI{next_num:05d}"
 
 # -------------------------------
 # Load data with caching
@@ -417,6 +453,7 @@ elif menu == "Tag a disease":
                     severity3 = 0
 
                 new_record = {
+                    "sample_id": sample_id,
                     "date": date.strftime("%d/%m/%Y"),
                     "collector_name": collector,
                     "field_type": field_type,
@@ -498,6 +535,7 @@ elif menu == "Resources":
         - [SARDI Biosecurity](https://pir.sa.gov.au/sardi/crop_sciences/plant_health_and_biosecurity)
         """
     )
+
 
 
 
