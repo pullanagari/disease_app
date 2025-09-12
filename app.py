@@ -428,21 +428,7 @@ elif menu == "Tag a disease":
                 else:
                     st.error("Failed to save data. Please try again.")
 
-    st.markdown("---")
-    st.markdown("### Export Data")
-    local_data = load_local_data()
-    if not local_data.empty:
-        st.download_button(
-            "Download All Local Data",
-            local_data.to_csv(index=False).encode("utf-8"),
-            "local_disease_data.csv",
-            "text/csv",
-            key="download-csv",
-        )
-        st.markdown("### Local Data Entries")
-        st.dataframe(local_data)
-    else:
-        st.info("No local data entries yet.")
+  
 
 
 # -------------------------------
@@ -479,3 +465,4 @@ elif menu == "Resources":
         - [SARDI Biosecurity](https://pir.sa.gov.au/sardi/crop_sciences/plant_health_and_biosecurity)
         """
     )
+
