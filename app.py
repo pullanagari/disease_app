@@ -74,7 +74,7 @@ def load_local_data():
 
 # -------------------------------
 # Load data with caching
-@st.cache_data(ttl=300)  # Cache for 5 minutes
+@st.cache_data(ttl=300)
 def load_data():
     try:
         df_main = pd.read_csv(csv_url)
@@ -83,7 +83,8 @@ def load_data():
         df_main = pd.DataFrame()
 
     df_local = load_local_data()
-    
+
+    # Combine both
     if not df_local.empty and not df_main.empty:
         df_combined = pd.concat([df_main, df_local], ignore_index=True)
     elif not df_local.empty:
@@ -91,11 +92,27 @@ def load_data():
     elif not df_main.empty:
         df_combined = df_main
     else:
-        df_combined = pd.DataFrame()
+        return pd.DataFrame()
 
-    if not df_combined.empty:
-        df_combined["date"] = pd.to_datetime(df_combined["date"], errors="coerce", dayfirst=True)
-    
+    # --- Fix date parsing ---
+    if "date" in df_combined.columns:
+        # Try both common formats
+        df_combined["date"] = pd.to_datetime(
+            df_combined["date"],
+            errors="coerce",
+            dayfirst=False,  # remote CSV often uses ISO format
+        )
+        # If still NaT, try fallback parsing
+        if df_combined["date"].isna().any():
+            df_combined["date"] = pd.to_datetime(
+                df_combined["date"],
+                errors="coerce",
+                dayfirst=True
+            )
+
+    # Drop duplicates if same survey got appended
+    df_combined = df_combined.drop_duplicates()
+
     return df_combined
 
 # Initialize session state
@@ -465,4 +482,5 @@ elif menu == "Resources":
         - [SARDI Biosecurity](https://pir.sa.gov.au/sardi/crop_sciences/plant_health_and_biosecurity)
         """
     )
+
 
