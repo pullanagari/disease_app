@@ -72,6 +72,17 @@ def load_local_data():
             return pd.DataFrame()
     return pd.DataFrame()
 
+
+def delete_entry(index):
+    file_path = "data/local_disease_data.csv"
+    if os.path.exists(file_path):
+        df = pd.read_csv(file_path)
+        df = df.drop(index).reset_index(drop=True)
+        df.to_csv(file_path, index=False)
+        st.success("Entry deleted successfully!")
+    else:
+        st.error("No local survey data found.")
+
 # -------------------------------
 # Load data with caching
 # -------------------------------
@@ -495,6 +506,7 @@ elif menu == "Resources":
         - [SARDI Biosecurity](https://pir.sa.gov.au/sardi/crop_sciences/plant_health_and_biosecurity)
         """
     )
+
 
 
 
