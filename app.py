@@ -344,8 +344,8 @@ elif menu == "Tag a disease":
             date = st.date_input("Date", datetime.today())
             collector = st.selectbox(
                 "Collector Name",
-                ["Hari Dadu", "Rohan Kimber", "Tara Garrard", "Moshen Khani", "Kul Adhikari", 
-                 "Mark Butt", "Marzena Krysinka-Kaczmarek", "Michelle Russ", "Entesar Abood", 
+                ["Hari Dadu", "Rohan Kimber", "Tara Garrard", "Moshen Khani", "Kul Adhikari",
+                 "Mark Butt", "Marzena Krysinka-Kaczmarek", "Michelle Russ", "Entesar Abood",
                  "Milica Grcic", "Nicole Thompson", "Blake Gontar", "Other"]
             )
             crop = st.selectbox(
@@ -460,8 +460,8 @@ elif menu == "Tag a disease":
                         except Exception as e:
                             st.warning(f"Saved photo could not be opened for display: {e}")
                     
-                    # Re-run app so the new record shows up in tracker
-                    st.experimental_rerun()
+                    # Rerun app so the new record shows up in tracker
+                    st.rerun() # <<< CHANGED THIS LINE
                 else:
                     st.error("Failed to save data. Please try again.")
 
@@ -479,8 +479,7 @@ elif menu == "About":
     - Local CSV data storage and export functionality  
     - Improved data management  
 
-    **Tips:**  
-    - Use the 'Refresh Data' button in the sidebar to see newly submitted entries  
+    **Tips:** - Use the 'Refresh Data' button in the sidebar to see newly submitted entries  
     - If data doesn't update automatically, try refreshing the page
     
     **Data Persistence:**
