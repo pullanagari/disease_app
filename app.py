@@ -451,7 +451,8 @@ elif menu == "Tag a disease":
 
                 if save_local_data(updated_data):
                     st.success("✅ Submission successful! Data saved locally.")
-                    # Force a refresh of the data
+                    # Force a refresh of the data by updating session state and rerunning
+                    st.session_state.df = updated_data
                     reload_data()
                     if photo_filename:
                         # open saved path to display
@@ -460,8 +461,7 @@ elif menu == "Tag a disease":
                         except Exception as e:
                             st.warning(f"Saved photo could not be opened for display: {e}")
                     
-                    # Rerun app so the new record shows up in tracker
-                    st.rerun() # <<< CHANGED THIS LINE
+                    st.rerun()
                 else:
                     st.error("Failed to save data. Please try again.")
 
