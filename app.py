@@ -116,34 +116,13 @@ def load_data():
     return df_combined
 
 # Initialize session state
-# if "df" not in st.session_state:
-#     st.session_state.df = load_data()
-if "survey_data" not in st.session_state:
-    st.session_state["survey_data"] = pd.DataFrame(columns=[
-        "date", "farmer_name", "crop_type", "disease_name", "severity", "notes"
-    ])
-# Function to add a new survey
-def add_survey(farmer, crop, disease, severity, notes):
-    new_row = {
-        "date": datetime.now().strftime("%Y-%m-%d"),
-        "farmer_name": farmer,
-        "crop_type": crop,
-        "disease_name": disease,
-        "severity": severity,
-        "notes": notes
-    }
-    st.session_state["survey_data"] = pd.concat(
-        [st.session_state["survey_data"], pd.DataFrame([new_row])],
-        ignore_index=True
-    )
-
-# Function to get all surveys
-def load_surveys():
-    return st.session_state["survey_data"]
-def reload_data():
-    st.cache_data.clear()
+if "df" not in st.session_state:
     st.session_state.df = load_data()
-    st.success("Data reloaded!")
+
+# def reload_data():
+#     st.cache_data.clear()
+#     st.session_state.df = load_data()
+#     st.success("Data reloaded!")
 
 # -------------------------------
 sidebar_mobile_friendly = """
@@ -503,6 +482,7 @@ elif menu == "Resources":
         - [SARDI Biosecurity](https://pir.sa.gov.au/sardi/crop_sciences/plant_health_and_biosecurity)
         """
     )
+
 
 
 
