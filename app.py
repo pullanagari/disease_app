@@ -10,9 +10,6 @@ import json
 import requests
 import io
 import zipfile
-# import flush_database
-
-
 
 # -------------------------------
 
@@ -67,7 +64,6 @@ def load_local_data():
 
 
 @st.cache_data(ttl=300)  # Cache for 5 minutes
-
 def load_data():
     try:
         df_main = pd.read_csv(csv_url)
@@ -96,6 +92,7 @@ if "df" not in st.session_state:
     st.session_state.df = load_data()
 
 def reload_data():
+    st.cache_data.clear()
     st.session_state.df = load_data()
     st.success("Data reloaded!")
 
@@ -354,10 +351,6 @@ elif menu == "Tag a disease":
         location = st.text_input("Location (Suburb)", "")
         field_type = st.text_input("Field Type", "")
         agronomist = st.text_input("Agronomist", "")
-        # plant_stage = st.selectbox(
-        #     "Plant Growth Stage",
-        #     ["Emergence", "Tillering", "Stem elongation", "Flowering", "Grain filling", "Maturity"],
-        # )
         field_notes = st.text_area("Field Notes (Optional)")
         sample_taken = st.selectbox("Sample Taken", ["Yes", "No", "N/A"])
         molecular_diagnosis = st.multiselect(
@@ -369,6 +362,7 @@ elif menu == "Tag a disease":
         submitted = st.form_submit_button("Submit")
 
         if submitted:
+            # Validate required fields
             if not all([crop, disease1, location]):
                 st.error("Please fill in all required fields: Crop, Disease 1, and Location")
             else:
@@ -379,10 +373,14 @@ elif menu == "Tag a disease":
                     photo_filename = f"disease_photo_{timestamp}.{ext}"
                     with open(os.path.join("uploads", photo_filename), "wb") as f:
                         f.write(uploaded_file.getbuffer())
-        
-                if disease2 == "None": disease2, severity2 = "", 0
-                if disease3 == "None": disease3, severity3 = "", 0
-        
+
+                if disease2 == "None": 
+                    disease2 = ""
+                    severity2 = 0
+                if disease3 == "None": 
+                    disease3 = ""
+                    severity3 = 0
+
                 new_record = {
                     "date": date.strftime("%d/%m/%Y"),
                     "collector_name": collector,
@@ -403,38 +401,45 @@ elif menu == "Tag a disease":
                     "photo_filename": photo_filename if photo_filename else "",
                     "field_notes": field_notes,
                 }
-        
+
                 # Load existing local data
                 local_data = load_local_data()
-                updated_data = pd.concat([local_data, pd.DataFrame([new_record])], ignore_index=True) if not local_data.empty else pd.DataFrame([new_record])
-        
+                
+                # Append new record
+                new_df = pd.DataFrame([new_record])
+                if local_data.empty:
+                    updated_data = new_df
+                else:
+                    updated_data = pd.concat([local_data, new_df], ignore_index=True)
+                
+                # Save updated data
                 if save_local_data(updated_data):
-                    st.success("✅ Submission successful! Data saved locally.")
-                    # Update the session state directly with the new data
-                    st.session_state.df = load_data()
-                    if uploaded_file:
-                        st.image(Image.open(uploaded_file), caption="Disease Photo", use_column_width=True)
-                    # Force a rerun to update the UI
-                    st.rerun()
+                    st.success("✅ Submission successful! Data saved to local storage.")
+                    # Clear cache and reload data
+                    reload_data()
+                    if uploaded_file is not None:
+                        st.markdown("**Uploaded Photo Preview:**")
+                        image = Image.open(uploaded_file)
+                        st.image(image, caption="Disease Photo", use_column_width=True)
                 else:
                     st.error("Failed to save data. Please try again.")
-
+   
 
     st.markdown("---")
-    # st.markdown("### Export Data")
-    # local_data = load_local_data()
-    # if not local_data.empty:
-    #     st.download_button(
-    #         "Download All Local Data",
-    #         local_data.to_csv(index=False).encode("utf-8"),
-    #         "local_disease_data.csv",
-    #         "text/csv",
-    #         key="download-csv",
-    #     )
-    #     st.markdown("### Local Data Entries")
-    #     st.dataframe(local_data)
-    # else:
-    #     st.info("No local data entries yet.")
+    st.markdown("### Export Data")
+    local_data = load_local_data()
+    if not local_data.empty:
+        st.download_button(
+            "Download All Local Data",
+            local_data.to_csv(index=False).encode("utf-8"),
+            "local_disease_data.csv",
+            "text/csv",
+            key="download-csv",
+        )
+        st.markdown("### Local Data Entries")
+        st.dataframe(local_data)
+    else:
+        st.info("No local data entries yet.")
 
 
 # -------------------------------
@@ -473,17 +478,3 @@ elif menu == "Resources":
         - [SARDI Biosecurity](https://pir.sa.gov.au/sardi/crop_sciences/plant_health_and_biosecurity)
         """
     )
-
-
-
-
-
-
-
-
-
-
-
-
-
-
