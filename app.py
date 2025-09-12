@@ -340,7 +340,7 @@ if menu == "Disease tracker":
         if show_all_columns:
             st.dataframe(df_filtered)
         else:
-            st.dataframe(df_filtered[["date", "crop", "disease1", "survey_location", "severity1_percent"]])
+            st.dataframe(df_filtered[["sample_id", "date", "crop", "disease1", "survey_location", "severity1_percent"]])
         
         st.download_button(
             "Download CSV",
@@ -536,6 +536,7 @@ elif menu == "Resources":
         - [SARDI Biosecurity](https://pir.sa.gov.au/sardi/crop_sciences/plant_health_and_biosecurity)
         """
     )
+
 
 
 
