@@ -417,7 +417,14 @@ elif menu == "Tag a disease":
                         st.image(Image.open(uploaded_file), caption="Disease Photo", use_column_width=True)
                 else:
                     st.error("Failed to save data. Please try again.")
-   
+    if save_local_data(updated_data):
+    st.success("✅ Submission successful! Data saved locally.")
+    reload_data()
+    if uploaded_file:
+        st.image(Image.open(uploaded_file), caption="Disease Photo", use_column_width=True)
+    # Add a small delay and then rerun to ensure the page updates
+    time.sleep(0.5)
+    st.rerun()
 
     st.markdown("---")
     # st.markdown("### Export Data")
@@ -472,6 +479,7 @@ elif menu == "Resources":
         - [SARDI Biosecurity](https://pir.sa.gov.au/sardi/crop_sciences/plant_health_and_biosecurity)
         """
     )
+
 
 
 
