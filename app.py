@@ -50,6 +50,50 @@ st.markdown(hide_github_logo, unsafe_allow_html=True)
 
 # -------------------------------
 # Google Sheets Integration
+# @st.cache_resource
+# def get_gs_client():
+#     """Return an authorized gspread client (cached)"""
+#     try:
+#         SCOPES = [
+#             "https://www.googleapis.com/auth/spreadsheets",
+#             "https://www.googleapis.com/auth/drive"
+#         ]
+
+#         # Check for credentials in Streamlit secrets
+#         if "gcp_service_account" in st.secrets:
+#             creds_dict = dict(st.secrets["gcp_service_account"])
+#             creds = service_account.Credentials.from_service_account_info(
+#                 creds_dict, scopes=SCOPES
+#             )
+#         # Check for environment variables (for deployment)
+#         elif all(key in os.environ for key in ["TYPE", "PROJECT_ID", "PRIVATE_KEY_ID", "PRIVATE_KEY", "CLIENT_EMAIL", "CLIENT_ID", "AUTH_URI", "TOKEN_URI", "AUTH_PROVIDER_X509_CERT_URL", "CLIENT_X509_CERT_URL"]):
+#             creds_dict = {
+#                 "type": os.environ["TYPE"],
+#                 "project_id": os.environ["PROJECT_ID"],
+#                 "private_key_id": os.environ["PRIVATE_KEY_ID"],
+#                 "private_key": os.environ["PRIVATE_KEY"].replace('\\n', '\n'),
+#                 "client_email": os.environ["CLIENT_EMAIL"],
+#                 "client_id": os.environ["CLIENT_ID"],
+#                 "auth_uri": os.environ["AUTH_URI"],
+#                 "token_uri": os.environ["TOKEN_URI"],
+#                 "auth_provider_x509_cert_url": os.environ["AUTH_PROVIDER_X509_CERT_URL"],
+#                 "client_x509_cert_url": os.environ["CLIENT_X509_CERT_URL"]
+#             }
+#             creds = service_account.Credentials.from_service_account_info(
+#                 creds_dict, scopes=SCOPES
+#             )
+#         else:
+#             # Fallback to service account file
+#             creds = service_account.Credentials.from_service_account_file(
+#                 "service_account.json", scopes=SCOPES
+#             )
+
+#         client = gspread.authorize(creds)
+#         return client
+
+#     except Exception as e:
+#         st.error(f"❌ Google Sheets auth error: {e}")
+#         return None
 @st.cache_resource
 def get_gs_client():
     """Return an authorized gspread client (cached)"""
@@ -59,34 +103,20 @@ def get_gs_client():
             "https://www.googleapis.com/auth/drive"
         ]
 
-        # Check for credentials in Streamlit secrets
+        # Check for credentials in Streamlit secrets (for cloud deployment)
         if "gcp_service_account" in st.secrets:
             creds_dict = dict(st.secrets["gcp_service_account"])
             creds = service_account.Credentials.from_service_account_info(
                 creds_dict, scopes=SCOPES
             )
-        # Check for environment variables (for deployment)
-        elif all(key in os.environ for key in ["TYPE", "PROJECT_ID", "PRIVATE_KEY_ID", "PRIVATE_KEY", "CLIENT_EMAIL", "CLIENT_ID", "AUTH_URI", "TOKEN_URI", "AUTH_PROVIDER_X509_CERT_URL", "CLIENT_X509_CERT_URL"]):
-            creds_dict = {
-                "type": os.environ["TYPE"],
-                "project_id": os.environ["PROJECT_ID"],
-                "private_key_id": os.environ["PRIVATE_KEY_ID"],
-                "private_key": os.environ["PRIVATE_KEY"].replace('\\n', '\n'),
-                "client_email": os.environ["CLIENT_EMAIL"],
-                "client_id": os.environ["CLIENT_ID"],
-                "auth_uri": os.environ["AUTH_URI"],
-                "token_uri": os.environ["TOKEN_URI"],
-                "auth_provider_x509_cert_url": os.environ["AUTH_PROVIDER_X509_CERT_URL"],
-                "client_x509_cert_url": os.environ["CLIENT_X509_CERT_URL"]
-            }
-            creds = service_account.Credentials.from_service_account_info(
-                creds_dict, scopes=SCOPES
-            )
-        else:
-            # Fallback to service account file
+        # Check for service account file (for local development)
+        elif os.path.exists("service_account.json"):
             creds = service_account.Credentials.from_service_account_file(
                 "service_account.json", scopes=SCOPES
             )
+        else:
+            st.error("No Google Sheets credentials found")
+            return None
 
         client = gspread.authorize(creds)
         return client
@@ -94,7 +124,6 @@ def get_gs_client():
     except Exception as e:
         st.error(f"❌ Google Sheets auth error: {e}")
         return None
-
 
 def get_spreadsheet():
     """Return spreadsheet object if available"""
@@ -144,24 +173,22 @@ def init_google_sheets():
 
 def save_to_google_sheets(new_row: dict):
     """Save data to Google Sheets with proper error handling"""
-    spreadsheet = get_spreadsheet()
-    if not spreadsheet:
-        st.warning("⚠️ No cloud data available for synchronization.")
-        return False
-
     try:
+        spreadsheet = get_spreadsheet()
+        if not spreadsheet:
+            st.warning("⚠️ No cloud data available for synchronization.")
+            return False
+
         worksheet = spreadsheet.sheet1
         existing_values = worksheet.get_all_values()
-        
-        # Convert all values to strings to avoid type issues
-        values = [str(v) for v in new_row.values()]
         
         # Add headers if sheet is empty
         if not existing_values:
             headers = list(new_row.keys())
             worksheet.append_row(headers)
         
-        # Append the new row
+        # Append row values (convert all to strings)
+        values = [str(v) for v in new_row.values()]
         worksheet.append_row(values, value_input_option="USER_ENTERED")
         
         st.success("✅ Data saved to Google Sheets")
@@ -739,6 +766,7 @@ elif menu == "Resources":
         - [SARDI Biosecurity](https://pir.sa.gov.au/sardi/crop_sciences/plant_health_and_biosecurity)
         """
     )
+
 
 
 
