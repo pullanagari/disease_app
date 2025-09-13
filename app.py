@@ -7,93 +7,12 @@ from datetime import datetime
 import os
 from PIL import Image
 import json
+import requests
 import io
 import zipfile
 import re
-import requests
-import base64
-
-# -------------------------------
-# GitHub helper functions
-# -------------------------------
-def github_api_request(method, url, data=None):
-    token = st.secrets["GITHUB_TOKEN"]
-    headers = {"Authorization": f"token {token}"}
-    r = requests.request(method, url, headers=headers, json=data)
-    return r
-
-def save_csv_to_github(df, filename="data_temp.csv"):
-    try:
-        token = st.secrets["GITHUB_TOKEN"]
-        repo = st.secrets["GITHUB_REPO"]   # e.g. "pullanagari/Disease_app"
-        branch = st.secrets.get("GITHUB_BRANCH", "main")
-    except KeyError as e:
-        st.error(f"Missing secret: {e}. Please set it in Streamlit secrets.")
-        return False
-
-    url = f"https://api.github.com/repos/{repo}/contents/{filename}"
-
-    # Check if file exists (get its sha)
-    r = github_api_request("GET", url)
-    sha = r.json().get("sha") if r.status_code == 200 else None
-
-    # Prepare new content
-    content = df.to_csv(index=False).encode("utf-8")
-    b64_content = base64.b64encode(content).decode()
-
-    data = {
-        "message": "Update disease data via Streamlit app",
-        "content": b64_content,
-        "branch": branch,
-    }
-    if sha:
-        data["sha"] = sha
-
-    r = github_api_request("PUT", url, data)
-
-    if r.status_code in [200, 201]:
-        return True
-    else:
-        # 👇 safer error handling
-        try:
-            err_msg = r.json()
-        except Exception:
-            err_msg = r.text  # fallback if not JSON
-        st.error(f"GitHub CSV save failed: {r.status_code} → {err_msg}")
-        return False
-
-def save_photo_to_github(file_bytes, filename, folder="photos", branch="main"):
-    try:
-        repo = st.secrets["GITHUB_REPO"]
-    except KeyError as e:
-        st.error(f"Missing secret: {e}")
-        return None
-
-    path = f"{folder}/{filename}"
-    url = f"https://api.github.com/repos/{repo}/contents/{path}"
-
-    # Get file SHA if exists
-    r = github_api_request("GET", url)
-    sha = r.json().get("sha") if r.status_code == 200 else None
-
-    # Encode file
-    b64_content = base64.b64encode(file_bytes).decode()
-
-    data = {
-        "message": f"Upload photo {filename}",
-        "content": b64_content,
-        "branch": branch,
-    }
-    if sha:
-        data["sha"] = sha
-
-    r = github_api_request("PUT", url, data)
-    if r.status_code in [200, 201]:
-        # Return raw GitHub URL for future display
-        return f"https://raw.githubusercontent.com/{repo}/{branch}/{path}"
-    else:
-        st.error(f"GitHub photo upload failed: {r.json()}")
-        return None
+import gspread
+from oauth2client.service_account import ServiceAccountCredentials
 
 # -------------------------------
 # Page config (must be before any Streamlit UI code)
@@ -130,6 +49,69 @@ hide_github_logo = """
 st.markdown(hide_github_logo, unsafe_allow_html=True)
 
 # -------------------------------
+# Google Sheets Setup for persistent storage
+def init_google_sheets():
+    """Initialize connection to Google Sheets"""
+    try:
+        # Check if credentials are provided via secrets or file
+        if 'gcp_service_account' in st.secrets:
+            creds_dict = dict(st.secrets['gcp_service_account'])
+            scope = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
+            credentials = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
+            gc = gspread.authorize(credentials)
+        else:
+            # Fallback to local file if secrets not available
+            if os.path.exists('service_account.json'):
+                scope = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
+                credentials = ServiceAccountCredentials.from_json_keyfile_name('service_account.json', scope)
+                gc = gspread.authorize(credentials)
+            else:
+                st.warning("Google Sheets credentials not found. Using local storage only.")
+                return None
+        
+        # Try to open the spreadsheet
+        spreadsheet = gc.open("SA_Disease_Surveillance")
+        return spreadsheet
+    except Exception as e:
+        st.error(f"Error connecting to Google Sheets: {e}")
+        return None
+
+def save_to_google_sheets(new_row):
+    """Save data to Google Sheets"""
+    spreadsheet = init_google_sheets()
+    if spreadsheet:
+        try:
+            worksheet = spreadsheet.sheet1
+            # Get all records to check if we need headers
+            records = worksheet.get_all_records()
+            if len(records) == 0:
+                # Worksheet is empty, add headers
+                headers = list(new_row.keys())
+                worksheet.insert_row(headers, 1)
+            
+            # Add new row
+            values = list(new_row.values())
+            worksheet.append_row(values)
+            return True
+        except Exception as e:
+            st.error(f"Error saving to Google Sheets: {e}")
+            return False
+    return False
+
+def load_from_google_sheets():
+    """Load data from Google Sheets"""
+    spreadsheet = init_google_sheets()
+    if spreadsheet:
+        try:
+            worksheet = spreadsheet.sheet1
+            records = worksheet.get_all_records()
+            if records:
+                return pd.DataFrame(records)
+        except Exception as e:
+            st.error(f"Error loading from Google Sheets: {e}")
+    return pd.DataFrame()
+
+# -------------------------------
 # Improved data persistence functions
 def get_local_data_path():
     """Get the path to the local data file with proper handling for cloud deployments"""
@@ -156,65 +138,88 @@ def load_local_data():
             return pd.DataFrame()
     return pd.DataFrame()
 
+def save_data(new_row):
+    """Save data to both local storage and Google Sheets"""
+    # Save to local storage
+    file_path = "data/local_disease_data.csv"
+    
+    if os.path.exists(file_path):
+        df = pd.read_csv(file_path)
+        df = pd.concat([df, pd.DataFrame([new_row])], ignore_index=True)
+    else:
+        df = pd.DataFrame([new_row])
+    
+    df.to_csv(file_path, index=False)
+    
+    # Also save to Google Sheets for persistence
+    save_to_google_sheets(new_row)
+    
+    return True
+
 #----------------------------
 # Adding unique ID
 def get_next_sample_id():
-    file_path = "data/local_disease_data.csv"
-
-    try:
-        df = pd.read_csv(file_path)
-
-        if "sample_id" in df.columns and not df.empty:
-            last_id = df["sample_id"].iloc[-1]
-            # Extract number from SARDI25001
-            match = re.search(r"SARDI(\d+)", str(last_id))
-            if match:
-                next_num = int(match.group(1)) + 1
-            else:
-                next_num = 25001
+    """Generate the next sample ID by checking both local and Google Sheets data"""
+    # First check Google Sheets for the latest ID
+    gs_data = load_from_google_sheets()
+    if not gs_data.empty and "sample_id" in gs_data.columns:
+        last_id = gs_data["sample_id"].iloc[-1]
+        match = re.search(r"SARDI(\d+)", str(last_id))
+        if match:
+            next_num = int(match.group(1)) + 1
         else:
             next_num = 25001
-    except FileNotFoundError:
-        next_num = 25001
-
+    else:
+        # Fallback to local file
+        file_path = "data/local_disease_data.csv"
+        try:
+            if os.path.exists(file_path):
+                df = pd.read_csv(file_path)
+                if "sample_id" in df.columns and not df.empty:
+                    last_id = df["sample_id"].iloc[-1]
+                    match = re.search(r"SARDI(\d+)", str(last_id))
+                    if match:
+                        next_num = int(match.group(1)) + 1
+                    else:
+                        next_num = 25001
+                else:
+                    next_num = 25001
+            else:
+                next_num = 25001
+        except:
+            next_num = 25001
+    
     return f"SARDI{next_num:05d}"
 
 # -------------------------------
 # Load data with caching
-# -------------------------------
 @st.cache_data(ttl=300)
 def load_data():
-    # Try to load from GitHub first
-    try:
-        df_main = pd.read_csv(csv_url)
-    except Exception as e:
-        st.error(f"Failed to load main data from GitHub: {e}")
-        df_main = pd.DataFrame()
-
-    # Load local data
+    """Load data from both local storage and Google Sheets, merge them"""
     df_local = load_local_data()
-
-    # Combine both
-    if not df_local.empty and not df_main.empty:
-        df_combined = pd.concat([df_main, df_local], ignore_index=True)
+    df_gs = load_from_google_sheets()
+    
+    if df_local.empty and df_gs.empty:
+        return pd.DataFrame()
+    
+    # Combine both data sources
+    if not df_local.empty and not df_gs.empty:
+        df_combined = pd.concat([df_gs, df_local], ignore_index=True)
+        # Remove duplicates based on sample_id
+        df_combined = df_combined.drop_duplicates(subset=['sample_id'], keep='last')
     elif not df_local.empty:
         df_combined = df_local
-    elif not df_main.empty:
-        df_combined = df_main
     else:
-        return pd.DataFrame()
-
-    # Fix date parsing
+        df_combined = df_gs
+    
+    # --- Fix date parsing ---
     if "date" in df_combined.columns:
         df_combined["date"] = pd.to_datetime(
             df_combined["date"],
             errors="coerce",
             dayfirst=True
         )
-
-    # Drop duplicates if same survey got appended
-    df_combined = df_combined.drop_duplicates()
-
+    
     return df_combined
 
 # Initialize session state
@@ -227,6 +232,7 @@ def reload_data():
     st.success("Data reloaded!")
 
 # -------------------------------
+# UI and rest of the application remains the same
 sidebar_mobile_friendly = """
 <style>
 /* Prevent sidebar from collapsing but don't fix it */
@@ -244,7 +250,7 @@ sidebar_mobile_friendly = """
 st.markdown(sidebar_mobile_friendly, unsafe_allow_html=True)
 
 st.sidebar.markdown("## 🌾 South Australia Disease Surveillance")
-menu = st.sidebar.radio("Navigation", ["Disease tracker", "Tag a disease", "About", "Resources"])
+menu = st.sidebar.radio("Navigation", ["Disease tracker", "Tag a disease", "About", "Resources", "Data Management"])
 
 # Refresh button
 if st.sidebar.button("🔄 Refresh Data"):
@@ -404,26 +410,23 @@ if menu == "Disease tracker":
     st.markdown("### 📸 Download Photos")
     
     # Filter only rows with photos
-    df_photos = df_filtered[df_filtered["photo_url"].notna() & (df_filtered["photo_url"] != "")]
+    df_photos = df_filtered[df_filtered["photo_filename"].notna() & (df_filtered["photo_filename"] != "")]
     
     if not df_photos.empty:
         # Download all photos as ZIP
         zip_buffer = io.BytesIO()
         with zipfile.ZipFile(zip_buffer, "w") as zf:
             for _, row in df_photos.iterrows():
-                try:
-                    response = requests.get(row["photo_url"])
-                    if response.status_code == 200:
-                        zf.writestr(row["photo_url"].split("/")[-1], response.content)
-                except:
-                    continue
-                    
+                photo_path = os.path.join("uploads", row["photo_filename"])
+                if os.path.exists(photo_path):
+                    zf.write(photo_path, arcname=row["photo_filename"])
         st.download_button(
             "Download All Photos (ZIP)",
             data=zip_buffer.getvalue(),
             file_name="disease_photos.zip",
             mime="application/zip",
         )
+
     else:
         st.info("No photos available for the selected filters.")
 
@@ -487,61 +490,116 @@ elif menu == "Tag a disease":
 
         if submitted:
             sample_id = get_next_sample_id()
-        
-            photo_url = ""
-            if uploaded_file is not None:
-                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-                file_extension = uploaded_file.name.split(".")[-1]
-                photo_filename = f"disease_photo_{timestamp}.{file_extension}"
-                photo_url = save_photo_to_github(uploaded_file.getbuffer(), photo_filename)
-        
-            new_record = {
-                "sample_id": sample_id,
-                "date": date.strftime("%d/%m/%Y"),
-                "collector_name": collector,
-                "field_type": field_type,
-                "Agronomist": agronomist,
-                "crop": crop,
-                "variety": variety,
-                "plant_stage": plant_stage,
-                "disease1": disease1,
-                "disease2": disease2 if disease2 != "None" else "",
-                "disease3": disease3 if disease3 != "None" else "",
-                "severity1_percent": severity1,
-                "severity2_percent": severity2 if disease2 != "None" else 0,
-                "severity3_percent": severity3 if disease3 != "None" else 0,
-                "latitude": float(latitude) if latitude else -36.76,
-                "longitude": float(longitude) if longitude else 142.21,
-                "survey_location": location,
-                "photo_url": photo_url,   # store permanent GitHub link
-                "field_notes": field_notes,
-            }
-        
-            # Load existing data (from GitHub)
-            try:
-                df_existing = pd.read_csv(csv_url)
-            except:
-                df_existing = pd.DataFrame()
-                
-            df_updated = pd.concat([df_existing, pd.DataFrame([new_record])], ignore_index=True)
-        
-            if save_csv_to_github(df_updated):
-                st.success("✅ Submission saved to GitHub permanently")
-                # Also update local data
-                local_df = load_local_data()
-                local_updated = pd.concat([local_df, pd.DataFrame([new_record])], ignore_index=True)
-                save_local_data(local_updated)
-                reload_data()
-                if photo_url:
-                    st.image(photo_url, caption="Uploaded to GitHub")
+            # Validate required fields
+            if not all([crop, disease1, location]):
+                st.error("Please fill in all required fields: Crop, Disease 1, and Location")
             else:
-                st.error("Failed to save to GitHub. Saving to local only.")
-                # Save to local only
-                local_df = load_local_data()
-                local_updated = pd.concat([local_df, pd.DataFrame([new_record])], ignore_index=True)
-                save_local_data(local_updated)
-                reload_data()
+                photo_filename = None
+                if uploaded_file is not None:
+                    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                    file_extension = uploaded_file.name.split(".")[-1]
+                    photo_filename = f"disease_photo_{timestamp}.{file_extension}"
+                    with open(os.path.join("uploads", photo_filename), "wb") as f:
+                        f.write(uploaded_file.getbuffer())
 
+                if disease2 == "None":
+                    disease2 = ""
+                    severity2 = 0
+                if disease3 == "None":
+                    disease3 = ""
+                    severity3 = 0
+
+                new_record = {
+                    "sample_id": sample_id,
+                    "date": date.strftime("%d/%m/%Y"),
+                    "collector_name": collector,
+                    "field_type": field_type,
+                    "Agronomist": agronomist,
+                    "crop": crop,
+                    "variety": variety,
+                    "plant_stage": plant_stage,
+                    "disease1": disease1,
+                    "disease2": disease2,
+                    "disease3": disease3,
+                    "severity1_percent": severity1,
+                    "severity2_percent": severity2,
+                    "severity3_percent": severity3,
+                    "latitude": float(latitude) if latitude else -36.76,
+                    "longitude": float(longitude) if longitude else 142.21,
+                    "survey_location": location,
+                    "photo_filename": photo_filename if photo_filename else "",
+                    "field_notes": field_notes,
+                }
+
+                # Save data to both local storage and Google Sheets
+                if save_data(new_record):
+                    st.success("✅ Submission successful! Data saved to persistent storage.")
+                    
+                    # Clear cache and reload data
+                    reload_data()
+                    
+                    if uploaded_file is not None:
+                        st.markdown("**Uploaded Photo Preview:**")
+                        image = Image.open(uploaded_file)
+                        st.image(image, caption="Disease Photo", use_column_width=True)
+                else:
+                    st.error("Failed to save data. Please try again.")
+
+# -------------------------------
+# Data Management Page
+elif menu == "Data Management":
+    st.markdown("## 📊 Data Management")
+    
+    st.info("This section allows you to manage your data storage options.")
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.markdown("### Local Data")
+        if os.path.exists(get_local_data_path()):
+            local_df = pd.read_csv(get_local_data_path())
+            st.write(f"Local records: {len(local_df)}")
+            st.download_button(
+                "Download Local Data",
+                local_df.to_csv(index=False).encode("utf-8"),
+                "local_disease_data.csv",
+                "text/csv",
+            )
+            
+            if st.button("Clear Local Data"):
+                os.remove(get_local_data_path())
+                st.success("Local data cleared!")
+                reload_data()
+        else:
+            st.write("No local data found.")
+    
+    with col2:
+        st.markdown("### Cloud Data (Google Sheets)")
+        gs_data = load_from_google_sheets()
+        if not gs_data.empty:
+            st.write(f"Cloud records: {len(gs_data)}")
+            st.download_button(
+                "Download Cloud Data",
+                gs_data.to_csv(index=False).encode("utf-8"),
+                "cloud_disease_data.csv",
+                "text/csv",
+            )
+        else:
+            st.write("No cloud data found or not configured.")
+    
+    st.markdown("### Synchronize Data")
+    if st.button("Synchronize Local with Cloud"):
+        try:
+            gs_data = load_from_google_sheets()
+            if not gs_data.empty:
+                # Save cloud data to local
+                save_local_data(gs_data)
+                st.success("Local data updated from cloud!")
+                reload_data()
+            else:
+                st.warning("No cloud data available for synchronization.")
+        except Exception as e:
+            st.error(f"Error during synchronization: {e}")
 
 # -------------------------------
 # About Page
@@ -554,7 +612,7 @@ elif menu == "About":
 
     **New Features:**
     - Photo attachment capability for disease documentation  
-    - Local CSV data storage and export functionality  
+    - Google Sheets integration for persistent data storage
     - Improved data management  
 
     **Tips:**  
@@ -562,8 +620,8 @@ elif menu == "About":
     - If data doesn't update automatically, try refreshing the page
     
     **Data Persistence:**
-    - Your submitted data is now saved to a local file that persists across sessions
-    - You can download your data using the export feature on the "Tag a disease" page
+    - Your submitted data is now saved to both local storage and Google Sheets
+    - Google Sheets ensures your data persists across sessions and deployments
     """
     )
 
