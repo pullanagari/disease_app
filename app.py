@@ -16,24 +16,35 @@ import requests
 import base64
 import requests
 
+import base64
+import requests
+import streamlit as st
+
 # -------------------------------
 # GitHub helper functions
 # -------------------------------
 def github_api_request(method, url, data=None):
     token = st.secrets["GITHUB_TOKEN"]
-    headers = {"Authorization": f"token {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}"}
+    headers = {"Authorization": f"token {token}"}
     r = requests.request(method, url, headers=headers, json=data)
     return r
 
-def save_csv_to_github(df):
+def save_csv_to_github(df, filename="data_temp.csv"):
     try:
-        token = st.secrets["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"]
-        repo = st.secrets["pullanagari/Disease_app"]
-        branch = st.secrets.get("main", "main")
+        token = st.secrets["GITHUB_TOKEN"]
+        repo = st.secrets["GITHUB_REPO"]   # e.g. "pullanagari/Disease_app"
+        branch = st.secrets.get("GITHUB_BRANCH", "main")
     except KeyError as e:
         st.error(f"Missing secret: {e}. Please set it in Streamlit secrets.")
         return False
-     # Prepare new content
+
+    url = f"https://api.github.com/repos/{repo}/contents/{filename}"
+
+    # Check if file exists (get its sha)
+    r = github_api_request("GET", url)
+    sha = r.json().get("sha") if r.status_code == 200 else None
+
+    # Prepare new content
     content = df.to_csv(index=False).encode("utf-8")
     b64_content = base64.b64encode(content).decode()
 
@@ -54,9 +65,14 @@ def save_csv_to_github(df):
 
 
 def save_photo_to_github(file_bytes, filename, folder="photos", branch="main"):
-    repo = st.secrets["GITHUB_REPO"]
+    try:
+        repo = st.secrets["GITHUB_REPO"]
+    except KeyError as e:
+        st.error(f"Missing secret: {e}")
+        return None
+
     path = f"{folder}/{filename}"
-    url = f"https://api.github.com/repos/{pullanagari/Disease_app}/contents/{data_temp.csv}"
+    url = f"https://api.github.com/repos/{repo}/contents/{path}"
 
     # Get file SHA if exists
     r = github_api_request("GET", url)
@@ -76,11 +92,10 @@ def save_photo_to_github(file_bytes, filename, folder="photos", branch="main"):
     r = github_api_request("PUT", url, data)
     if r.status_code in [200, 201]:
         # Return raw GitHub URL for future display
-        return f"https://raw.githubusercontent.com/{pullanagari/Disease_app}/{branch}/{data_temp.csv}"
+        return f"https://raw.githubusercontent.com/{repo}/{branch}/{path}"
     else:
         st.error(f"GitHub photo upload failed: {r.json()}")
         return None
-
 
 # -------------------------------
 # Page config (must be before any Streamlit UI code)
@@ -649,6 +664,7 @@ elif menu == "Resources":
         - [SARDI Biosecurity](https://pir.sa.gov.au/sardi/crop_sciences/plant_health_and_biosecurity)
         """
     )
+
 
 
 
