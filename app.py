@@ -306,6 +306,20 @@ def reload_data():
     st.session_state.df = load_data()
     st.success("Data reloaded!")
 
+# Debug code to check authentication
+if st.sidebar.button("Debug Google Sheets Connection"):
+    client = get_gs_client()
+    if client:
+        try:
+            spreadsheet = client.open_by_key("15D6_hA_LhG6M8CKMUFikCxXPQNtxhNBSCykaBF2egtE")
+            st.sidebar.success("✅ Successfully connected to Google Sheets")
+            worksheet = spreadsheet.sheet1
+            records = worksheet.get_all_records()
+            st.sidebar.write(f"Found {len(records)} records in sheet")
+        except Exception as e:
+            st.sidebar.error(f"Error accessing sheet: {e}")
+    else:
+        st.sidebar.error("Failed to create client")
 # -------------------------------
 # UI and rest of the application remains the same
 sidebar_mobile_friendly = """
@@ -719,6 +733,7 @@ elif menu == "Resources":
         - [SARDI Biosecurity](https://pir.sa.gov.au/sardi/crop_sciences/plant_health_and_biosecurity)
         """
     )
+
 
 
 
