@@ -60,7 +60,7 @@ def init_google_sheets():
                
     
                 SCOPES = ["https://www.googleapis.com/auth/spreadsheets",
-                          "https://www.googleapis.com/auth/drive"]
+                          "https://www.googleapis.com/auth/drive"],)
             
                 creds = Credentials.from_service_account_file("service_account.json", scopes=SCOPES)
                 client = gspread.authorize(creds)
@@ -672,6 +672,7 @@ elif menu == "Resources":
         - [SARDI Biosecurity](https://pir.sa.gov.au/sardi/crop_sciences/plant_health_and_biosecurity)
         """
     )
+
 
 
 
