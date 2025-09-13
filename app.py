@@ -13,30 +13,73 @@ import zipfile
 import re
 import requests
 
-def save_to_github(df, token, repo, path, branch="main"):
-    url = f"https://api.github.com/repos/{pullanagari/Disease_app}/contents/{data_temp.csv}"
+import base64
+import requests
+
+# -------------------------------
+# GitHub helper functions
+# -------------------------------
+def github_api_request(method, url, data=None):
+    token = st.secrets["GITHUB_TOKEN"]
     headers = {"Authorization": f"token {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}"}
+    r = requests.request(method, url, headers=headers, json=data)
+    return r
 
-    # Get the file SHA (needed for updates)
-    r = requests.get(url, headers=headers)
-    sha = r.json().get("sha")
+def save_csv_to_github(df, path="data_temp.csv", branch="main"):
+    repo = st.secrets["GITHUB_REPO"]
+    url = f"https://api.github.com/repos/{pullanagari/Disease_app}/contents/{data_temp.csv}"
 
+    # Get file SHA if exists
+    r = github_api_request("GET", url)
+    sha = r.json().get("sha") if r.status_code == 200 else None
+
+    # Prepare new content
     content = df.to_csv(index=False).encode("utf-8")
     b64_content = base64.b64encode(content).decode()
 
-    message = "Update disease data"
     data = {
-        "message": message,
+        "message": "Update disease data via Streamlit app",
         "content": b64_content,
         "branch": branch,
-        "sha": sha,
     }
+    if sha:
+        data["sha"] = sha
 
-    r = requests.put(url, headers=headers, json=data)
-    if r.status_code == 200 or r.status_code == 201:
-        st.success("Data saved permanently to GitHub ✅")
+    r = github_api_request("PUT", url, data)
+    if r.status_code in [200, 201]:
+        return True
     else:
-        st.error(f"GitHub save failed: {r.json()}")
+        st.error(f"GitHub CSV save failed: {r.json()}")
+        return False
+
+
+def save_photo_to_github(file_bytes, filename, folder="photos", branch="main"):
+    repo = st.secrets["GITHUB_REPO"]
+    path = f"{folder}/{filename}"
+    url = f"https://api.github.com/repos/{pullanagari/Disease_app}/contents/{data_temp.csv}"
+
+    # Get file SHA if exists
+    r = github_api_request("GET", url)
+    sha = r.json().get("sha") if r.status_code == 200 else None
+
+    # Encode file
+    b64_content = base64.b64encode(file_bytes).decode()
+
+    data = {
+        "message": f"Upload photo {filename}",
+        "content": b64_content,
+        "branch": branch,
+    }
+    if sha:
+        data["sha"] = sha
+
+    r = github_api_request("PUT", url, data)
+    if r.status_code in [200, 201]:
+        # Return raw GitHub URL for future display
+        return f"https://raw.githubusercontent.com/{pullanagari/Disease_app}/{branch}/{data_temp.csv}"
+    else:
+        st.error(f"GitHub photo upload failed: {r.json()}")
+        return None
 
 
 # -------------------------------
@@ -460,71 +503,114 @@ elif menu == "Tag a disease":
         submitted = st.form_submit_button("Submit")
 
         if submitted:
-            sample_id = get_next_sample_id()
-            # Validate required fields
-            if not all([crop, disease1, location]):
-                st.error("Please fill in all required fields: Crop, Disease 1, and Location")
-            else:
-                photo_filename = None
-                if uploaded_file is not None:
-                    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-                    file_extension = uploaded_file.name.split(".")[-1]
-                    photo_filename = f"disease_photo_{timestamp}.{file_extension}"
-                    with open(os.path.join("uploads", photo_filename), "wb") as f:
-                        f.write(uploaded_file.getbuffer())
+    sample_id = get_next_sample_id()
 
-                if disease2 == "None":
-                    disease2 = ""
-                    severity2 = 0
-                if disease3 == "None":
-                    disease3 = ""
-                    severity3 = 0
+    photo_url = ""
+    if uploaded_file is not None:
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        file_extension = uploaded_file.name.split(".")[-1]
+        photo_filename = f"disease_photo_{timestamp}.{file_extension}"
+        photo_url = save_photo_to_github(uploaded_file.getbuffer(), photo_filename)
 
-                new_record = {
-                    "sample_id": sample_id,
-                    "date": date.strftime("%d/%m/%Y"),
-                    "collector_name": collector,
-                    "field_type": field_type,
-                    "Agronomist": agronomist,
-                    "crop": crop,
-                    "variety": variety,
-                    "plant_stage": plant_stage,
-                    "disease1": disease1,
-                    "disease2": disease2,
-                    "disease3": disease3,
-                    "severity1_percent": severity1,
-                    "severity2_percent": severity2,
-                    "severity3_percent": severity3,
-                    "latitude": float(latitude) if latitude else -36.76,
-                    "longitude": float(longitude) if longitude else 142.21,
-                    "survey_location": location,
-                    "photo_filename": photo_filename if photo_filename else "",
-                    "field_notes": field_notes,
-                }
+    new_record = {
+        "sample_id": sample_id,
+        "date": date.strftime("%d/%m/%Y"),
+        "collector_name": collector,
+        "field_type": field_type,
+        "Agronomist": agronomist,
+        "crop": crop,
+        "variety": variety,
+        "plant_stage": plant_stage,
+        "disease1": disease1,
+        "disease2": disease2 if disease2 != "None" else "",
+        "disease3": disease3 if disease3 != "None" else "",
+        "severity1_percent": severity1,
+        "severity2_percent": severity2 if disease2 != "None" else 0,
+        "severity3_percent": severity3 if disease3 != "None" else 0,
+        "latitude": float(latitude) if latitude else -36.76,
+        "longitude": float(longitude) if longitude else 142.21,
+        "survey_location": location,
+        "photo_url": photo_url,   # store permanent GitHub link
+        "field_notes": field_notes,
+    }
 
-                # Load existing local data
-                local_data = load_local_data()
+    # Load existing data (from GitHub)
+    df_existing = pd.read_csv("https://raw.githubusercontent.com/pullanagari/Disease_app/main/data_temp.csv")
+    df_updated = pd.concat([df_existing, pd.DataFrame([new_record])], ignore_index=True)
+
+    if save_csv_to_github(df_updated):
+        st.success("✅ Submission saved to GitHub permanently")
+        reload_data()
+        if photo_url:
+            st.image(photo_url, caption="Uploaded to GitHub")
+
+
+        # if submitted:
+        #     sample_id = get_next_sample_id()
+        #     # Validate required fields
+        #     if not all([crop, disease1, location]):
+        #         st.error("Please fill in all required fields: Crop, Disease 1, and Location")
+        #     else:
+        #         photo_filename = None
+        #         if uploaded_file is not None:
+        #             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        #             file_extension = uploaded_file.name.split(".")[-1]
+        #             photo_filename = f"disease_photo_{timestamp}.{file_extension}"
+        #             with open(os.path.join("uploads", photo_filename), "wb") as f:
+        #                 f.write(uploaded_file.getbuffer())
+
+        #         if disease2 == "None":
+        #             disease2 = ""
+        #             severity2 = 0
+        #         if disease3 == "None":
+        #             disease3 = ""
+        #             severity3 = 0
+
+        #         new_record = {
+        #             "sample_id": sample_id,
+        #             "date": date.strftime("%d/%m/%Y"),
+        #             "collector_name": collector,
+        #             "field_type": field_type,
+        #             "Agronomist": agronomist,
+        #             "crop": crop,
+        #             "variety": variety,
+        #             "plant_stage": plant_stage,
+        #             "disease1": disease1,
+        #             "disease2": disease2,
+        #             "disease3": disease3,
+        #             "severity1_percent": severity1,
+        #             "severity2_percent": severity2,
+        #             "severity3_percent": severity3,
+        #             "latitude": float(latitude) if latitude else -36.76,
+        #             "longitude": float(longitude) if longitude else 142.21,
+        #             "survey_location": location,
+        #             "photo_filename": photo_filename if photo_filename else "",
+        #             "field_notes": field_notes,
+        #         }
+
+        #         # Load existing local data
+        #         local_data = load_local_data()
                 
-                # Append new record
-                new_df = pd.DataFrame([new_record])
-                if local_data.empty:
-                    updated_data = new_df
-                else:
-                    updated_data = pd.concat([local_data, new_df], ignore_index=True)
+        #         # Append new record
+        #         new_df = pd.DataFrame([new_record])
+        #         if local_data.empty:
+        #             updated_data = new_df
+        #         else:
+        #             updated_data = pd.concat([local_data, new_df], ignore_index=True)
                 
-                # Save updated data
-                if save_local_data(updated_data):
-                    st.success("✅ Submission successful! Data saved to local storage.")
+        #         # Save updated data
+        #         if save_local_data(updated_data):
+        #             st.success("✅ Submission successful! Data saved to local storage.")
                     
-                    # Clear cache and reload data
-                    reload_data()
+        #             # Clear cache and reload data
+        #             reload_data()
                     
-                    if uploaded_file is not None:
-                        st.markdown("**Uploaded Photo Preview:**")
-                        image = Image.open(uploaded_file)
-                        st.image(image, caption="Disease Photo", use_column_width=True)
-                else:
-                    st.error("Failed to save data. Please try again.")
+        #             if uploaded_file is not None:
+        #                 st.markdown("**Uploaded Photo Preview:**")
+        #                 image = Image.open(uploaded_file)
+        #                 st.image(image, caption="Disease Photo", use_column_width=True)
+        #         else:
+        #             st.error("Failed to save data. Please try again.")
 
   
 
@@ -563,6 +649,7 @@ elif menu == "Resources":
         - [SARDI Biosecurity](https://pir.sa.gov.au/sardi/crop_sciences/plant_health_and_biosecurity)
         """
     )
+
 
 
 
