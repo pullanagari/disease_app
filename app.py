@@ -11,6 +11,33 @@ import requests
 import io
 import zipfile
 import re
+import requests
+
+def save_to_github(df, token, repo, path, branch="main"):
+    url = f"https://api.github.com/repos/{pullanagari/Disease_app}/contents/{data_temp.csv}"
+    headers = {"Authorization": f"token {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}"}
+
+    # Get the file SHA (needed for updates)
+    r = requests.get(url, headers=headers)
+    sha = r.json().get("sha")
+
+    content = df.to_csv(index=False).encode("utf-8")
+    b64_content = base64.b64encode(content).decode()
+
+    message = "Update disease data"
+    data = {
+        "message": message,
+        "content": b64_content,
+        "branch": branch,
+        "sha": sha,
+    }
+
+    r = requests.put(url, headers=headers, json=data)
+    if r.status_code == 200 or r.status_code == 201:
+        st.success("Data saved permanently to GitHub ✅")
+    else:
+        st.error(f"GitHub save failed: {r.json()}")
+
 
 # -------------------------------
 # Page config (must be before any Streamlit UI code)
@@ -536,6 +563,7 @@ elif menu == "Resources":
         - [SARDI Biosecurity](https://pir.sa.gov.au/sardi/crop_sciences/plant_health_and_biosecurity)
         """
     )
+
 
 
 
