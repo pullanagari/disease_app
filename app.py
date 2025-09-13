@@ -55,13 +55,11 @@ st.markdown(hide_github_logo, unsafe_allow_html=True)
 def init_google_sheets():
     """Initialize connection to Google Sheets using service account"""
     try:
-        # Define scopes
         SCOPES = [
             "https://www.googleapis.com/auth/spreadsheets",
             "https://www.googleapis.com/auth/drive"
         ]
 
-        # Load credentials either from Streamlit secrets or local JSON
         if "gcp_service_account" in st.secrets:
             creds_dict = dict(st.secrets["gcp_service_account"])
             creds = service_account.Credentials.from_service_account_info(
@@ -72,18 +70,15 @@ def init_google_sheets():
                 "service_account.json", scopes=SCOPES
             )
 
-        # Authorize client
         client = gspread.authorize(creds)
-
-        # Open Google Sheet
         SHEET_ID = "15D6_hA_LhG6M8CKMUFikCxXPQNtxhNBSCykaBF2egtE"
-   
         spreadsheet = client.open_by_key(SHEET_ID)
 
         st.success("✅ Connected to Google Sheets")
         return spreadsheet
 
     except Exception as e:
+        st.error(f"❌ Google Sheets error: {e}")
         st.warning("⚠️ No cloud data available for synchronization. Using local storage.")
         return None
 
@@ -669,6 +664,7 @@ elif menu == "Resources":
         - [SARDI Biosecurity](https://pir.sa.gov.au/sardi/crop_sciences/plant_health_and_biosecurity)
         """
     )
+
 
 
 
