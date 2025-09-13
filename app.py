@@ -503,46 +503,46 @@ elif menu == "Tag a disease":
         submitted = st.form_submit_button("Submit")
 
         if submitted:
-    sample_id = get_next_sample_id()
-
-    photo_url = ""
-    if uploaded_file is not None:
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        file_extension = uploaded_file.name.split(".")[-1]
-        photo_filename = f"disease_photo_{timestamp}.{file_extension}"
-        photo_url = save_photo_to_github(uploaded_file.getbuffer(), photo_filename)
-
-    new_record = {
-        "sample_id": sample_id,
-        "date": date.strftime("%d/%m/%Y"),
-        "collector_name": collector,
-        "field_type": field_type,
-        "Agronomist": agronomist,
-        "crop": crop,
-        "variety": variety,
-        "plant_stage": plant_stage,
-        "disease1": disease1,
-        "disease2": disease2 if disease2 != "None" else "",
-        "disease3": disease3 if disease3 != "None" else "",
-        "severity1_percent": severity1,
-        "severity2_percent": severity2 if disease2 != "None" else 0,
-        "severity3_percent": severity3 if disease3 != "None" else 0,
-        "latitude": float(latitude) if latitude else -36.76,
-        "longitude": float(longitude) if longitude else 142.21,
-        "survey_location": location,
-        "photo_url": photo_url,   # store permanent GitHub link
-        "field_notes": field_notes,
-    }
-
-    # Load existing data (from GitHub)
-    df_existing = pd.read_csv("https://raw.githubusercontent.com/pullanagari/Disease_app/main/data_temp.csv")
-    df_updated = pd.concat([df_existing, pd.DataFrame([new_record])], ignore_index=True)
-
-    if save_csv_to_github(df_updated):
-        st.success("✅ Submission saved to GitHub permanently")
-        reload_data()
-        if photo_url:
-            st.image(photo_url, caption="Uploaded to GitHub")
+            sample_id = get_next_sample_id()
+        
+            photo_url = ""
+            if uploaded_file is not None:
+                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                file_extension = uploaded_file.name.split(".")[-1]
+                photo_filename = f"disease_photo_{timestamp}.{file_extension}"
+                photo_url = save_photo_to_github(uploaded_file.getbuffer(), photo_filename)
+        
+            new_record = {
+                "sample_id": sample_id,
+                "date": date.strftime("%d/%m/%Y"),
+                "collector_name": collector,
+                "field_type": field_type,
+                "Agronomist": agronomist,
+                "crop": crop,
+                "variety": variety,
+                "plant_stage": plant_stage,
+                "disease1": disease1,
+                "disease2": disease2 if disease2 != "None" else "",
+                "disease3": disease3 if disease3 != "None" else "",
+                "severity1_percent": severity1,
+                "severity2_percent": severity2 if disease2 != "None" else 0,
+                "severity3_percent": severity3 if disease3 != "None" else 0,
+                "latitude": float(latitude) if latitude else -36.76,
+                "longitude": float(longitude) if longitude else 142.21,
+                "survey_location": location,
+                "photo_url": photo_url,   # store permanent GitHub link
+                "field_notes": field_notes,
+            }
+        
+            # Load existing data (from GitHub)
+            df_existing = pd.read_csv("https://raw.githubusercontent.com/pullanagari/Disease_app/main/data_temp.csv")
+            df_updated = pd.concat([df_existing, pd.DataFrame([new_record])], ignore_index=True)
+        
+            if save_csv_to_github(df_updated):
+                st.success("✅ Submission saved to GitHub permanently")
+                reload_data()
+                if photo_url:
+                    st.image(photo_url, caption="Uploaded to GitHub")
 
 
         # if submitted:
@@ -649,6 +649,7 @@ elif menu == "Resources":
         - [SARDI Biosecurity](https://pir.sa.gov.au/sardi/crop_sciences/plant_health_and_biosecurity)
         """
     )
+
 
 
 
