@@ -143,35 +143,35 @@ def init_google_sheets():
         return None
 
 def save_to_google_sheets(new_row: dict):
-    """Save data to Google Sheets"""
-    try:
-        spreadsheet = get_spreadsheet()
-        if not spreadsheet:
-            st.warning("⚠️ No cloud data available for synchronization.")
-            return False
+    """Save data to Google Sheets with proper error handling"""
+    spreadsheet = get_spreadsheet()
+    if not spreadsheet:
+        st.warning("⚠️ No cloud data available for synchronization.")
+        return False
 
+    try:
         worksheet = spreadsheet.sheet1
         existing_values = worksheet.get_all_values()
-
+        
+        # Convert all values to strings to avoid type issues
+        values = [str(v) for v in new_row.values()]
+        
         # Add headers if sheet is empty
         if not existing_values:
             headers = list(new_row.keys())
             worksheet.append_row(headers)
-
-        # Append row values
-        values = [str(v) for v in new_row.values()]
+        
+        # Append the new row
         worksheet.append_row(values, value_input_option="USER_ENTERED")
-
+        
         st.success("✅ Data saved to Google Sheets")
         return True
-
-    except gspread.exceptions.APIError as e:
-        st.error(f"Google API Error: {e}. Check permissions and sheet access.")
-        return False
+        
     except Exception as e:
         st.error(f"Error saving to Google Sheets: {e}")
+        # Add more detailed error information
+        st.error(f"Row data: {new_row}")
         return False
-
 def load_from_google_sheets():
     """Load all data from Google Sheets"""
     spreadsheet = init_google_sheets()
@@ -215,21 +215,26 @@ def load_local_data():
 
 def save_data(new_row):
     """Save data to both local storage and Google Sheets"""
-    # Save to local storage
+    # First save to Google Sheets
+    gs_success = save_to_google_sheets(new_row)
+    
+    # Then save to local storage as backup
     file_path = "data/local_disease_data.csv"
     
-    if os.path.exists(file_path):
-        df = pd.read_csv(file_path)
-        df = pd.concat([df, pd.DataFrame([new_row])], ignore_index=True)
-    else:
-        df = pd.DataFrame([new_row])
+    try:
+        if os.path.exists(file_path):
+            df = pd.read_csv(file_path)
+            df = pd.concat([df, pd.DataFrame([new_row])], ignore_index=True)
+        else:
+            df = pd.DataFrame([new_row])
+        
+        df.to_csv(file_path, index=False)
+        local_success = True
+    except Exception as e:
+        st.error(f"Error saving to local storage: {e}")
+        local_success = False
     
-    df.to_csv(file_path, index=False)
-    
-    # Also save to Google Sheets for persistence
-    save_to_google_sheets(new_row)
-    
-    return True
+    return gs_success or local_success  # Return True if either save was successful
 
 #----------------------------
 # Adding unique ID
@@ -733,6 +738,7 @@ elif menu == "Resources":
         - [SARDI Biosecurity](https://pir.sa.gov.au/sardi/crop_sciences/plant_health_and_biosecurity)
         """
     )
+
 
 
 
