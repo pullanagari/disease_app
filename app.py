@@ -194,7 +194,7 @@ def get_next_sample_id():
 
 # -------------------------------
 # Load data with caching
-@st.cache_data(ttl=300)
+# @st.cache_data(ttl=300)
 def load_data():
     """Load data from both local storage and Google Sheets, merge them"""
     df_local = load_local_data()
@@ -652,6 +652,7 @@ elif menu == "Resources":
         - [SARDI Biosecurity](https://pir.sa.gov.au/sardi/crop_sciences/plant_health_and_biosecurity)
         """
     )
+
 
 
 
