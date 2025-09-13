@@ -25,15 +25,15 @@ def github_api_request(method, url, data=None):
     r = requests.request(method, url, headers=headers, json=data)
     return r
 
-def save_csv_to_github(df, path="data_temp.csv", branch="main"):
-    repo = st.secrets["GITHUB_REPO"]
-    url = f"https://api.github.com/repos/{pullanagari/Disease_app}/contents/{data_temp.csv}"
-
-    # Get file SHA if exists
-    r = github_api_request("GET", url)
-    sha = r.json().get("sha") if r.status_code == 200 else None
-
-    # Prepare new content
+def save_csv_to_github(df):
+    try:
+        token = st.secrets["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"]
+        repo = st.secrets["pullanagari/Disease_app"]
+        branch = st.secrets.get("main", "main")
+    except KeyError as e:
+        st.error(f"Missing secret: {e}. Please set it in Streamlit secrets.")
+        return False
+     # Prepare new content
     content = df.to_csv(index=False).encode("utf-8")
     b64_content = base64.b64encode(content).decode()
 
@@ -649,6 +649,7 @@ elif menu == "Resources":
         - [SARDI Biosecurity](https://pir.sa.gov.au/sardi/crop_sciences/plant_health_and_biosecurity)
         """
     )
+
 
 
 
