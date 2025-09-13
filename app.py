@@ -96,18 +96,22 @@ def save_to_google_sheets(new_row: dict):
         worksheet = spreadsheet.sheet1
         existing_values = worksheet.get_all_values()
 
-            # Add headers only once
-            if not existing_values:
-                headers = list(new_row.keys())
-                worksheet.append_row(headers)
+        # Add headers if sheet is empty
+        if not existing_values:
+            headers = list(new_row.keys())
+            worksheet.append_row(headers)
 
-            values = [str(v) for v in new_row.values()]
-            worksheet.append_row(values, value_input_option="USER_ENTERED")
-            return True
-        except Exception as e:
-            st.error(f"Error saving to Google Sheets: {e}")
-            return False
-    return False
+        # Append row values
+        values = [str(v) for v in new_row.values()]
+        worksheet.append_row(values, value_input_option="USER_ENTERED")
+
+        st.success("✅ Data saved to Google Sheets")
+        return True
+
+    except Exception as e:
+        st.error(f"Error saving to Google Sheets: {e}")
+        return False
+
 
 
 def load_from_google_sheets():
@@ -664,6 +668,7 @@ elif menu == "Resources":
         - [SARDI Biosecurity](https://pir.sa.gov.au/sardi/crop_sciences/plant_health_and_biosecurity)
         """
     )
+
 
 
 
