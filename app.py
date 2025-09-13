@@ -49,12 +49,6 @@ hide_github_logo = """
 st.markdown(hide_github_logo, unsafe_allow_html=True)
 
 # -------------------------------
-# Google Drive/Sheets
-import streamlit as st
-import gspread
-from google.oauth2 import service_account
-
-# -------------------------------
 # Google Sheets Integration
 @st.cache_resource
 def get_gs_client():
@@ -65,12 +59,31 @@ def get_gs_client():
             "https://www.googleapis.com/auth/drive"
         ]
 
+        # Check for credentials in Streamlit secrets
         if "gcp_service_account" in st.secrets:
             creds_dict = dict(st.secrets["gcp_service_account"])
             creds = service_account.Credentials.from_service_account_info(
                 creds_dict, scopes=SCOPES
             )
+        # Check for environment variables (for deployment)
+        elif all(key in os.environ for key in ["TYPE", "PROJECT_ID", "PRIVATE_KEY_ID", "PRIVATE_KEY", "CLIENT_EMAIL", "CLIENT_ID", "AUTH_URI", "TOKEN_URI", "AUTH_PROVIDER_X509_CERT_URL", "CLIENT_X509_CERT_URL"]):
+            creds_dict = {
+                "type": os.environ["TYPE"],
+                "project_id": os.environ["PROJECT_ID"],
+                "private_key_id": os.environ["PRIVATE_KEY_ID"],
+                "private_key": os.environ["PRIVATE_KEY"].replace('\\n', '\n'),
+                "client_email": os.environ["CLIENT_EMAIL"],
+                "client_id": os.environ["CLIENT_ID"],
+                "auth_uri": os.environ["AUTH_URI"],
+                "token_uri": os.environ["TOKEN_URI"],
+                "auth_provider_x509_cert_url": os.environ["AUTH_PROVIDER_X509_CERT_URL"],
+                "client_x509_cert_url": os.environ["CLIENT_X509_CERT_URL"]
+            }
+            creds = service_account.Credentials.from_service_account_info(
+                creds_dict, scopes=SCOPES
+            )
         else:
+            # Fallback to service account file
             creds = service_account.Credentials.from_service_account_file(
                 "service_account.json", scopes=SCOPES
             )
@@ -131,12 +144,12 @@ def init_google_sheets():
 
 def save_to_google_sheets(new_row: dict):
     """Save data to Google Sheets"""
-    spreadsheet = get_spreadsheet()
-    if not spreadsheet:
-        st.warning("⚠️ No cloud data available for synchronization.")
-        return False
-
     try:
+        spreadsheet = get_spreadsheet()
+        if not spreadsheet:
+            st.warning("⚠️ No cloud data available for synchronization.")
+            return False
+
         worksheet = spreadsheet.sheet1
         existing_values = worksheet.get_all_values()
 
@@ -152,6 +165,9 @@ def save_to_google_sheets(new_row: dict):
         st.success("✅ Data saved to Google Sheets")
         return True
 
+    except gspread.exceptions.APIError as e:
+        st.error(f"Google API Error: {e}. Check permissions and sheet access.")
+        return False
     except Exception as e:
         st.error(f"Error saving to Google Sheets: {e}")
         return False
@@ -703,6 +719,7 @@ elif menu == "Resources":
         - [SARDI Biosecurity](https://pir.sa.gov.au/sardi/crop_sciences/plant_health_and_biosecurity)
         """
     )
+
 
 
 
