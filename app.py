@@ -524,6 +524,26 @@ if menu == "Disease tracker":
     else:
         st.info("No photos available for the selected filters.")
 
+# Add this to your debug function or as a separate test
+def test_google_sheets():
+    """Test function to verify Google Sheets connection"""
+    test_row = {
+        "sample_id": "TEST001",
+        "date": "01/01/2023",
+        "collector_name": "Test User",
+        "crop": "Test Crop",
+        "disease1": "Test Disease",
+        "severity1_percent": 50,
+        "latitude": -34.9285,
+        "longitude": 138.6007,
+        "survey_location": "Test Location"
+    }
+    
+    success = save_to_google_sheets(test_row)
+    if success:
+        st.success("Test row successfully saved to Google Sheets")
+    else:
+        st.error("Failed to save test row to Google Sheets")
 
 # -------------------------------
 # Tag a Disease Page
@@ -738,6 +758,7 @@ elif menu == "Resources":
         - [SARDI Biosecurity](https://pir.sa.gov.au/sardi/crop_sciences/plant_health_and_biosecurity)
         """
     )
+
 
 
 
