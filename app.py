@@ -7,18 +7,12 @@ from datetime import datetime
 import os
 from PIL import Image
 import json
-import requests
 import io
 import zipfile
 import re
 import requests
-
 import base64
-import requests
 
-import base64
-import requests
-import streamlit as st
 
 # -------------------------------
 # GitHub helper functions
@@ -143,11 +137,11 @@ def get_local_data_path():
     """Get the path to the local data file with proper handling for cloud deployments"""
     return os.path.join("data", "local_disease_data.csv")
 
-def save_local_data(df):
+def save_local_data(df_updated):
     """Save local data with error handling"""
     try:
         local_path = get_local_data_path()
-        df.to_csv(local_path, index=False)
+        df.to_csv(get_local_data_path(), index=False)
         return True
     except Exception as e:
         st.error(f"Error saving data: {e}")
@@ -452,6 +446,11 @@ if menu == "Disease tracker":
         zip_buffer = io.BytesIO()
         with zipfile.ZipFile(zip_buffer, "w") as zf:
             for _, row in df_photos.iterrows():
+                photo_path = os.path.join("uploads", photo_filename)
+                with open(photo_path, "wb") as f:
+                    f.write(uploaded_file.getbuffer())
+                photo_url = f"/uploads/{photo_filename}"  # temporary local preview
+
                 photo_path = os.path.join("uploads", row["photo_filename"])
                 if os.path.exists(photo_path):
                     zf.write(photo_path, arcname=row["photo_filename"])
@@ -670,6 +669,7 @@ elif menu == "Resources":
         - [SARDI Biosecurity](https://pir.sa.gov.au/sardi/crop_sciences/plant_health_and_biosecurity)
         """
     )
+
 
 
 
