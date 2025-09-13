@@ -12,7 +12,7 @@ import io
 import zipfile
 import re
 import gspread
-from oauth2client.service_account import ServiceAccountCredentials
+from google.oauth2 import service_account
 
 # -------------------------------
 # Page config (must be before any Streamlit UI code)
@@ -49,29 +49,34 @@ hide_github_logo = """
 st.markdown(hide_github_logo, unsafe_allow_html=True)
 
 # -------------------------------
-# Google Sheets Setup for persistent storage
+# Google Drive/Sheets Integration (Simplified)
 def init_google_sheets():
-    """Initialize connection to Google Sheets"""
+    """Initialize connection to Google Sheets with simplified authentication"""
     try:
-        # Check if credentials are provided via secrets or file
+        # Check if credentials are provided via secrets
         if 'gcp_service_account' in st.secrets:
+            # Create credentials from secrets
             creds_dict = dict(st.secrets['gcp_service_account'])
-            scope = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
-            credentials = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
-            gc = gspread.authorize(credentials)
+            creds = service_account.Credentials.from_service_account_info(
+                creds_dict,
+                scopes=['https://www.googleapis.com/auth/spreadsheets', 
+                       'https://www.googleapis.com/auth/drive']
+            )
+            gc = gspread.authorize(creds)
+            
+            # Try to open the spreadsheet
+            try:
+                spreadsheet = gc.open("SA_Disease_Surveillance")
+                return spreadsheet
+            except gspread.SpreadsheetNotFound:
+                # Create a new spreadsheet if it doesn't exist
+                spreadsheet = gc.create("SA_Disease_Surveillance")
+                # Share with anyone with the link (optional)
+                spreadsheet.share(None, perm_type='anyone', role='writer')
+                return spreadsheet
         else:
-            # Fallback to local file if secrets not available
-            if os.path.exists('service_account.json'):
-                scope = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
-                credentials = ServiceAccountCredentials.from_json_keyfile_name('service_account.json', scope)
-                gc = gspread.authorize(credentials)
-            else:
-                st.warning("Google Sheets credentials not found. Using local storage only.")
-                return None
-        
-        # Try to open the spreadsheet
-        spreadsheet = gc.open("SA_Disease_Surveillance")
-        return spreadsheet
+            st.warning("Google Sheets credentials not found. Using local storage only.")
+            return None
     except Exception as e:
         st.error(f"Error connecting to Google Sheets: {e}")
         return None
@@ -82,10 +87,16 @@ def save_to_google_sheets(new_row):
     if spreadsheet:
         try:
             worksheet = spreadsheet.sheet1
+            
             # Get all records to check if we need headers
-            records = worksheet.get_all_records()
-            if len(records) == 0:
-                # Worksheet is empty, add headers
+            try:
+                records = worksheet.get_all_records()
+                if len(records) == 0:
+                    # Worksheet is empty, add headers
+                    headers = list(new_row.keys())
+                    worksheet.insert_row(headers, 1)
+            except:
+                # If get_all_records fails, try to add headers
                 headers = list(new_row.keys())
                 worksheet.insert_row(headers, 1)
             
@@ -435,7 +446,7 @@ if menu == "Disease tracker":
 # Tag a Disease Page
 elif menu == "Tag a disease":
     st.markdown("## 📌 Tag a Disease")
-
+    
     with st.form("disease_form", clear_on_submit=True):
         col1, col2 = st.columns(2)
         with col1:
@@ -493,7 +504,9 @@ elif menu == "Tag a disease":
             # Validate required fields
             if not all([crop, disease1, location]):
                 st.error("Please fill in all required fields: Crop, Disease 1, and Location")
-            else:
+            else:            
+       
+        
                 photo_filename = None
                 if uploaded_file is not None:
                     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -544,7 +557,8 @@ elif menu == "Tag a disease":
                         st.image(image, caption="Disease Photo", use_column_width=True)
                 else:
                     st.error("Failed to save data. Please try again.")
-
+                    
+                
 # -------------------------------
 # Data Management Page
 elif menu == "Data Management":
@@ -584,8 +598,21 @@ elif menu == "Data Management":
                 "cloud_disease_data.csv",
                 "text/csv",
             )
+            
+            # Add a button to open the Google Sheet
+            if st.button("Open Google Sheet"):
+                st.markdown("[Open Google Sheet in Browser](https://docs.google.com/spreadsheets/d/your-sheet-id-here)")
         else:
             st.write("No cloud data found or not configured.")
+            
+            # Instructions for setting up Google Sheets
+            st.markdown("""
+            **To enable Google Sheets integration:**
+            1. Create a service account in Google Cloud Console
+            2. Enable Google Sheets API
+            3. Share your Google Sheet with the service account email
+            4. Add the credentials to Streamlit secrets
+            """)
     
     st.markdown("### Synchronize Data")
     if st.button("Synchronize Local with Cloud"):
@@ -600,6 +627,7 @@ elif menu == "Data Management":
                 st.warning("No cloud data available for synchronization.")
         except Exception as e:
             st.error(f"Error during synchronization: {e}")
+
 
 # -------------------------------
 # About Page
@@ -635,3 +663,4 @@ elif menu == "Resources":
         - [SARDI Biosecurity](https://pir.sa.gov.au/sardi/crop_sciences/plant_health_and_biosecurity)
         """
     )
+
