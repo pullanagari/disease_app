@@ -57,23 +57,43 @@ def init_google_sheets():
             creds_dict = dict(st.secrets["gcp_service_account"])
             creds = service_account.Credentials.from_service_account_info(
                 creds_dict,
-                scopes=[
-                    "https://www.googleapis.com/auth/spreadsheets",
-                    "https://www.googleapis.com/auth/drive",
-                ],
-            )
-            gc = gspread.authorize(creds)
+               
+    
+                SCOPES = ["https://www.googleapis.com/auth/spreadsheets",
+                          "https://www.googleapis.com/auth/drive"]
+            
+                creds = Credentials.from_service_account_file("service_account.json", scopes=SCOPES)
+                client = gspread.authorize(creds)
+            
+                SHEET_ID = "15D6_hA_LhG6M8CKMUFikCxXPQNtxhNBSCykaBF2egtE"
+                sheet = client.open_by_key(SHEET_ID).sheet1
+                cloud_data = sheet.get_all_records()
+            
+                st.success("✅ Connected to Google Sheets")
+            except Exception as e:
+                st.warning("⚠️ No cloud data available for synchronization. Using local storage.")
+                cloud_data = []
 
-            # Use the Sheet ID instead of name (replace with your real ID)
-            SHEET_ID = "15D6_hA_LhG6M8CKMUFikCxXPQNtxhNBSCykaBF2egtE"
-            spreadsheet = gc.open_by_key(SHEET_ID)
-            return spreadsheet
-        else:
-            st.warning("⚠️ Google Sheets credentials not found. Using local storage only.")
-            return None
-    except Exception as e:
-        st.error(f"Error connecting to Google Sheets: {e}")
-        return None
+
+
+                
+    #             scopes=[
+    #                 "https://www.googleapis.com/auth/spreadsheets",
+    #                 "https://www.googleapis.com/auth/drive",
+    #             ],
+    #         )
+    #         gc = gspread.authorize(creds)
+
+    #         # Use the Sheet ID instead of name (replace with your real ID)
+    #         SHEET_ID = "15D6_hA_LhG6M8CKMUFikCxXPQNtxhNBSCykaBF2egtE"
+    #         spreadsheet = gc.open_by_key(SHEET_ID)
+    #         return spreadsheet
+    #     else:
+    #         st.warning("⚠️ Google Sheets credentials not found. Using local storage only.")
+    #         return None
+    # except Exception as e:
+    #     st.error(f"Error connecting to Google Sheets: {e}")
+    #     return None
 
 
 def save_to_google_sheets(new_row: dict):
@@ -652,6 +672,7 @@ elif menu == "Resources":
         - [SARDI Biosecurity](https://pir.sa.gov.au/sardi/crop_sciences/plant_health_and_biosecurity)
         """
     )
+
 
 
 
