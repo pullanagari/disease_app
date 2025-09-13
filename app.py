@@ -652,14 +652,7 @@ elif menu == "Data Management":
         else:
             st.write("No cloud data found or not configured.")
             
-            # Instructions for setting up Google Sheets
-            st.markdown("""
-            **To enable Google Sheets integration:**
-            1. Create a service account in Google Cloud Console
-            2. Enable Google Sheets API
-            3. Share your Google Sheet with the service account email
-            4. Add the credentials to Streamlit secrets
-            """)
+            
     
     st.markdown("### Synchronize Data")
     if st.button("Synchronize Local with Cloud"):
@@ -710,6 +703,7 @@ elif menu == "Resources":
         - [SARDI Biosecurity](https://pir.sa.gov.au/sardi/crop_sciences/plant_health_and_biosecurity)
         """
     )
+
 
 
 
