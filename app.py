@@ -57,10 +57,16 @@ def save_csv_to_github(df, filename="data_temp.csv"):
         data["sha"] = sha
 
     r = github_api_request("PUT", url, data)
+
     if r.status_code in [200, 201]:
         return True
     else:
-        st.error(f"GitHub CSV save failed: {r.json()}")
+        # 👇 safer error handling
+        try:
+            err_msg = r.json()
+        except Exception:
+            err_msg = r.text  # fallback if not JSON
+        st.error(f"GitHub CSV save failed: {r.status_code} → {err_msg}")
         return False
 
 
@@ -664,6 +670,7 @@ elif menu == "Resources":
         - [SARDI Biosecurity](https://pir.sa.gov.au/sardi/crop_sciences/plant_health_and_biosecurity)
         """
     )
+
 
 
 
