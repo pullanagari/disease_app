@@ -89,10 +89,12 @@ def init_google_sheets():
 def save_to_google_sheets(new_row: dict):
     """Save data to Google Sheets"""
     spreadsheet = init_google_sheets()
-    if spreadsheet:
-        try:
-            worksheet = spreadsheet.sheet1
-            existing_values = worksheet.get_all_values()
+    if not spreadsheet:
+        return False  # No cloud available
+
+    try:
+        worksheet = spreadsheet.sheet1
+        existing_values = worksheet.get_all_values()
 
             # Add headers only once
             if not existing_values:
@@ -662,6 +664,7 @@ elif menu == "Resources":
         - [SARDI Biosecurity](https://pir.sa.gov.au/sardi/crop_sciences/plant_health_and_biosecurity)
         """
     )
+
 
 
 
