@@ -467,18 +467,16 @@ elif menu == "Tag a disease":
             ["Emergence", "Tillering", "Stem elongation", "Flowering", "Grain filling", "Maturity"],
             )
         with col2:
-            disease1 = st.selectbox("Disease 1", ["Stripe rust", "Leaf rust", "Stem rust", "Septoria tritici blotch", "Yellow leaf spot", "Powdery mildew", 
-                                                  "Eye spot", "Black point", "Smut", "Spot form net blotch", "Net form net blotch", "Scald", "Red Leather Leaf",
-                                                  "Septoria avenae blotch", "Bacterial blight", "Ascochyta Blight", "Botrytis Grey Mold", "Sclerotinia white mould", 
-                                                  "Chocolate Spot","Cercospora leaf spot", "Downy mildew","Black Spot", "Root Disease" "Virus", "Blackleg", "Other"])
-            disease2 = st.selectbox("Disease 2", ["None"] + ["Stripe rust", "Leaf rust", "Stem rust", "Septoria tritici blotch", "Yellow leaf spot", "Powdery mildew", 
-                                                  "Eye spot", "Black point", "Smut", "Spot form net blotch", "Net form net blotch", "Scald", "Red Leather Leaf",
-                                                  "Septoria avenae blotch", "Bacterial blight", "Ascochyta Blight", "Botrytis Grey Mold", "Sclerotinia white mould", 
-                                                  "Chocolate Spot","Cercospora leaf spot", "Downy mildew","Black Spot", "Root Disease" "Virus", "Blackleg", "Other"])
-            disease3 = st.selectbox("Disease 3", ["None"] + ["Stripe rust", "Leaf rust", "Stem rust", "Septoria tritici blotch", "Yellow leaf spot", "Powdery mildew", 
-                                                  "Eye spot", "Black point", "Smut", "Spot form net blotch", "Net form net blotch", "Scald", "Red Leather Leaf",
-                                                  "Septoria avenae blotch", "Bacterial blight", "Ascochyta Blight", "Botrytis Grey Mold", "Sclerotinia white mould", 
-                                                  "Chocolate Spot","Cercospora leaf spot", "Downy mildew","Black Spot", "Root Disease" "Virus", "Blackleg", "Other"])
+            disease_options = ["Stripe rust", "Leaf rust", "Stem rust", "Septoria tritici blotch", "Yellow leaf spot", 
+                               "Powdery mildew", "Eye spot", "Black point", "Smut", "Spot form net blotch", 
+                               "Net form net blotch", "Scald", "Red Leather Leaf", "Septoria avenae blotch", 
+                               "Bacterial blight", "Ascochyta Blight", "Botrytis Grey Mold", "Sclerotinia white mould", 
+                               "Chocolate Spot", "Cercospora leaf spot", "Downy mildew", "Black Spot", 
+                               "Root Disease", "Virus", "Blackleg", "Other"]
+            
+            disease1 = st.selectbox("Disease 1", disease_options)
+            disease2 = st.selectbox("Disease 2", ["None"] + disease_options)
+            disease3 = st.selectbox("Disease 3", ["None"] + disease_options)
             
             severity1 = st.slider("Severity 1 (%)", 0, 100, 0)
             severity2 = st.slider("Severity 2 (%)", 0, 100, 0)
@@ -514,7 +512,7 @@ elif menu == "Tag a disease":
                     photo_filename = f"disease_photo_{timestamp}.{file_extension}"
                     with open(os.path.join("uploads", photo_filename), "wb") as f:
                         f.write(uploaded_file.getbuffer())
-
+        
                 if disease2 == "None":
                     disease2 = ""
                     severity2 = 0
@@ -550,11 +548,12 @@ elif menu == "Tag a disease":
                     
                     # Clear cache and reload data
                     reload_data()
-                    
+
                     if uploaded_file is not None:
                         st.markdown("**Uploaded Photo Preview:**")
-                        image = Image.open(uploaded_file)
+                        image = Image.open(io.BytesIO(uploaded_file.getbuffer()))
                         st.image(image, caption="Disease Photo", use_column_width=True)
+                   
                 else:
                     st.error("Failed to save data. Please try again.")
                     
@@ -663,4 +662,5 @@ elif menu == "Resources":
         - [SARDI Biosecurity](https://pir.sa.gov.au/sardi/crop_sciences/plant_health_and_biosecurity)
         """
     )
+
 
