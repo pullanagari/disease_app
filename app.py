@@ -51,66 +51,55 @@ st.markdown(hide_github_logo, unsafe_allow_html=True)
 # -------------------------------
 # Google Drive/Sheets Integration (Simplified)
 def init_google_sheets():
-    """Initialize connection to Google Sheets with simplified authentication"""
+    """Initialize connection to Google Sheets using service account"""
     try:
-        # Check if credentials are provided via secrets
-        if 'gcp_service_account' in st.secrets:
-            # Create credentials from secrets
-            creds_dict = dict(st.secrets['gcp_service_account'])
+        if "gcp_service_account" in st.secrets:
+            creds_dict = dict(st.secrets["gcp_service_account"])
             creds = service_account.Credentials.from_service_account_info(
                 creds_dict,
-                scopes=['https://www.googleapis.com/auth/spreadsheets', 
-                       'https://www.googleapis.com/auth/drive']
+                scopes=[
+                    "https://www.googleapis.com/auth/spreadsheets",
+                    "https://www.googleapis.com/auth/drive",
+                ],
             )
             gc = gspread.authorize(creds)
-            
-            # Try to open the spreadsheet
-            try:
-                spreadsheet = gc.open("SA_Disease_Surveillance")
-                return spreadsheet
-            except gspread.SpreadsheetNotFound:
-                # Create a new spreadsheet if it doesn't exist
-                spreadsheet = gc.create("SA_Disease_Surveillance")
-                # Share with anyone with the link (optional)
-                spreadsheet.share(None, perm_type='anyone', role='writer')
-                return spreadsheet
+
+            # Use the Sheet ID instead of name (replace with your real ID)
+            SHEET_ID = "your-google-sheet-id-here"
+            spreadsheet = gc.open_by_key(SHEET_ID)
+            return spreadsheet
         else:
-            st.warning("Google Sheets credentials not found. Using local storage only.")
+            st.warning("⚠️ Google Sheets credentials not found. Using local storage only.")
             return None
     except Exception as e:
         st.error(f"Error connecting to Google Sheets: {e}")
         return None
 
-def save_to_google_sheets(new_row):
+
+def save_to_google_sheets(new_row: dict):
     """Save data to Google Sheets"""
     spreadsheet = init_google_sheets()
     if spreadsheet:
         try:
             worksheet = spreadsheet.sheet1
-            
-            # Get all records to check if we need headers
-            try:
-                records = worksheet.get_all_records()
-                if len(records) == 0:
-                    # Worksheet is empty, add headers
-                    headers = list(new_row.keys())
-                    worksheet.insert_row(headers, 1)
-            except:
-                # If get_all_records fails, try to add headers
+            existing_values = worksheet.get_all_values()
+
+            # Add headers only once
+            if not existing_values:
                 headers = list(new_row.keys())
-                worksheet.insert_row(headers, 1)
-            
-            # Add new row
-            values = list(new_row.values())
-            worksheet.append_row(values)
+                worksheet.append_row(headers)
+
+            values = [str(v) for v in new_row.values()]
+            worksheet.append_row(values, value_input_option="USER_ENTERED")
             return True
         except Exception as e:
             st.error(f"Error saving to Google Sheets: {e}")
             return False
     return False
 
+
 def load_from_google_sheets():
-    """Load data from Google Sheets"""
+    """Load all data from Google Sheets"""
     spreadsheet = init_google_sheets()
     if spreadsheet:
         try:
@@ -121,6 +110,7 @@ def load_from_google_sheets():
         except Exception as e:
             st.error(f"Error loading from Google Sheets: {e}")
     return pd.DataFrame()
+
 
 # -------------------------------
 # Improved data persistence functions
@@ -662,5 +652,6 @@ elif menu == "Resources":
         - [SARDI Biosecurity](https://pir.sa.gov.au/sardi/crop_sciences/plant_health_and_biosecurity)
         """
     )
+
 
 
