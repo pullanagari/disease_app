@@ -49,9 +49,56 @@ hide_github_logo = """
 st.markdown(hide_github_logo, unsafe_allow_html=True)
 
 # -------------------------------
-# Google Drive/Sheets Integration (Simplified)
+# Google Drive/Sheets
+import streamlit as st
+import gspread
+from google.oauth2 import service_account
+
 # -------------------------------
-# Google Drive/Sheets Integration (Fixed)
+# Google Sheets Integration
+@st.cache_resource
+def get_gs_client():
+    """Return an authorized gspread client (cached)"""
+    try:
+        SCOPES = [
+            "https://www.googleapis.com/auth/spreadsheets",
+            "https://www.googleapis.com/auth/drive"
+        ]
+
+        if "gcp_service_account" in st.secrets:
+            creds_dict = dict(st.secrets["gcp_service_account"])
+            creds = service_account.Credentials.from_service_account_info(
+                creds_dict, scopes=SCOPES
+            )
+        else:
+            creds = service_account.Credentials.from_service_account_file(
+                "service_account.json", scopes=SCOPES
+            )
+
+        client = gspread.authorize(creds)
+        return client
+
+    except Exception as e:
+        st.error(f"❌ Google Sheets auth error: {e}")
+        return None
+
+
+def get_spreadsheet():
+    """Return spreadsheet object if available"""
+    client = get_gs_client()
+    if not client:
+        return None
+
+    SHEET_ID = "15D6_hA_LhG6M8CKMUFikCxXPQNtxhNBSCykaBF2egtE"
+    try:
+        spreadsheet = client.open_by_key(SHEET_ID)
+        st.success("✅ Connected to Google Sheets")
+        return spreadsheet
+    except Exception as e:
+        st.error(f"❌ Error opening Google Sheet: {e}")
+        return None
+
+
 def init_google_sheets():
     """Initialize connection to Google Sheets using service account"""
     try:
@@ -84,9 +131,10 @@ def init_google_sheets():
 
 def save_to_google_sheets(new_row: dict):
     """Save data to Google Sheets"""
-    spreadsheet = init_google_sheets()
+    spreadsheet = get_spreadsheet()
     if not spreadsheet:
-        return False  # No cloud available
+        st.warning("⚠️ No cloud data available for synchronization.")
+        return False
 
     try:
         worksheet = spreadsheet.sheet1
@@ -107,8 +155,6 @@ def save_to_google_sheets(new_row: dict):
     except Exception as e:
         st.error(f"Error saving to Google Sheets: {e}")
         return False
-
-
 
 def load_from_google_sheets():
     """Load all data from Google Sheets"""
@@ -664,6 +710,7 @@ elif menu == "Resources":
         - [SARDI Biosecurity](https://pir.sa.gov.au/sardi/crop_sciences/plant_health_and_biosecurity)
         """
     )
+
 
 
 
