@@ -13,7 +13,6 @@ import re
 import requests
 import base64
 
-
 # -------------------------------
 # GitHub helper functions
 # -------------------------------
@@ -62,7 +61,6 @@ def save_csv_to_github(df, filename="data_temp.csv"):
             err_msg = r.text  # fallback if not JSON
         st.error(f"GitHub CSV save failed: {r.status_code} → {err_msg}")
         return False
-
 
 def save_photo_to_github(file_bytes, filename, folder="photos", branch="main"):
     try:
@@ -137,11 +135,11 @@ def get_local_data_path():
     """Get the path to the local data file with proper handling for cloud deployments"""
     return os.path.join("data", "local_disease_data.csv")
 
-def save_local_data(df_updated):
+def save_local_data(df):
     """Save local data with error handling"""
     try:
         local_path = get_local_data_path()
-        df.to_csv(get_local_data_path(), index=False)
+        df.to_csv(local_path, index=False)
         return True
     except Exception as e:
         st.error(f"Error saving data: {e}")
@@ -158,23 +156,8 @@ def load_local_data():
             return pd.DataFrame()
     return pd.DataFrame()
 
-def save_to_local(new_row):
-    file_path = "data/local_disease_data.csv"
-
-    if os.path.exists(file_path):
-        df = pd.read_csv(file_path)
-        df = pd.concat([df, pd.DataFrame([new_row])], ignore_index=True)
-    else:
-        df = pd.DataFrame([new_row])
-
-    df.to_csv(file_path, index=False)
-
-
-
 #----------------------------
 # Adding unique ID
-
-
 def get_next_sample_id():
     file_path = "data/local_disease_data.csv"
 
@@ -199,27 +182,17 @@ def get_next_sample_id():
 # -------------------------------
 # Load data with caching
 # -------------------------------
-# Load data with caching (LOCAL ONLY)
 @st.cache_data(ttl=300)
 def load_data():
+    # Try to load from GitHub first
+    try:
+        df_main = pd.read_csv(csv_url)
+    except Exception as e:
+        st.error(f"Failed to load main data from GitHub: {e}")
+        df_main = pd.DataFrame()
+
+    # Load local data
     df_local = load_local_data()
-
-    if df_local.empty:
-        return pd.DataFrame()
-
-    # --- Fix date parsing ---
-    if "date" in df_local.columns:
-        df_local["date"] = pd.to_datetime(
-            df_local["date"],
-            errors="coerce",
-            dayfirst=True
-        )
-
-    # Drop duplicates if same survey got appended
-    df_local = df_local.drop_duplicates()
-
-    return df_local
-
 
     # Combine both
     if not df_local.empty and not df_main.empty:
@@ -231,21 +204,13 @@ def load_data():
     else:
         return pd.DataFrame()
 
-    # --- Fix date parsing ---
+    # Fix date parsing
     if "date" in df_combined.columns:
-        # Try both common formats
         df_combined["date"] = pd.to_datetime(
             df_combined["date"],
             errors="coerce",
-            dayfirst=False,  # remote CSV often uses ISO format
+            dayfirst=True
         )
-        # If still NaT, try fallback parsing
-        if df_combined["date"].isna().any():
-            df_combined["date"] = pd.to_datetime(
-                df_combined["date"],
-                errors="coerce",
-                dayfirst=True
-            )
 
     # Drop duplicates if same survey got appended
     df_combined = df_combined.drop_duplicates()
@@ -439,28 +404,26 @@ if menu == "Disease tracker":
     st.markdown("### 📸 Download Photos")
     
     # Filter only rows with photos
-    df_photos = df_filtered[df_filtered["photo_filename"].notna() & (df_filtered["photo_filename"] != "")]
+    df_photos = df_filtered[df_filtered["photo_url"].notna() & (df_filtered["photo_url"] != "")]
     
     if not df_photos.empty:
         # Download all photos as ZIP
         zip_buffer = io.BytesIO()
         with zipfile.ZipFile(zip_buffer, "w") as zf:
             for _, row in df_photos.iterrows():
-                photo_path = os.path.join("uploads", photo_filename)
-                with open(photo_path, "wb") as f:
-                    f.write(uploaded_file.getbuffer())
-                photo_url = f"/uploads/{photo_filename}"  # temporary local preview
-
-                photo_path = os.path.join("uploads", row["photo_filename"])
-                if os.path.exists(photo_path):
-                    zf.write(photo_path, arcname=row["photo_filename"])
+                try:
+                    response = requests.get(row["photo_url"])
+                    if response.status_code == 200:
+                        zf.writestr(row["photo_url"].split("/")[-1], response.content)
+                except:
+                    continue
+                    
         st.download_button(
             "Download All Photos (ZIP)",
             data=zip_buffer.getvalue(),
             file_name="disease_photos.zip",
             mime="application/zip",
         )
-
     else:
         st.info("No photos available for the selected filters.")
 
@@ -555,84 +518,29 @@ elif menu == "Tag a disease":
             }
         
             # Load existing data (from GitHub)
-            df_existing = pd.read_csv("https://raw.githubusercontent.com/pullanagari/Disease_app/main/data_temp.csv")
+            try:
+                df_existing = pd.read_csv(csv_url)
+            except:
+                df_existing = pd.DataFrame()
+                
             df_updated = pd.concat([df_existing, pd.DataFrame([new_record])], ignore_index=True)
         
             if save_csv_to_github(df_updated):
                 st.success("✅ Submission saved to GitHub permanently")
+                # Also update local data
+                local_df = load_local_data()
+                local_updated = pd.concat([local_df, pd.DataFrame([new_record])], ignore_index=True)
+                save_local_data(local_updated)
                 reload_data()
                 if photo_url:
                     st.image(photo_url, caption="Uploaded to GitHub")
-
-
-        # if submitted:
-        #     sample_id = get_next_sample_id()
-        #     # Validate required fields
-        #     if not all([crop, disease1, location]):
-        #         st.error("Please fill in all required fields: Crop, Disease 1, and Location")
-        #     else:
-        #         photo_filename = None
-        #         if uploaded_file is not None:
-        #             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        #             file_extension = uploaded_file.name.split(".")[-1]
-        #             photo_filename = f"disease_photo_{timestamp}.{file_extension}"
-        #             with open(os.path.join("uploads", photo_filename), "wb") as f:
-        #                 f.write(uploaded_file.getbuffer())
-
-        #         if disease2 == "None":
-        #             disease2 = ""
-        #             severity2 = 0
-        #         if disease3 == "None":
-        #             disease3 = ""
-        #             severity3 = 0
-
-        #         new_record = {
-        #             "sample_id": sample_id,
-        #             "date": date.strftime("%d/%m/%Y"),
-        #             "collector_name": collector,
-        #             "field_type": field_type,
-        #             "Agronomist": agronomist,
-        #             "crop": crop,
-        #             "variety": variety,
-        #             "plant_stage": plant_stage,
-        #             "disease1": disease1,
-        #             "disease2": disease2,
-        #             "disease3": disease3,
-        #             "severity1_percent": severity1,
-        #             "severity2_percent": severity2,
-        #             "severity3_percent": severity3,
-        #             "latitude": float(latitude) if latitude else -36.76,
-        #             "longitude": float(longitude) if longitude else 142.21,
-        #             "survey_location": location,
-        #             "photo_filename": photo_filename if photo_filename else "",
-        #             "field_notes": field_notes,
-        #         }
-
-        #         # Load existing local data
-        #         local_data = load_local_data()
-                
-        #         # Append new record
-        #         new_df = pd.DataFrame([new_record])
-        #         if local_data.empty:
-        #             updated_data = new_df
-        #         else:
-        #             updated_data = pd.concat([local_data, new_df], ignore_index=True)
-                
-        #         # Save updated data
-        #         if save_local_data(updated_data):
-        #             st.success("✅ Submission successful! Data saved to local storage.")
-                    
-        #             # Clear cache and reload data
-        #             reload_data()
-                    
-        #             if uploaded_file is not None:
-        #                 st.markdown("**Uploaded Photo Preview:**")
-        #                 image = Image.open(uploaded_file)
-        #                 st.image(image, caption="Disease Photo", use_column_width=True)
-        #         else:
-        #             st.error("Failed to save data. Please try again.")
-
-  
+            else:
+                st.error("Failed to save to GitHub. Saving to local only.")
+                # Save to local only
+                local_df = load_local_data()
+                local_updated = pd.concat([local_df, pd.DataFrame([new_record])], ignore_index=True)
+                save_local_data(local_updated)
+                reload_data()
 
 
 # -------------------------------
@@ -669,23 +577,3 @@ elif menu == "Resources":
         - [SARDI Biosecurity](https://pir.sa.gov.au/sardi/crop_sciences/plant_health_and_biosecurity)
         """
     )
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
