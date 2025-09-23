@@ -98,7 +98,8 @@ def get_or_create_disease_photos_folder(service):
     """Get or create the main disease photos folder in Google Drive"""
     try:
         # Search for existing folder
-        query = "mimeType='application/vnd.google-apps.folder' and name='Disease_Surveillance_Photos' and trashed=false"
+        # query = "mimeType='application/vnd.google-apps.folder' and name='Disease_Surveillance_Photos' and trashed=false"
+        query = f"mimeType='application/vnd.google-apps.folder' and name='Disease_Surveillance_Photos' and trashed=false"
         results = service.files().list(q=query, fields="files(id, name)").execute()
         folders = results.get('files', [])
         
@@ -832,6 +833,7 @@ elif menu == "Resources":
         - [SARDI Biosecurity](https://pir.sa.gov.au/sardi/crop_sciences/plant_health_and_biosecurity)
         """
     )
+
 
 
 
