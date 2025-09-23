@@ -73,11 +73,14 @@ def get_drive_service():
             return None
 
         drive_service = build('drive', 'v3', credentials=creds)
+        
+        # Test the connection
+        drive_service.files().list(pageSize=1).execute()
+        
         return drive_service
     except Exception as e:
         st.error(f"❌ Google Drive auth error: {e}")
         return None
-
 def create_drive_folder(service, folder_name, parent_id=None):
     """Create a folder in Google Drive and return its ID"""
     try:
@@ -94,85 +97,76 @@ def create_drive_folder(service, folder_name, parent_id=None):
         st.error(f"Error creating folder: {e}")
         return None
 
-def get_disease_photos_folder(service):
-    """Get the ID of the shared Disease_Surveillance_Photos folder"""
+def get_or_create_disease_photos_folder(service):
+    """Get or create the Disease_Surveillance_Photos folder in Google Drive"""
     try:
-        # Replace this with the exact folder name in your personal Drive
         folder_name = "Disease_Surveillance_Photos"
-
-        # Search for the folder
+        
+        # Search for existing folder
         query = f"mimeType='application/vnd.google-apps.folder' and name='{folder_name}' and trashed=false"
         results = service.files().list(q=query, fields="files(id, name)").execute()
         folders = results.get('files', [])
-
+        
         if folders:
             # Folder exists, return its ID
             return folders[0]['id']
         else:
-            # Folder not found, inform the user
-            st.error(f"Folder '{folder_name}' not found. Please share it with the service account.")
-            return None
-
+            # Create new folder
+            file_metadata = {
+                'name': folder_name,
+                'mimeType': 'application/vnd.google-apps.folder'
+            }
+            folder = service.files().create(body=file_metadata, fields='id').execute()
+            st.success(f"✅ Created new folder: {folder_name}")
+            return folder.get('id')
+            
     except Exception as e:
-        st.error(f"Error accessing Disease_Surveillance_Photos folder: {e}")
+        st.error(f"Error accessing/creating Disease_Surveillance_Photos folder: {e}")
         return None
 
-
-def upload_to_drive(service, file_path, file_name, folder_id):
-    """Upload a file to Google Drive and return the file ID"""
-    try:
-        file_metadata = {
-            'name': file_name,
-            'parents': [folder_id]
-        }
-        
-        media = MediaFileUpload(file_path, 
-                              mimetype=mimetypes.guess_type(file_path)[0] or 'image/jpeg')
-        
-        file = service.files().create(body=file_metadata,
-                                    media_body=media,
-                                    fields='id, webViewLink').execute()
-        
-        return file.get('id'), file.get('webViewLink')
-    except Exception as e:
-        st.error(f"Error uploading to Google Drive: {e}")
-        return None, None
-
 def save_photo_to_drive(photo_path, photo_filename):
+    """Save photo to Google Drive and return file ID and link"""
     try:
         service = get_drive_service()
         if not service:
             st.error("Google Drive service not available")
             return None, None
 
+        # Get or create the photos folder
         folder_id = get_or_create_disease_photos_folder(service)
         if not folder_id:
             st.error("Could not find or create Disease_Surveillance_Photos folder")
             return None, None
 
+        # Prepare file metadata
         file_metadata = {
             "name": photo_filename,
             "parents": [folder_id],
         }
-        media = MediaFileUpload(photo_path, mimetype=mimetypes.guess_type(photo_path)[0] or 'image/jpeg')
+        
+        # Determine MIME type
+        mime_type, _ = mimetypes.guess_type(photo_path)
+        if mime_type is None:
+            mime_type = 'image/jpeg'
+            
+        media = MediaFileUpload(photo_path, mimetype=mime_type)
 
+        # Upload file
         uploaded_file = service.files().create(
             body=file_metadata,
             media_body=media,
-            fields="id, webViewLink"
+            fields="id, webViewLink, webContentLink"
         ).execute()
 
         file_id = uploaded_file.get("id")
-        file_link = uploaded_file.get("webViewLink")  # Only accessible via the service account
+        file_link = uploaded_file.get("webViewLink")
 
+        st.success(f"✅ Photo uploaded to Google Drive: {photo_filename}")
         return file_id, file_link
 
     except Exception as e:
         st.error(f"Error saving photo to Google Drive: {e}")
         return None, None
-
-
-
 # -------------------------------
 # Google Sheets Integration (updated to include drive_photo_id)
 @st.cache_resource
@@ -672,24 +666,25 @@ elif menu == "Tag a disease":
                 photo_filename = None
                 drive_photo_id = None
                 drive_photo_link = None
-                
+                # In the form submission section, replace the photo handling code with:
                 if uploaded_file is not None:
                     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
                     file_extension = uploaded_file.name.split(".")[-1]
                     photo_filename = f"disease_photo_{timestamp}.{file_extension}"
                     local_file_path = os.path.join("uploads", photo_filename)
                     
-                    # Save locally
+                    # Save locally first
                     with open(local_file_path, "wb") as f:
                         f.write(uploaded_file.getbuffer())
                     
-                    # Also save to Google Drive
+                    # Upload to Google Drive
                     drive_photo_id, drive_photo_link = save_photo_to_drive(local_file_path, photo_filename)
                     
                     if drive_photo_id:
-                        st.success(f"✅ Photo saved to Google Drive (ID: {drive_photo_id})")
+                        st.success(f"✅ Photo saved to Google Drive")
                     else:
                         st.warning("⚠️ Photo saved locally but failed to upload to Google Drive")
+                
         
                 if disease2 == "None":
                     disease2 = ""
@@ -839,6 +834,7 @@ elif menu == "Resources":
         - [SARDI Biosecurity](https://pir.sa.gov.au/sardi/crop_sciences/plant_health_and_biosecurity)
         """
     )
+
 
 
 
