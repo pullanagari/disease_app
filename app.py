@@ -134,15 +134,26 @@ def upload_to_drive(service, file_path, file_name, folder_id):
 def save_photo_to_drive(photo_path, photo_filename):
     try:
         service = get_drive_service()
-        folder_id = get_drive_folder_id("Disease_Surveillance_Photos")
+        if not service:
+            st.error("Google Drive service not available")
+            return None, None
+
+        # Use your existing helper
+        folder_id = get_or_create_disease_photos_folder(service)
+        if not folder_id:
+            st.error("Could not find or create Disease_Surveillance_Photos folder")
+            return None, None
 
         file_metadata = {
-            "name": photo_filename,   # use passed filename
+            "name": photo_filename,
             "parents": [folder_id],
         }
         media = MediaFileUpload(photo_path, resumable=True)
+
         uploaded_file = service.files().create(
-            body=file_metadata, media_body=media, fields="id, webViewLink"
+            body=file_metadata,
+            media_body=media,
+            fields="id, webViewLink"
         ).execute()
 
         file_id = uploaded_file.get("id")
@@ -153,9 +164,9 @@ def save_photo_to_drive(photo_path, photo_filename):
             body={"type": "anyone", "role": "reader"},
         ).execute()
 
-        file_link = f"https://drive.google.com/file/d/{file_id}/view?usp=sharing"
-
+        file_link = uploaded_file.get("webViewLink")
         return file_id, file_link
+
     except Exception as e:
         st.error(f"Error saving photo to Google Drive: {e}")
         return None, None
@@ -827,6 +838,7 @@ elif menu == "Resources":
         - [SARDI Biosecurity](https://pir.sa.gov.au/sardi/crop_sciences/plant_health_and_biosecurity)
         """
     )
+
 
 
 
