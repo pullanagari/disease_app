@@ -131,25 +131,35 @@ def upload_to_drive(service, file_path, file_name, folder_id):
         st.error(f"Error uploading to Google Drive: {e}")
         return None, None
 
-def save_photo_to_drive(local_file_path, filename):
-    """Save photo to Google Drive and return drive file ID"""
+def save_photo_to_drive(photo_path):
     try:
-        drive_service = get_drive_service()
-        if not drive_service:
-            return None, None
-            
-        # Get or create the main photos folder
-        main_folder_id = get_or_create_disease_photos_folder(drive_service)
-        if not main_folder_id:
-            return None, None
-            
-        # Upload the file
-        file_id, web_link = upload_to_drive(drive_service, local_file_path, filename, main_folder_id)
-        return file_id, web_link
-        
+        service = get_drive_service()
+        folder_id = get_drive_folder_id("Disease_Surveillance_Photos")
+
+        file_metadata = {
+            "name": os.path.basename(photo_path),
+            "parents": [folder_id],
+        }
+        media = MediaFileUpload(photo_path, resumable=True)
+        uploaded_file = service.files().create(
+            body=file_metadata, media_body=media, fields="id, webViewLink"
+        ).execute()
+
+        file_id = uploaded_file.get("id")
+
+        # 🔑 Make file public
+        service.permissions().create(
+            fileId=file_id,
+            body={"type": "anyone", "role": "reader"},
+        ).execute()
+
+        file_link = f"https://drive.google.com/file/d/{file_id}/view?usp=sharing"
+
+        return file_id, file_link
     except Exception as e:
-        st.error(f"Error saving photo to Drive: {e}")
+        st.error(f"Error saving photo to Google Drive: {e}")
         return None, None
+
 
 # -------------------------------
 # Google Sheets Integration (updated to include drive_photo_id)
@@ -817,6 +827,7 @@ elif menu == "Resources":
         - [SARDI Biosecurity](https://pir.sa.gov.au/sardi/crop_sciences/plant_health_and_biosecurity)
         """
     )
+
 
 
 
