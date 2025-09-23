@@ -97,8 +97,8 @@ def create_drive_folder(service, folder_name, parent_id=None):
         st.error(f"Error creating folder: {e}")
         return None
 
-def get_or_create_disease_photos_folder(service):
-    """Get or create the Disease_Surveillance_Photos folder in Google Drive"""
+def create_disease_surveillance_folder(service):
+    """Create a main folder for disease surveillance photos"""
     try:
         folder_name = "Disease_Surveillance_Photos"
         
@@ -108,37 +108,39 @@ def get_or_create_disease_photos_folder(service):
         folders = results.get('files', [])
         
         if folders:
-            # Folder exists, return its ID
             return folders[0]['id']
         else:
-            # Create new folder
+            # Create new folder in the root of the service account's drive
             file_metadata = {
                 'name': folder_name,
                 'mimeType': 'application/vnd.google-apps.folder'
             }
             folder = service.files().create(body=file_metadata, fields='id').execute()
-            st.success(f"✅ Created new folder: {folder_name}")
+            st.success(f"✅ Created new folder: {folder_name} (ID: {folder.get('id')})")
             return folder.get('id')
             
     except Exception as e:
-        st.error(f"Error accessing/creating Disease_Surveillance_Photos folder: {e}")
+        st.error(f"Error creating folder: {e}")
         return None
 
 def save_photo_to_drive(photo_path, photo_filename):
-    """Save photo to a specific folder in user's Drive"""
+    """Save photo to Google Drive"""
     try:
         service = get_drive_service()
         if not service:
             st.error("Google Drive service not available")
             return None, None
 
-        # Use a specific folder ID that you've shared with the service account
-        FOLDER_ID = "your_folder_id_here"  # Get this from folder URL
-        
+        # Create or get the main folder
+        folder_id = create_disease_surveillance_folder(service)
+        if not folder_id:
+            st.error("Could not create Disease_Surveillance_Photos folder")
+            return None, None
+
         # Prepare file metadata
         file_metadata = {
             "name": photo_filename,
-            "parents": [FOLDER_ID],
+            "parents": [folder_id],
         }
         
         # Determine MIME type
@@ -159,6 +161,7 @@ def save_photo_to_drive(photo_path, photo_filename):
         file_link = uploaded_file.get("webViewLink")
 
         st.success(f"✅ Photo uploaded to Google Drive: {photo_filename}")
+        st.info(f"File ID: {file_id}")
         return file_id, file_link
 
     except Exception as e:
@@ -831,6 +834,7 @@ elif menu == "Resources":
         - [SARDI Biosecurity](https://pir.sa.gov.au/sardi/crop_sciences/plant_health_and_biosecurity)
         """
     )
+
 
 
 
