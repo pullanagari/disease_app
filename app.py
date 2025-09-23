@@ -138,7 +138,6 @@ def save_photo_to_drive(photo_path, photo_filename):
             st.error("Google Drive service not available")
             return None, None
 
-        # Use your existing helper
         folder_id = get_or_create_disease_photos_folder(service)
         if not folder_id:
             st.error("Could not find or create Disease_Surveillance_Photos folder")
@@ -170,6 +169,7 @@ def save_photo_to_drive(photo_path, photo_filename):
     except Exception as e:
         st.error(f"Error saving photo to Google Drive: {e}")
         return None, None
+
 
 
 # -------------------------------
@@ -838,6 +838,7 @@ elif menu == "Resources":
         - [SARDI Biosecurity](https://pir.sa.gov.au/sardi/crop_sciences/plant_health_and_biosecurity)
         """
     )
+
 
 
 
