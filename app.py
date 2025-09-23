@@ -677,15 +677,19 @@ elif menu == "Tag a disease":
                     with open(local_file_path, "wb") as f:
                         f.write(uploaded_file.getbuffer())
                     
-                    # Upload to Google Drive
-                    drive_photo_id, drive_photo_link = save_photo_to_drive(local_file_path, photo_filename)
+                    # Try simple upload first
+                    drive_photo_id, drive_photo_link = save_photo_to_drive_simple(local_file_path, photo_filename)
+                    
+                    if not drive_photo_id:
+                        # If simple upload fails, try with folder creation
+                        drive_photo_id, drive_photo_link = save_photo_to_drive(local_file_path, photo_filename)
                     
                     if drive_photo_id:
-                        st.success(f"✅ Photo saved to Google Drive")
+                        st.success(f"✅ Photo saved to Google Drive (ID: {drive_photo_id})")
                     else:
                         st.warning("⚠️ Photo saved locally but failed to upload to Google Drive")
-                
-        
+                    
+                        
                 if disease2 == "None":
                     disease2 = ""
                     severity2 = 0
@@ -834,6 +838,7 @@ elif menu == "Resources":
         - [SARDI Biosecurity](https://pir.sa.gov.au/sardi/crop_sciences/plant_health_and_biosecurity)
         """
     )
+
 
 
 
