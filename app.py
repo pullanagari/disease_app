@@ -97,31 +97,38 @@ def create_drive_folder(service, folder_name, parent_id=None):
         st.error(f"Error creating folder: {e}")
         return None
 
-def create_disease_surveillance_folder(service):
-    """Create a main folder for disease surveillance photos"""
-    try:
-        folder_name = "Disease_Surveillance_Photos"
-        
-        # Search for existing folder
-        query = f"mimeType='application/vnd.google-apps.folder' and name='{folder_name}' and trashed=false"
-        results = service.files().list(q=query, fields="files(id, name)").execute()
-        folders = results.get('files', [])
-        
-        if folders:
-            return folders[0]['id']
-        else:
-            # Create new folder in the root of the service account's drive
-            file_metadata = {
-                'name': folder_name,
-                'mimeType': 'application/vnd.google-apps.folder'
-            }
-            folder = service.files().create(body=file_metadata, fields='id').execute()
-            st.success(f"✅ Created new folder: {folder_name} (ID: {folder.get('id')})")
-            return folder.get('id')
-            
-    except Exception as e:
-        st.error(f"Error creating folder: {e}")
-        return None
+def create_disease_surveillance_folder(service, shared_drive_id=None):
+    folder_name = "Disease_Surveillance_Photos"
+    query = f"mimeType='application/vnd.google-apps.folder' and name='{folder_name}' and trashed=false"
+    results = service.files().list(
+        q=query,
+        corpora='drive' if shared_drive_id else 'default',
+        driveId=shared_drive_id,
+        includeItemsFromAllDrives=True,
+        supportsAllDrives=True,
+        fields="files(id, name)"
+    ).execute()
+    
+    folders = results.get('files', [])
+    
+    if folders:
+        return folders[0]['id']
+    
+    # Create new folder
+    file_metadata = {
+        'name': folder_name,
+        'mimeType': 'application/vnd.google-apps.folder',
+        'parents': [shared_drive_id] if shared_drive_id else []
+    }
+    
+    folder = service.files().create(
+        body=file_metadata,
+        supportsAllDrives=True,
+        fields='id'
+    ).execute()
+    
+    return folder.get('id')
+
 
 def save_photo_to_drive(photo_path, photo_filename):
     """Save photo to Google Drive"""
@@ -838,6 +845,7 @@ elif menu == "Resources":
         - [SARDI Biosecurity](https://pir.sa.gov.au/sardi/crop_sciences/plant_health_and_biosecurity)
         """
     )
+
 
 
 
