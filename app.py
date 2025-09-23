@@ -125,23 +125,20 @@ def get_or_create_disease_photos_folder(service):
         return None
 
 def save_photo_to_drive(photo_path, photo_filename):
-    """Save photo to Google Drive and return file ID and link"""
+    """Save photo to a specific folder in user's Drive"""
     try:
         service = get_drive_service()
         if not service:
             st.error("Google Drive service not available")
             return None, None
 
-        # Get or create the photos folder
-        folder_id = get_or_create_disease_photos_folder(service)
-        if not folder_id:
-            st.error("Could not find or create Disease_Surveillance_Photos folder")
-            return None, None
-
+        # Use a specific folder ID that you've shared with the service account
+        FOLDER_ID = "your_folder_id_here"  # Get this from folder URL
+        
         # Prepare file metadata
         file_metadata = {
             "name": photo_filename,
-            "parents": [folder_id],
+            "parents": [FOLDER_ID],
         }
         
         # Determine MIME type
@@ -155,7 +152,7 @@ def save_photo_to_drive(photo_path, photo_filename):
         uploaded_file = service.files().create(
             body=file_metadata,
             media_body=media,
-            fields="id, webViewLink, webContentLink"
+            fields="id, webViewLink"
         ).execute()
 
         file_id = uploaded_file.get("id")
@@ -834,6 +831,7 @@ elif menu == "Resources":
         - [SARDI Biosecurity](https://pir.sa.gov.au/sardi/crop_sciences/plant_health_and_biosecurity)
         """
     )
+
 
 
 
