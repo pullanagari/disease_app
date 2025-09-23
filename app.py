@@ -94,23 +94,29 @@ def create_drive_folder(service, folder_name, parent_id=None):
         st.error(f"Error creating folder: {e}")
         return None
 
-def get_or_create_disease_photos_folder(service):
-    """Get or create the main disease photos folder in Google Drive"""
+def get_disease_photos_folder(service):
+    """Get the ID of the shared Disease_Surveillance_Photos folder"""
     try:
-        # Search for existing folder
-        # query = "mimeType='application/vnd.google-apps.folder' and name='Disease_Surveillance_Photos' and trashed=false"
-        query = f"mimeType='application/vnd.google-apps.folder' and name='Disease_Surveillance_Photos' and trashed=false"
+        # Replace this with the exact folder name in your personal Drive
+        folder_name = "Disease_Surveillance_Photos"
+
+        # Search for the folder
+        query = f"mimeType='application/vnd.google-apps.folder' and name='{folder_name}' and trashed=false"
         results = service.files().list(q=query, fields="files(id, name)").execute()
         folders = results.get('files', [])
-        
+
         if folders:
+            # Folder exists, return its ID
             return folders[0]['id']
         else:
-            # Create new folder
-            return create_drive_folder(service, 'Disease_Surveillance_Photos')
+            # Folder not found, inform the user
+            st.error(f"Folder '{folder_name}' not found. Please share it with the service account.")
+            return None
+
     except Exception as e:
-        st.error(f"Error getting/creating photos folder: {e}")
+        st.error(f"Error accessing Disease_Surveillance_Photos folder: {e}")
         return None
+
 
 def upload_to_drive(service, file_path, file_name, folder_id):
     """Upload a file to Google Drive and return the file ID"""
@@ -833,6 +839,7 @@ elif menu == "Resources":
         - [SARDI Biosecurity](https://pir.sa.gov.au/sardi/crop_sciences/plant_health_and_biosecurity)
         """
     )
+
 
 
 
