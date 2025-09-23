@@ -147,7 +147,7 @@ def save_photo_to_drive(photo_path, photo_filename):
             "name": photo_filename,
             "parents": [folder_id],
         }
-        media = MediaFileUpload(photo_path, resumable=True)
+        media = MediaFileUpload(photo_path, mimetype=mimetypes.guess_type(photo_path)[0] or 'image/jpeg')
 
         uploaded_file = service.files().create(
             body=file_metadata,
@@ -156,14 +156,8 @@ def save_photo_to_drive(photo_path, photo_filename):
         ).execute()
 
         file_id = uploaded_file.get("id")
+        file_link = uploaded_file.get("webViewLink")  # Only accessible via the service account
 
-        # make it public
-        service.permissions().create(
-            fileId=file_id,
-            body={"type": "anyone", "role": "reader"},
-        ).execute()
-
-        file_link = uploaded_file.get("webViewLink")
         return file_id, file_link
 
     except Exception as e:
@@ -838,6 +832,7 @@ elif menu == "Resources":
         - [SARDI Biosecurity](https://pir.sa.gov.au/sardi/crop_sciences/plant_health_and_biosecurity)
         """
     )
+
 
 
 
