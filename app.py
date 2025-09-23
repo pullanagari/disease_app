@@ -131,13 +131,13 @@ def upload_to_drive(service, file_path, file_name, folder_id):
         st.error(f"Error uploading to Google Drive: {e}")
         return None, None
 
-def save_photo_to_drive(photo_path):
+def save_photo_to_drive(photo_path, photo_filename):
     try:
         service = get_drive_service()
         folder_id = get_drive_folder_id("Disease_Surveillance_Photos")
 
         file_metadata = {
-            "name": os.path.basename(photo_path),
+            "name": photo_filename,   # use passed filename
             "parents": [folder_id],
         }
         media = MediaFileUpload(photo_path, resumable=True)
@@ -147,7 +147,7 @@ def save_photo_to_drive(photo_path):
 
         file_id = uploaded_file.get("id")
 
-        # 🔑 Make file public
+        # make it public
         service.permissions().create(
             fileId=file_id,
             body={"type": "anyone", "role": "reader"},
@@ -827,6 +827,7 @@ elif menu == "Resources":
         - [SARDI Biosecurity](https://pir.sa.gov.au/sardi/crop_sciences/plant_health_and_biosecurity)
         """
     )
+
 
 
 
