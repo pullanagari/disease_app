@@ -167,8 +167,8 @@ def save_photo_to_drive(photo_path, photo_filename):
     except Exception as e:
         st.error(f"Error saving photo to Google Drive: {e}")
         return None, None
-st.write(f"Drive service: {get_drive_service()}")
-st.write(f"Uploading {local_file_path}...")
+    st.write(f"Drive service: {get_drive_service()}")
+    st.write(f"Uploading {local_file_path}...")
 
 # -------------------------------
 # Google Sheets Integration (updated to include drive_photo_id)
@@ -838,6 +838,7 @@ elif menu == "Resources":
         - [SARDI Biosecurity](https://pir.sa.gov.au/sardi/crop_sciences/plant_health_and_biosecurity)
         """
     )
+
 
 
 
