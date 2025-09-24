@@ -13,6 +13,8 @@ import zipfile
 import re
 import gspread
 from google.oauth2 import service_account
+from googleapiclient.discovery import build
+from googleapiclient.http import MediaFileUpload
 
 # -------------------------------
 # Page config (must be before any Streamlit UI code)
@@ -123,6 +125,55 @@ def get_gs_client():
 
     except Exception as e:
         st.error(f"❌ Google Sheets auth error: {e}")
+        return None
+
+
+@st.cache_resource
+def get_drive_service():
+    """Return authorized Google Drive service"""
+    try:
+        SCOPES = ["https://www.googleapis.com/auth/drive"]
+        
+        if "gcp_service_account" in st.secrets:
+            creds_dict = dict(st.secrets["gcp_service_account"])
+            creds = service_account.Credentials.from_service_account_info(
+                creds_dict, scopes=SCOPES
+            )
+        elif os.path.exists("service_account.json"):
+            creds = service_account.Credentials.from_service_account_file(
+                "service_account.json", scopes=SCOPES
+            )
+        else:
+            st.error("No Google Drive credentials found")
+            return None
+
+        return build("drive", "v3", credentials=creds)
+
+    except Exception as e:
+        st.error(f"❌ Google Drive auth error: {e}")
+        return None
+
+
+def upload_file_to_drive(local_path, filename, folder_id=None):
+    """Upload a file to Google Drive, optionally inside a specific folder"""
+    service = get_drive_service()
+    if not service:
+        return None
+
+    file_metadata = {"name": filename}
+    if folder_id:
+        file_metadata["parents"] = [folder_id]
+
+    media = MediaFileUpload(local_path, resumable=True)
+    try:
+        file = service.files().create(
+            body=file_metadata,
+            media_body=media,
+            fields="id, webViewLink"
+        ).execute()
+        return file.get("webViewLink")  # Returns shareable link
+    except Exception as e:
+        st.error(f"❌ Error uploading file to Drive: {e}")
         return None
 
 def get_spreadsheet():
@@ -621,9 +672,21 @@ elif menu == "Tag a disease":
                     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
                     file_extension = uploaded_file.name.split(".")[-1]
                     photo_filename = f"disease_photo_{timestamp}.{file_extension}"
-                    with open(os.path.join("uploads", photo_filename), "wb") as f:
+                    local_path = os.path.join("uploads", photo_filename)
+                
+                    # Save locally
+                    with open(local_path, "wb") as f:
                         f.write(uploaded_file.getbuffer())
-        
+                
+                    # Upload to Google Drive
+                    drive_link = upload_file_to_drive(local_path, photo_filename, folder_id="YOUR_FOLDER_ID_HERE")
+                
+                    if drive_link:
+                        st.success(f"✅ Photo uploaded to Drive: [View Photo]({drive_link})")
+                    else:
+                        st.warning("⚠️ Photo saved locally but not uploaded to Drive")
+
+                       
                 if disease2 == "None":
                     disease2 = ""
                     severity2 = 0
@@ -766,6 +829,7 @@ elif menu == "Resources":
         - [SARDI Biosecurity](https://pir.sa.gov.au/sardi/crop_sciences/plant_health_and_biosecurity)
         """
     )
+
 
 
 
