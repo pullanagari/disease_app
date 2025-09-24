@@ -13,9 +13,6 @@ import zipfile
 import re
 import gspread
 from google.oauth2 import service_account
-from googleapiclient.discovery import build
-from googleapiclient.http import MediaFileUpload
-import mimetypes
 
 # -------------------------------
 # Page config (must be before any Streamlit UI code)
@@ -52,133 +49,51 @@ hide_github_logo = """
 st.markdown(hide_github_logo, unsafe_allow_html=True)
 
 # -------------------------------
-# Google Drive Integration
-@st.cache_resource
-def get_drive_service():
-    """Return an authorized Google Drive service client"""
-    try:
-        SCOPES = ["https://www.googleapis.com/auth/drive.file"]
-        
-        if "gcp_service_account" in st.secrets:
-            creds_dict = dict(st.secrets["gcp_service_account"])
-            creds = service_account.Credentials.from_service_account_info(
-                creds_dict, scopes=SCOPES
-            )
-        elif os.path.exists("service_account.json"):
-            creds = service_account.Credentials.from_service_account_file(
-                "service_account.json", scopes=SCOPES
-            )
-        else:
-            st.error("No Google Drive credentials found")
-            return None
+# Google Sheets Integration
+# @st.cache_resource
+# def get_gs_client():
+#     """Return an authorized gspread client (cached)"""
+#     try:
+#         SCOPES = [
+#             "https://www.googleapis.com/auth/spreadsheets",
+#             "https://www.googleapis.com/auth/drive"
+#         ]
 
-        drive_service = build('drive', 'v3', credentials=creds)
-        
-        # Test the connection
-        drive_service.files().list(pageSize=1).execute()
-        
-        return drive_service
-    except Exception as e:
-        st.error(f"❌ Google Drive auth error: {e}")
-        return None
-def create_drive_folder(service, folder_name, parent_id=None):
-    """Create a folder in Google Drive and return its ID"""
-    try:
-        file_metadata = {
-            'name': folder_name,
-            'mimeType': 'application/vnd.google-apps.folder'
-        }
-        if parent_id:
-            file_metadata['parents'] = [parent_id]
-            
-        folder = service.files().create(body=file_metadata, fields='id').execute()
-        return folder.get('id')
-    except Exception as e:
-        st.error(f"Error creating folder: {e}")
-        return None
+#         # Check for credentials in Streamlit secrets
+#         if "gcp_service_account" in st.secrets:
+#             creds_dict = dict(st.secrets["gcp_service_account"])
+#             creds = service_account.Credentials.from_service_account_info(
+#                 creds_dict, scopes=SCOPES
+#             )
+#         # Check for environment variables (for deployment)
+#         elif all(key in os.environ for key in ["TYPE", "PROJECT_ID", "PRIVATE_KEY_ID", "PRIVATE_KEY", "CLIENT_EMAIL", "CLIENT_ID", "AUTH_URI", "TOKEN_URI", "AUTH_PROVIDER_X509_CERT_URL", "CLIENT_X509_CERT_URL"]):
+#             creds_dict = {
+#                 "type": os.environ["TYPE"],
+#                 "project_id": os.environ["PROJECT_ID"],
+#                 "private_key_id": os.environ["PRIVATE_KEY_ID"],
+#                 "private_key": os.environ["PRIVATE_KEY"].replace('\\n', '\n'),
+#                 "client_email": os.environ["CLIENT_EMAIL"],
+#                 "client_id": os.environ["CLIENT_ID"],
+#                 "auth_uri": os.environ["AUTH_URI"],
+#                 "token_uri": os.environ["TOKEN_URI"],
+#                 "auth_provider_x509_cert_url": os.environ["AUTH_PROVIDER_X509_CERT_URL"],
+#                 "client_x509_cert_url": os.environ["CLIENT_X509_CERT_URL"]
+#             }
+#             creds = service_account.Credentials.from_service_account_info(
+#                 creds_dict, scopes=SCOPES
+#             )
+#         else:
+#             # Fallback to service account file
+#             creds = service_account.Credentials.from_service_account_file(
+#                 "service_account.json", scopes=SCOPES
+#             )
 
-def create_disease_surveillance_folder(service, shared_drive_id=None):
-    folder_name = "Disease_Surveillance_Photos"
-    query = f"mimeType='application/vnd.google-apps.folder' and name='{folder_name}' and trashed=false"
-    results = service.files().list(
-        q=query,
-        corpora='drive' if shared_drive_id else 'default',
-        driveId=shared_drive_id,
-        includeItemsFromAllDrives=True,
-        supportsAllDrives=True,
-        fields="files(id, name)"
-    ).execute()
-    
-    folders = results.get('files', [])
-    
-    if folders:
-        return folders[0]['id']
-    
-    # Create new folder
-    file_metadata = {
-        'name': folder_name,
-        'mimeType': 'application/vnd.google-apps.folder',
-        'parents': [shared_drive_id] if shared_drive_id else []
-    }
-    
-    folder = service.files().create(
-        body=file_metadata,
-        supportsAllDrives=True,
-        fields='id'
-    ).execute()
-    
-    return folder.get('id')
+#         client = gspread.authorize(creds)
+#         return client
 
-
-def save_photo_to_drive(photo_path, photo_filename):
-    """Save photo to Google Drive"""
-    try:
-        service = get_drive_service()
-        if not service:
-            st.error("Google Drive service not available")
-            return None, None
-
-        # Create or get the main folder
-        folder_id = create_disease_surveillance_folder(service)
-        if not folder_id:
-            st.error("Could not create Disease_Surveillance_Photos folder")
-            return None, None
-
-        # Prepare file metadata
-        file_metadata = {
-            "name": photo_filename,
-            "parents": [folder_id],
-        }
-        
-        # Determine MIME type
-        mime_type, _ = mimetypes.guess_type(photo_path)
-        if mime_type is None:
-            mime_type = 'image/jpeg'
-            
-        media = MediaFileUpload(photo_path, mimetype=mime_type)
-
-        # Upload file
-        uploaded_file = service.files().create(
-            body=file_metadata,
-            media_body=media,
-            fields="id, webViewLink"
-        ).execute()
-
-        file_id = uploaded_file.get("id")
-        file_link = uploaded_file.get("webViewLink")
-
-        st.success(f"✅ Photo uploaded to Google Drive: {photo_filename}")
-        st.info(f"File ID: {file_id}")
-        return file_id, file_link
-
-    except Exception as e:
-        st.error(f"Error saving photo to Google Drive: {e}")
-        return None, None
-    st.write(f"Drive service: {get_drive_service()}")
-    st.write(f"Uploading {local_file_path}...")
-
-# -------------------------------
-# Google Sheets Integration (updated to include drive_photo_id)
+#     except Exception as e:
+#         st.error(f"❌ Google Sheets auth error: {e}")
+#         return None
 @st.cache_resource
 def get_gs_client():
     """Return an authorized gspread client (cached)"""
@@ -188,11 +103,13 @@ def get_gs_client():
             "https://www.googleapis.com/auth/drive"
         ]
 
+        # Check for credentials in Streamlit secrets (for cloud deployment)
         if "gcp_service_account" in st.secrets:
             creds_dict = dict(st.secrets["gcp_service_account"])
             creds = service_account.Credentials.from_service_account_info(
                 creds_dict, scopes=SCOPES
             )
+        # Check for service account file (for local development)
         elif os.path.exists("service_account.json"):
             creds = service_account.Credentials.from_service_account_file(
                 "service_account.json", scopes=SCOPES
@@ -223,6 +140,37 @@ def get_spreadsheet():
         st.error(f"❌ Error opening Google Sheet: {e}")
         return None
 
+
+def init_google_sheets():
+    """Initialize connection to Google Sheets using service account"""
+    try:
+        SCOPES = [
+            "https://www.googleapis.com/auth/spreadsheets",
+            "https://www.googleapis.com/auth/drive"
+        ]
+
+        if "gcp_service_account" in st.secrets:
+            creds_dict = dict(st.secrets["gcp_service_account"])
+            creds = service_account.Credentials.from_service_account_info(
+                creds_dict, scopes=SCOPES
+            )
+        else:
+            creds = service_account.Credentials.from_service_account_file(
+                "service_account.json", scopes=SCOPES
+            )
+
+        client = gspread.authorize(creds)
+        SHEET_ID = "15D6_hA_LhG6M8CKMUFikCxXPQNtxhNBSCykaBF2egtE"
+        spreadsheet = client.open_by_key(SHEET_ID)
+
+        st.success("✅ Connected to Google Sheets")
+        return spreadsheet
+
+    except Exception as e:
+        st.error(f"❌ Google Sheets error: {e}")
+        st.warning("⚠️ No cloud data available for synchronization. Using local storage.")
+        return None
+
 def save_to_google_sheets(new_row: dict):
     """Save data to Google Sheets with proper error handling"""
     try:
@@ -248,11 +196,12 @@ def save_to_google_sheets(new_row: dict):
         
     except Exception as e:
         st.error(f"Error saving to Google Sheets: {e}")
+        # Add more detailed error information
+        st.error(f"Row data: {new_row}")
         return False
-
 def load_from_google_sheets():
     """Load all data from Google Sheets"""
-    spreadsheet = get_spreadsheet()
+    spreadsheet = init_google_sheets()
     if spreadsheet:
         try:
             worksheet = spreadsheet.sheet1
@@ -263,12 +212,15 @@ def load_from_google_sheets():
             st.error(f"Error loading from Google Sheets: {e}")
     return pd.DataFrame()
 
+
 # -------------------------------
-# Data persistence functions (updated for drive_photo_id)
+# Improved data persistence functions
 def get_local_data_path():
+    """Get the path to the local data file with proper handling for cloud deployments"""
     return os.path.join("data", "local_disease_data.csv")
 
 def save_local_data(df):
+    """Save local data with error handling"""
     try:
         local_path = get_local_data_path()
         df.to_csv(local_path, index=False)
@@ -278,6 +230,7 @@ def save_local_data(df):
         return False
 
 def load_local_data():
+    """Load local data with error handling"""
     local_path = get_local_data_path()
     if os.path.exists(local_path):
         try:
@@ -308,10 +261,10 @@ def save_data(new_row):
         st.error(f"Error saving to local storage: {e}")
         local_success = False
     
-    return gs_success or local_success
+    return gs_success or local_success  # Return True if either save was successful
 
-# -------------------------------
-# Unique ID generation
+#----------------------------
+# Adding unique ID
 def get_next_sample_id():
     """Generate the next sample ID by checking both local and Google Sheets data"""
     # First check Google Sheets for the latest ID
@@ -347,6 +300,7 @@ def get_next_sample_id():
 
 # -------------------------------
 # Load data with caching
+# @st.cache_data(ttl=300)
 def load_data():
     """Load data from both local storage and Google Sheets, merge them"""
     df_local = load_local_data()
@@ -365,7 +319,7 @@ def load_data():
     else:
         df_combined = df_gs
     
-    # Fix date parsing
+    # --- Fix date parsing ---
     if "date" in df_combined.columns:
         df_combined["date"] = pd.to_datetime(
             df_combined["date"],
@@ -581,39 +535,26 @@ if menu == "Disease tracker":
     df_photos = df_filtered[df_filtered["photo_filename"].notna() & (df_filtered["photo_filename"] != "")]
     
     if not df_photos.empty:
-        col1, col2 = st.columns(2)
-        
-        with col1:
-            # Download all photos as ZIP (local files)
-            zip_buffer = io.BytesIO()
-            with zipfile.ZipFile(zip_buffer, "w") as zf:
-                for _, row in df_photos.iterrows():
-                    photo_path = os.path.join("uploads", row["photo_filename"])
-                    if os.path.exists(photo_path):
-                        zf.write(photo_path, arcname=row["photo_filename"])
-            st.download_button(
-                "Download Local Photos (ZIP)",
-                data=zip_buffer.getvalue(),
-                file_name="disease_photos_local.zip",
-                mime="application/zip",
-            )
-        
-        with col2:
-            # Show Google Drive links
-            st.markdown("**Google Drive Photos:**")
+        # Download all photos as ZIP
+        zip_buffer = io.BytesIO()
+        with zipfile.ZipFile(zip_buffer, "w") as zf:
             for _, row in df_photos.iterrows():
-                if row.get("drive_photo_link"):
-                    st.markdown(f"- [{row['photo_filename']}]({row['drive_photo_link']})")
-                elif row.get("drive_photo_id"):
-                    st.markdown(f"- {row['photo_filename']} (Drive ID: {row['drive_photo_id']})")
-                else:
-                    st.markdown(f"- {row['photo_filename']} (Local only)")
+                photo_path = os.path.join("uploads", row["photo_filename"])
+                if os.path.exists(photo_path):
+                    zf.write(photo_path, arcname=row["photo_filename"])
+        st.download_button(
+            "Download All Photos (ZIP)",
+            data=zip_buffer.getvalue(),
+            file_name="disease_photos.zip",
+            mime="application/zip",
+        )
 
     else:
         st.info("No photos available for the selected filters.")
 
 
 # -------------------------------
+# Tag a Disease Page
 elif menu == "Tag a disease":
     st.markdown("## 📌 Tag a Disease")
     
@@ -673,30 +614,16 @@ elif menu == "Tag a disease":
             if not all([crop, disease1, location]):
                 st.error("Please fill in all required fields: Crop, Disease 1, and Location")
             else:            
+       
+        
                 photo_filename = None
-                drive_photo_id = None
-                drive_photo_link = None
-                # In the form submission section, replace the photo handling code with:
                 if uploaded_file is not None:
                     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
                     file_extension = uploaded_file.name.split(".")[-1]
                     photo_filename = f"disease_photo_{timestamp}.{file_extension}"
-                    local_file_path = os.path.join("uploads", photo_filename)
-                    
-                    # Save locally first
-                    with open(local_file_path, "wb") as f:
+                    with open(os.path.join("uploads", photo_filename), "wb") as f:
                         f.write(uploaded_file.getbuffer())
-                    
-                    # Upload directly to Google Drive
-                    drive_photo_id, drive_photo_link = save_photo_to_drive(local_file_path, photo_filename)
-                    
-                    if drive_photo_id:
-                        st.success(f"✅ Photo saved to Google Drive (ID: {drive_photo_id})")
-                    else:
-                        st.warning("⚠️ Photo saved locally but failed to upload to Google Drive")
-          
-                                   
-                        
+        
                 if disease2 == "None":
                     disease2 = ""
                     severity2 = 0
@@ -723,8 +650,6 @@ elif menu == "Tag a disease":
                     "longitude": float(longitude) if longitude else 142.21,
                     "survey_location": location,
                     "photo_filename": photo_filename if photo_filename else "",
-                    "drive_photo_id": drive_photo_id if drive_photo_id else "",
-                    "drive_photo_link": drive_photo_link if drive_photo_link else "",
                     "field_notes": field_notes,
                 }
 
@@ -739,14 +664,10 @@ elif menu == "Tag a disease":
                         st.markdown("**Uploaded Photo Preview:**")
                         image = Image.open(io.BytesIO(uploaded_file.getbuffer()))
                         st.image(image, caption="Disease Photo", use_column_width=True)
-                        
-                        # Show Google Drive link if available
-                        if drive_photo_link:
-                            st.markdown(f"**Google Drive Link:** [View Photo]({drive_photo_link})")
                    
                 else:
                     st.error("Failed to save data. Please try again.")
-
+                    
                 
 # -------------------------------
 # Data Management Page
@@ -845,23 +766,6 @@ elif menu == "Resources":
         - [SARDI Biosecurity](https://pir.sa.gov.au/sardi/crop_sciences/plant_health_and_biosecurity)
         """
     )
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
