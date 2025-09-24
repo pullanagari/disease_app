@@ -679,7 +679,7 @@ elif menu == "Tag a disease":
                         f.write(uploaded_file.getbuffer())
                 
                     # Upload to Google Drive
-                    drive_link = upload_file_to_drive(local_path, photo_filename, folder_id="https://drive.google.com/drive/folders/1V_85PqP9HzIzNjIPO-0YJZNh6QDSWS8l?usp=drive_link")
+                    drive_link = upload_file_to_drive(local_path, photo_filename, folder_id="1V_85PqP9HzIzNjIPO-0YJZNh6QDSWS8l?usp=drive_link")
                 
                     if drive_link:
                         st.success(f"✅ Photo uploaded to Drive: [View Photo]({drive_link})")
@@ -829,6 +829,7 @@ elif menu == "Resources":
         - [SARDI Biosecurity](https://pir.sa.gov.au/sardi/crop_sciences/plant_health_and_biosecurity)
         """
     )
+
 
 
 
