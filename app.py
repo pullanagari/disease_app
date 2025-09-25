@@ -15,6 +15,12 @@ import gspread
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload
+import os
+import pickle
+from googleapiclient.discovery import build
+from googleapiclient.http import MediaFileUpload
+from google_auth_oauthlib.flow import InstalledAppFlow
+from google.auth.transport.requests import Request
 
 # -------------------------------
 # Page config (must be before any Streamlit UI code)
@@ -154,54 +160,59 @@ def get_drive_service():
         return None
 
 def get_oauth_drive_service():
-    """Authenticate via OAuth and return Drive service for personal Google Drive"""
+    """
+    Authenticate user with OAuth and return Drive service.
+    - Requires credentials.json (OAuth client ID from Google Cloud Console).
+    - Generates token.pickle after first login.
+    """
     creds = None
-    # Token stores the user’s access/refresh tokens
-    if os.path.exists('token.pickle'):
-        with open('token.pickle', 'rb') as token:
+
+    # If token already exists, load it
+    if os.path.exists("token.pickle"):
+        with open("token.pickle", "rb") as token:
             creds = pickle.load(token)
 
-    # If no valid creds, log in
+    # If no valid creds, start OAuth flow
     if not creds or not creds.valid:
         if creds and creds.expired and creds.refresh_token:
             creds.refresh(Request())
         else:
             flow = InstalledAppFlow.from_client_secrets_file(
-                'credentials.json', SCOPES)
+                "credentials.json", SCOPES
+            )
             creds = flow.run_local_server(port=0)
 
-        # Save the token for next time
-        with open('token.pickle', 'wb') as token:
+        # Save creds for next time
+        with open("token.pickle", "wb") as token:
             pickle.dump(creds, token)
 
-    return build('drive', 'v3', credentials=creds)
+    return build("drive", "v3", credentials=creds)
 
 
 def upload_file_to_drive(local_path, filename, folder_id=None):
-    """Upload a file to Google Drive using service account (from st.secrets)"""
-    service = get_drive_service()
-    if service is None:
-        st.error("❌ Failed to connect to Google Drive service.")
-        return None
+    """
+    Upload a file to Google Drive using OAuth.
+    Works with personal Google Drive (My Drive).
+    """
+    service = get_oauth_drive_service()
 
     file_metadata = {"name": filename}
-    if folder_id:
+    if folder_id:  # If you want to upload inside a folder
         file_metadata["parents"] = [folder_id]
 
     media = MediaFileUpload(local_path, resumable=True)
 
     try:
-        file = service.files().create(
-            body=file_metadata,
-            media_body=media,
-            fields="id, webViewLink"
-        ).execute()
+        file = (
+            service.files()
+            .create(body=file_metadata, media_body=media, fields="id, webViewLink")
+            .execute()
+        )
+        print(f"✅ Uploaded: {file.get('webViewLink')}")
         return file.get("webViewLink")
     except Exception as e:
-        st.error(f"❌ Upload to Google Drive failed: {e}")
+        print(f"❌ Upload to Google Drive failed: {e}")
         return None
-
-
 def get_spreadsheet():
     """Return spreadsheet object if available"""
     client = get_gs_client()
@@ -855,6 +866,7 @@ elif menu == "Resources":
         - [SARDI Biosecurity](https://pir.sa.gov.au/sardi/crop_sciences/plant_health_and_biosecurity)
         """
     )
+
 
 
 
