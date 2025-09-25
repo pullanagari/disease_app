@@ -13,14 +13,6 @@ import zipfile
 import re
 import gspread
 from google.oauth2 import service_account
-from googleapiclient.discovery import build
-from googleapiclient.http import MediaFileUpload
-import os
-import pickle
-from googleapiclient.discovery import build
-from googleapiclient.http import MediaFileUpload
-from google_auth_oauthlib.flow import InstalledAppFlow
-from google.auth.transport.requests import Request
 
 # -------------------------------
 # Page config (must be before any Streamlit UI code)
@@ -108,7 +100,7 @@ def get_gs_client():
     try:
         SCOPES = [
             "https://www.googleapis.com/auth/spreadsheets",
-            "https://www.googleapis.com/auth/drive.file"
+            "https://www.googleapis.com/auth/drive"
         ]
 
         # Check for credentials in Streamlit secrets (for cloud deployment)
@@ -133,86 +125,6 @@ def get_gs_client():
         st.error(f"❌ Google Sheets auth error: {e}")
         return None
 
-
-@st.cache_resource
-def get_drive_service():
-    """Return authorized Google Drive service"""
-    try:
-        SCOPES = ["https://www.googleapis.com/auth/drive.file"]
-        
-        if "gcp_service_account" in st.secrets:
-            creds_dict = dict(st.secrets["gcp_service_account"])
-            creds = service_account.Credentials.from_service_account_info(
-                creds_dict, scopes=SCOPES
-            )
-        elif os.path.exists("service_account.json"):
-            creds = service_account.Credentials.from_service_account_file(
-                "service_account.json", scopes=SCOPES
-            )
-        else:
-            st.error("No Google Drive credentials found")
-            return None
-
-        return build("drive", "v3", credentials=creds)
-
-    except Exception as e:
-        st.error(f"❌ Google Drive auth error: {e}")
-        return None
-
-def get_oauth_drive_service():
-    """
-    Authenticate user with OAuth and return Drive service.
-    - Requires credentials.json (OAuth client ID from Google Cloud Console).
-    - Generates token.pickle after first login.
-    """
-    creds = None
-
-    # If token already exists, load it
-    if os.path.exists("token.pickle"):
-        with open("token.pickle", "rb") as token:
-            creds = pickle.load(token)
-
-    # If no valid creds, start OAuth flow
-    if not creds or not creds.valid:
-        if creds and creds.expired and creds.refresh_token:
-            creds.refresh(Request())
-        else:
-            flow = InstalledAppFlow.from_client_secrets_file(
-                "credentials.json", SCOPES
-            )
-            creds = flow.run_local_server(port=0)
-
-        # Save creds for next time
-        with open("token.pickle", "wb") as token:
-            pickle.dump(creds, token)
-
-    return build("drive", "v3", credentials=creds)
-
-
-def upload_file_to_drive(local_path, filename, folder_id=None):
-    """
-    Upload a file to Google Drive using OAuth.
-    Works with personal Google Drive (My Drive).
-    """
-    service = get_oauth_drive_service()
-
-    file_metadata = {"name": filename}
-    if folder_id:  # If you want to upload inside a folder
-        file_metadata["parents"] = [folder_id]
-
-    media = MediaFileUpload(local_path, resumable=True)
-
-    try:
-        file = (
-            service.files()
-            .create(body=file_metadata, media_body=media, fields="id, webViewLink")
-            .execute()
-        )
-        print(f"✅ Uploaded: {file.get('webViewLink')}")
-        return file.get("webViewLink")
-    except Exception as e:
-        print(f"❌ Upload to Google Drive failed: {e}")
-        return None
 def get_spreadsheet():
     """Return spreadsheet object if available"""
     client = get_gs_client()
@@ -709,21 +621,9 @@ elif menu == "Tag a disease":
                     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
                     file_extension = uploaded_file.name.split(".")[-1]
                     photo_filename = f"disease_photo_{timestamp}.{file_extension}"
-                    local_path = os.path.join("uploads", photo_filename)
-                
-                    # Save locally
-                    with open(local_path, "wb") as f:
+                    with open(os.path.join("uploads", photo_filename), "wb") as f:
                         f.write(uploaded_file.getbuffer())
-                
-                    # Upload to Google Drive
-                    drive_link = upload_file_to_drive(local_path, photo_filename, folder_id="1V_85PqP9HzIzNjIPO-0YJZNh6QDSWS8l")
-                
-                    if drive_link:
-                        st.success(f"✅ Photo uploaded to Drive: [View Photo]({drive_link})")
-                    else:
-                        st.warning("⚠️ Photo saved locally but not uploaded to Drive")
-
-                       
+        
                 if disease2 == "None":
                     disease2 = ""
                     severity2 = 0
@@ -866,30 +766,4 @@ elif menu == "Resources":
         - [SARDI Biosecurity](https://pir.sa.gov.au/sardi/crop_sciences/plant_health_and_biosecurity)
         """
     )
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
