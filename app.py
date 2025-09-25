@@ -178,22 +178,29 @@ def get_oauth_drive_service():
 
 
 def upload_file_to_drive(local_path, filename, folder_id=None):
-    """Upload a file to Google Drive (personal account via OAuth)"""
-    service = get_oauth_drive_service()
+    """Upload a file to Google Drive using service account (from st.secrets)"""
+    service = get_drive_service()
+    if service is None:
+        st.error("❌ Failed to connect to Google Drive service.")
+        return None
 
-    file_metadata = {'name': filename}
+    file_metadata = {"name": filename}
     if folder_id:
-        file_metadata['parents'] = [folder_id]
+        file_metadata["parents"] = [folder_id]
 
     media = MediaFileUpload(local_path, resumable=True)
 
-    file = service.files().create(
-        body=file_metadata,
-        media_body=media,
-        fields='id, webViewLink'
-    ).execute()
+    try:
+        file = service.files().create(
+            body=file_metadata,
+            media_body=media,
+            fields="id, webViewLink"
+        ).execute()
+        return file.get("webViewLink")
+    except Exception as e:
+        st.error(f"❌ Upload to Google Drive failed: {e}")
+        return None
 
-    return file.get('webViewLink')
 
 def get_spreadsheet():
     """Return spreadsheet object if available"""
@@ -848,6 +855,7 @@ elif menu == "Resources":
         - [SARDI Biosecurity](https://pir.sa.gov.au/sardi/crop_sciences/plant_health_and_biosecurity)
         """
     )
+
 
 
 
