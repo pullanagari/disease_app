@@ -19,24 +19,10 @@
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-/* body {
+body {
     background-color: #f8f9fa;
     color: #333;
     line-height: 1.6;
-} */
-
-
-/* Bright top margin strip */
-body::before {
-    content: "";
-    display: block;
-    height: 12px;  /* adjust thickness */
-    width: 100%;
-    background: var(--warning); /* choose any bright color e.g. var(--warning) or custom hex */
-    position: fixed;
-    top: 0;
-    left: 0;
-    z-index: 9999;
 }
 
 
@@ -46,13 +32,23 @@ body::before {
     padding: 20px;
 }
 
+/* header {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+    color: white;
+    padding: 20px 0;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    border-bottom: 4px solid var(--accent);
+} */
+
 header {
     background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
     color: white;
     padding: 20px 0;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     border-bottom: 4px solid var(--accent);
+    border-top: 12px solid var(--warning); /* <-- bright top margin */
 }
+
 
 .header-content {
     display: flex;
@@ -332,4 +328,5 @@ select:focus, input:focus {
         grid-template-columns: 1fr;
     }
 }
+
 
