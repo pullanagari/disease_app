@@ -675,141 +675,63 @@ elif menu == "Tag a disease":
 # Data Management Page
 elif menu == "Data Management":
     st.markdown("## 📊 Data Management")
-
-    # Copy the session data
-    df = st.session_state.df.copy()
-
-    # ===================================
-    # Ensure dtypes are consistent
-    # ===================================
-    if not df.empty:
-        # sample_id → string
-        if "sample_id" in df.columns:
-            df["sample_id"] = df["sample_id"].astype(str)
-
-        # date → string (or convert to datetime for DateColumn)
-        if "date" in df.columns:
-            df["date"] = pd.to_datetime(df["date"], errors="coerce").dt.strftime("%Y-%m-%d")
-
-        # severity columns → numeric
-        for col in ["severity1_percent", "severity2_percent", "severity3_percent"]:
-            if col in df.columns:
-                df[col] = pd.to_numeric(df[col], errors="coerce")
-
-    # ===================================
-    # Edit & Delete Records
-    # ===================================
-    if df.empty:
-        st.info("No data available to edit.")
-    else:
-        st.markdown("### ✏️ Edit Records")
-
-        edited_df = st.data_editor(
-            df,
-            num_rows="dynamic",
-            use_container_width=True,
-            hide_index=True,
-            column_config={
-                "sample_id": st.column_config.TextColumn(disabled=True),  # ID is read-only
-                "date": st.column_config.DateColumn(format="YYYY-MM-DD"),  # calendar picker
-                "severity1_percent": st.column_config.NumberColumn(min_value=0, max_value=100),
-                "severity2_percent": st.column_config.NumberColumn(min_value=0, max_value=100),
-                "severity3_percent": st.column_config.NumberColumn(min_value=0, max_value=100),
-            },
-        )
-
-        if st.button("💾 Save Changes"):
-            save_local_data(edited_df)
-            st.session_state.df = edited_df
-            st.success("✅ Changes saved successfully!")
-
-        # -------------------
-        # Delete Records
-        # -------------------
-        st.markdown("### 🗑 Delete Records")
-        row_ids = st.multiselect(
-            "Select rows to delete (by sample_id):",
-            options=df["sample_id"].tolist(),
-        )
-
-        if st.button("Delete Selected"):
-            if row_ids:
-                df_after_delete = df[~df["sample_id"].isin(row_ids)]
-                save_local_data(df_after_delete)
-                st.session_state.df = df_after_delete
-                st.success(f"✅ Deleted {len(row_ids)} record(s).")
-                reload_data()
-            else:
-                st.warning("⚠️ Please select at least one row to delete.")
-
-    # ===================================
-    # Storage Info Section
-    # ===================================
-    st.info("Manage your local and cloud data storage below.")
-
+    
+    st.info("This section allows you to manage your data storage options.")
+    
     col1, col2 = st.columns(2)
-
-    # ---- Local Data ----
+    
     with col1:
-        st.markdown("### 💻 Local Data")
+        st.markdown("### Local Data")
         if os.path.exists(get_local_data_path()):
             local_df = pd.read_csv(get_local_data_path())
             st.write(f"Local records: {len(local_df)}")
-
             st.download_button(
-                "⬇️ Download Local Data",
+                "Download Local Data",
                 local_df.to_csv(index=False).encode("utf-8"),
                 "local_disease_data.csv",
                 "text/csv",
             )
-
-            # Uncomment if you want a clear button
-            # if st.button("🧹 Clear Local Data"):
+            
+            # if st.button("Clear Local Data"):
             #     os.remove(get_local_data_path())
             #     st.success("Local data cleared!")
             #     reload_data()
         else:
             st.write("No local data found.")
-
-    # ---- Cloud Data ----
+    
     with col2:
-        st.markdown("### ☁️ Cloud Data (Google Sheets)")
+        st.markdown("### Cloud Data (Google Sheets)")
         gs_data = load_from_google_sheets()
-
         if not gs_data.empty:
             st.write(f"Cloud records: {len(gs_data)}")
-
             st.download_button(
-                "⬇️ Download Cloud Data",
+                "Download Cloud Data",
                 gs_data.to_csv(index=False).encode("utf-8"),
                 "cloud_disease_data.csv",
                 "text/csv",
             )
-
-            if st.button("🔗 Open Google Sheet"):
-                st.markdown(
-                    "[Open Google Sheet in Browser]"
-                    "(https://docs.google.com/spreadsheets/d/your-sheet-id-here)"
-                )
+            
+            # Add a button to open the Google Sheet
+            if st.button("Open Google Sheet"):
+                st.markdown("[Open Google Sheet in Browser](https://docs.google.com/spreadsheets/d/your-sheet-id-here)")
         else:
             st.write("No cloud data found or not configured.")
-
-    # ===================================
-    # Synchronization Section
-    # ===================================
-    st.markdown("### 🔄 Synchronize Data")
-
+            
+            
+    
+    st.markdown("### Synchronize Data")
     if st.button("Synchronize Local with Cloud"):
         try:
             gs_data = load_from_google_sheets()
             if not gs_data.empty:
-                save_local_data(gs_data)  # overwrite local with cloud
-                st.success("✅ Local data updated from cloud!")
+                # Save cloud data to local
+                save_local_data(gs_data)
+                st.success("Local data updated from cloud!")
                 reload_data()
             else:
-                st.warning("⚠️ No cloud data available for synchronization.")
+                st.warning("No cloud data available for synchronization.")
         except Exception as e:
-            st.error(f"❌ Error during synchronization: {e}")
+            st.error(f"Error during synchronization: {e}")
 
 
 # -------------------------------
@@ -846,11 +768,6 @@ elif menu == "Resources":
         - [SARDI Biosecurity](https://pir.sa.gov.au/sardi/crop_sciences/plant_health_and_biosecurity)
         """
     )
-
-
-
-
-
 
 
 
