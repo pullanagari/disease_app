@@ -675,6 +675,54 @@ elif menu == "Tag a disease":
 # Data Management Page
 elif menu == "Data Management":
     st.markdown("## 📊 Data Management")
+
+    df = st.session_state.df.copy()
+
+    if df.empty:
+        st.info("No data available to edit.")
+    else:
+        st.markdown("### ✏️ Edit Records")
+
+        # Editable table
+        edited_df = st.data_editor(
+            df,
+            num_rows="dynamic",
+            use_container_width=True,
+            hide_index=True,
+            column_config={
+                "sample_id": st.column_config.TextColumn(disabled=True),  # keep ID read-only
+                "date": st.column_config.TextColumn(),  # can make this DateColumn if you want
+                "severity1_percent": st.column_config.NumberColumn(min_value=0, max_value=100),
+                "severity2_percent": st.column_config.NumberColumn(min_value=0, max_value=100),
+                "severity3_percent": st.column_config.NumberColumn(min_value=0, max_value=100),
+            },
+        )
+
+        # Save changes
+        if st.button("💾 Save Changes"):
+            save_local_data(edited_df)  # update local
+            # optional: push back to Google Sheets too
+            st.session_state.df = edited_df
+            st.success("✅ Changes saved!")
+
+        st.markdown("### 🗑 Delete Records")
+
+        # Multi-select for rows to delete
+        row_ids = st.multiselect(
+            "Select rows to delete (by sample_id)",
+            options=df["sample_id"].tolist(),
+        )
+
+        if st.button("Delete Selected"):
+            if row_ids:
+                df_after_delete = df[~df["sample_id"].isin(row_ids)]
+                save_local_data(df_after_delete)  # save updated file
+                st.session_state.df = df_after_delete
+                st.success(f"✅ Deleted {len(row_ids)} records.")
+                reload_data()
+            else:
+                st.warning("⚠️ Please select at least one row to delete.")
+
     
     st.info("This section allows you to manage your data storage options.")
     
@@ -692,10 +740,10 @@ elif menu == "Data Management":
                 "text/csv",
             )
             
-            if st.button("Clear Local Data"):
-                os.remove(get_local_data_path())
-                st.success("Local data cleared!")
-                reload_data()
+            # if st.button("Clear Local Data"):
+            #     os.remove(get_local_data_path())
+            #     st.success("Local data cleared!")
+            #     reload_data()
         else:
             st.write("No local data found.")
     
@@ -768,6 +816,7 @@ elif menu == "Resources":
         - [SARDI Biosecurity](https://pir.sa.gov.au/sardi/crop_sciences/plant_health_and_biosecurity)
         """
     )
+
 
 
 
