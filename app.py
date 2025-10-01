@@ -584,17 +584,19 @@ elif menu == "Tag a disease":
                                "Bacterial blight", "Ascochyta Blight", "Botrytis Grey Mold", "Sclerotinia white mould", 
                                "Chocolate Spot", "Cercospora leaf spot", "Downy mildew", "Black Spot", 
                                "Root Disease", "Virus", "Blackleg", "Other"]
-            
+
             disease1 = st.selectbox("Disease 1", disease_options)
             disease2 = st.selectbox("Disease 2", ["None"] + disease_options)
             disease3 = st.selectbox("Disease 3", ["None"] + disease_options)
             
-            severity1 = st.slider("Severity 1 (%)", 0, 100, 0)
-            severity2 = st.slider("Severity 2 (%)", 0, 100, 0)
-            severity3 = st.slider("Severity 3 (%)", 0, 100, 0)
-            latitude = st.text_input("Latitude", "-36.76")
-            longitude = st.text_input("Longitude", "142.21")
+            severity1 = st.number_input("Severity 1 (%)", min_value=0, max_value=100, value=0, step=1)
+            severity2 = st.number_input("Severity 2 (%)", min_value=0, max_value=100, value=0, step=1)
+            severity3 = st.number_input("Severity 3 (%)", min_value=0, max_value=100, value=0, step=1)
+            
+            latitude = st.text_input("Latitude" )
+            longitude = st.text_input("Longitude")
 
+            
         location = st.text_input("Location (Suburb)", "")
         field_type = st.text_input("Field Type", "")
         agronomist = st.text_input("Agronomist", "")
@@ -766,4 +768,5 @@ elif menu == "Resources":
         - [SARDI Biosecurity](https://pir.sa.gov.au/sardi/crop_sciences/plant_health_and_biosecurity)
         """
     )
+
 
