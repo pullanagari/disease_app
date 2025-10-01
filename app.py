@@ -510,24 +510,76 @@ if menu == "Disease tracker":
             st.info("No data available for the graph.")
 
    
+    # st.markdown("### Surveillance Summary")
     st.markdown("### Surveillance Summary")
     if not df_filtered.empty:
         # Option to show all columns or just selected ones
         show_all_columns = st.checkbox("Show all columns", value=False)
         
         if show_all_columns:
-            st.dataframe(df_filtered)
+            editable_df = df_filtered.copy()
         else:
-            st.dataframe(df_filtered[["sample_id", "date", "crop", "disease1", "survey_location", "severity1_percent"]])
-        
+            editable_df = df_filtered[["sample_id", "date", "crop", "disease1", "survey_location", "severity1_percent"]].copy()
+    
+        # Make table editable
+        edited_df = st.data_editor(
+            editable_df,
+            num_rows="dynamic",
+            use_container_width=True,
+            key="editable_summary",
+        )
+    
+        # Save edited changes
+        if st.button("💾 Save Changes"):
+            # Update main dataframe
+            st.session_state.df.update(edited_df)
+            save_local_data(st.session_state.df)  # persist locally
+            st.success("✅ Changes saved successfully!")
+    
+        # Row deletion
+        st.markdown("### Delete Records")
+        rows_to_delete = st.multiselect(
+            "Select rows to delete (by Sample ID)",
+            options=edited_df["sample_id"].tolist(),
+        )
+        if st.button("🗑 Delete Selected Rows"):
+            st.session_state.df = st.session_state.df[~st.session_state.df["sample_id"].isin(rows_to_delete)]
+            save_local_data(st.session_state.df)
+            st.success(f"✅ Deleted {len(rows_to_delete)} record(s)")
+    
+        # Download option
         st.download_button(
-            "Download CSV",
-            df_filtered.to_csv(index=False).encode("utf-8"),
+            "⬇️ Download CSV",
+            st.session_state.df.to_csv(index=False).encode("utf-8"),
             "survey.csv",
             "text/csv",
         )
     else:
         st.info("No data available for the selected filters.")
+
+
+
+
+
+
+    
+    # if not df_filtered.empty:
+    #     # Option to show all columns or just selected ones
+    #     show_all_columns = st.checkbox("Show all columns", value=False)
+        
+    #     if show_all_columns:
+    #         st.dataframe(df_filtered)
+    #     else:
+    #         st.dataframe(df_filtered[["sample_id", "date", "crop", "disease1", "survey_location", "severity1_percent"]])
+        
+    #     st.download_button(
+    #         "Download CSV",
+    #         df_filtered.to_csv(index=False).encode("utf-8"),
+    #         "survey.csv",
+    #         "text/csv",
+    #     )
+    # else:
+    #     st.info("No data available for the selected filters.")
 
     st.markdown("### 📸 Download Photos")
     
@@ -768,6 +820,7 @@ elif menu == "Resources":
         - [SARDI Biosecurity](https://pir.sa.gov.au/sardi/crop_sciences/plant_health_and_biosecurity)
         """
     )
+
 
 
 
