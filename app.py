@@ -585,7 +585,7 @@ elif menu == "Tag a disease":
                                "Chocolate Spot", "Cercospora leaf spot", "Downy mildew", "Black Spot", 
                                "Root Disease", "Virus", "Blackleg", "Other"]
 
-            disease1 = st.selectbox("Disease 1", disease_options)
+            disease1 = st.selectbox("Disease 1",["None']+ disease_options)
             disease2 = st.selectbox("Disease 2", ["None"] + disease_options)
             disease3 = st.selectbox("Disease 3", ["None"] + disease_options)
             
@@ -768,5 +768,6 @@ elif menu == "Resources":
         - [SARDI Biosecurity](https://pir.sa.gov.au/sardi/crop_sciences/plant_health_and_biosecurity)
         """
     )
+
 
 
