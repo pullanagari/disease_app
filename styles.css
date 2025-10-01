@@ -45,8 +45,8 @@ header {
     color: white;
     padding: 20px 0;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    border-bottom: 30px solid var(--accent);
-    border-top: 30px solid var(--warning); /* <-- bright top margin */
+    /* border-bottom: 30px solid var(--accent); */
+    border-top: 100px solid var(--warning); /* <-- bright top margin */
 }
 
 
@@ -328,6 +328,7 @@ select:focus, input:focus {
         grid-template-columns: 1fr;
     }
 }
+
 
 
 
