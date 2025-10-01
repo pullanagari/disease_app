@@ -676,44 +676,57 @@ elif menu == "Tag a disease":
 elif menu == "Data Management":
     st.markdown("## 📊 Data Management")
 
-    # Copy data from session state
+    # Copy the session data
     df = st.session_state.df.copy()
 
-    # ==============================
-    # Edit & Delete Records Section
-    # ==============================
+    # ===================================
+    # Ensure dtypes are consistent
+    # ===================================
+    if not df.empty:
+        # sample_id → string
+        if "sample_id" in df.columns:
+            df["sample_id"] = df["sample_id"].astype(str)
+
+        # date → string (or convert to datetime for DateColumn)
+        if "date" in df.columns:
+            df["date"] = pd.to_datetime(df["date"], errors="coerce").dt.strftime("%Y-%m-%d")
+
+        # severity columns → numeric
+        for col in ["severity1_percent", "severity2_percent", "severity3_percent"]:
+            if col in df.columns:
+                df[col] = pd.to_numeric(df[col], errors="coerce")
+
+    # ===================================
+    # Edit & Delete Records
+    # ===================================
     if df.empty:
         st.info("No data available to edit.")
     else:
         st.markdown("### ✏️ Edit Records")
 
-        # Editable table for modifying records
         edited_df = st.data_editor(
             df,
             num_rows="dynamic",
             use_container_width=True,
             hide_index=True,
             column_config={
-                "sample_id": st.column_config.TextColumn(disabled=True),  # Read-only ID
-                "date": st.column_config.TextColumn(),  # Could be DateColumn
+                "sample_id": st.column_config.TextColumn(disabled=True),  # ID is read-only
+                "date": st.column_config.DateColumn(format="YYYY-MM-DD"),  # calendar picker
                 "severity1_percent": st.column_config.NumberColumn(min_value=0, max_value=100),
                 "severity2_percent": st.column_config.NumberColumn(min_value=0, max_value=100),
                 "severity3_percent": st.column_config.NumberColumn(min_value=0, max_value=100),
             },
         )
 
-        # Save button for edited changes
         if st.button("💾 Save Changes"):
             save_local_data(edited_df)
             st.session_state.df = edited_df
             st.success("✅ Changes saved successfully!")
 
-        # ------------------------------
-        # Delete Records Section
-        # ------------------------------
+        # -------------------
+        # Delete Records
+        # -------------------
         st.markdown("### 🗑 Delete Records")
-
-        # Row selection for deletion
         row_ids = st.multiselect(
             "Select rows to delete (by sample_id):",
             options=df["sample_id"].tolist(),
@@ -729,17 +742,16 @@ elif menu == "Data Management":
             else:
                 st.warning("⚠️ Please select at least one row to delete.")
 
-    # ==============================
-    # Storage Information Section
-    # ==============================
-    st.info("This section allows you to manage your data storage options.")
+    # ===================================
+    # Storage Info Section
+    # ===================================
+    st.info("Manage your local and cloud data storage below.")
 
     col1, col2 = st.columns(2)
 
-    # ---- Local Data Column ----
+    # ---- Local Data ----
     with col1:
         st.markdown("### 💻 Local Data")
-
         if os.path.exists(get_local_data_path()):
             local_df = pd.read_csv(get_local_data_path())
             st.write(f"Local records: {len(local_df)}")
@@ -751,7 +763,7 @@ elif menu == "Data Management":
                 "text/csv",
             )
 
-            # Uncomment to add "Clear Local Data" option
+            # Uncomment if you want a clear button
             # if st.button("🧹 Clear Local Data"):
             #     os.remove(get_local_data_path())
             #     st.success("Local data cleared!")
@@ -759,10 +771,9 @@ elif menu == "Data Management":
         else:
             st.write("No local data found.")
 
-    # ---- Cloud Data Column ----
+    # ---- Cloud Data ----
     with col2:
         st.markdown("### ☁️ Cloud Data (Google Sheets)")
-
         gs_data = load_from_google_sheets()
 
         if not gs_data.empty:
@@ -775,7 +786,6 @@ elif menu == "Data Management":
                 "text/csv",
             )
 
-            # Button to open Google Sheet directly
             if st.button("🔗 Open Google Sheet"):
                 st.markdown(
                     "[Open Google Sheet in Browser]"
@@ -784,16 +794,16 @@ elif menu == "Data Management":
         else:
             st.write("No cloud data found or not configured.")
 
-    # ==============================
+    # ===================================
     # Synchronization Section
-    # ==============================
+    # ===================================
     st.markdown("### 🔄 Synchronize Data")
 
     if st.button("Synchronize Local with Cloud"):
         try:
             gs_data = load_from_google_sheets()
             if not gs_data.empty:
-                save_local_data(gs_data)  # Overwrite local with cloud
+                save_local_data(gs_data)  # overwrite local with cloud
                 st.success("✅ Local data updated from cloud!")
                 reload_data()
             else:
@@ -836,6 +846,7 @@ elif menu == "Resources":
         - [SARDI Biosecurity](https://pir.sa.gov.au/sardi/crop_sciences/plant_health_and_biosecurity)
         """
     )
+
 
 
 
