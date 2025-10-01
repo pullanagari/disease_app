@@ -676,110 +676,130 @@ elif menu == "Tag a disease":
 elif menu == "Data Management":
     st.markdown("## 📊 Data Management")
 
+    # Copy data from session state
     df = st.session_state.df.copy()
 
+    # ==============================
+    # Edit & Delete Records Section
+    # ==============================
     if df.empty:
         st.info("No data available to edit.")
     else:
         st.markdown("### ✏️ Edit Records")
 
-        # Editable table
+        # Editable table for modifying records
         edited_df = st.data_editor(
             df,
             num_rows="dynamic",
             use_container_width=True,
             hide_index=True,
             column_config={
-                "sample_id": st.column_config.TextColumn(disabled=True),  # keep ID read-only
-                "date": st.column_config.TextColumn(),  # can make this DateColumn if you want
+                "sample_id": st.column_config.TextColumn(disabled=True),  # Read-only ID
+                "date": st.column_config.TextColumn(),  # Could be DateColumn
                 "severity1_percent": st.column_config.NumberColumn(min_value=0, max_value=100),
                 "severity2_percent": st.column_config.NumberColumn(min_value=0, max_value=100),
                 "severity3_percent": st.column_config.NumberColumn(min_value=0, max_value=100),
             },
         )
 
-        # Save changes
+        # Save button for edited changes
         if st.button("💾 Save Changes"):
-            save_local_data(edited_df)  # update local
-            # optional: push back to Google Sheets too
+            save_local_data(edited_df)
             st.session_state.df = edited_df
-            st.success("✅ Changes saved!")
+            st.success("✅ Changes saved successfully!")
 
+        # ------------------------------
+        # Delete Records Section
+        # ------------------------------
         st.markdown("### 🗑 Delete Records")
 
-        # Multi-select for rows to delete
+        # Row selection for deletion
         row_ids = st.multiselect(
-            "Select rows to delete (by sample_id)",
+            "Select rows to delete (by sample_id):",
             options=df["sample_id"].tolist(),
         )
 
         if st.button("Delete Selected"):
             if row_ids:
                 df_after_delete = df[~df["sample_id"].isin(row_ids)]
-                save_local_data(df_after_delete)  # save updated file
+                save_local_data(df_after_delete)
                 st.session_state.df = df_after_delete
-                st.success(f"✅ Deleted {len(row_ids)} records.")
+                st.success(f"✅ Deleted {len(row_ids)} record(s).")
                 reload_data()
             else:
                 st.warning("⚠️ Please select at least one row to delete.")
 
-    
-    # st.info("This section allows you to manage your data storage options.")
-    
-    # col1, col2 = st.columns(2)
-    
-    # with col1:
-    #     st.markdown("### Local Data")
-    #     if os.path.exists(get_local_data_path()):
-    #         local_df = pd.read_csv(get_local_data_path())
-    #         st.write(f"Local records: {len(local_df)}")
-    #         st.download_button(
-    #             "Download Local Data",
-    #             local_df.to_csv(index=False).encode("utf-8"),
-    #             "local_disease_data.csv",
-    #             "text/csv",
-    #         )
-            
-    #         # if st.button("Clear Local Data"):
-    #         #     os.remove(get_local_data_path())
-    #         #     st.success("Local data cleared!")
-    #         #     reload_data()
-    #     else:
-    #         st.write("No local data found.")
-    
-    # with col2:
-    #     st.markdown("### Cloud Data (Google Sheets)")
-    #     gs_data = load_from_google_sheets()
-    #     if not gs_data.empty:
-    #         st.write(f"Cloud records: {len(gs_data)}")
-    #         st.download_button(
-    #             "Download Cloud Data",
-    #             gs_data.to_csv(index=False).encode("utf-8"),
-    #             "cloud_disease_data.csv",
-    #             "text/csv",
-    #         )
-            
-    #         # Add a button to open the Google Sheet
-    #         if st.button("Open Google Sheet"):
-    #             st.markdown("[Open Google Sheet in Browser](https://docs.google.com/spreadsheets/d/your-sheet-id-here)")
-    #     else:
-    #         st.write("No cloud data found or not configured.")
-            
-            
-    
-    # st.markdown("### Synchronize Data")
-    # if st.button("Synchronize Local with Cloud"):
-    #     try:
-    #         gs_data = load_from_google_sheets()
-    #         if not gs_data.empty:
-    #             # Save cloud data to local
-    #             save_local_data(gs_data)
-    #             st.success("Local data updated from cloud!")
-    #             reload_data()
-    #         else:
-    #             st.warning("No cloud data available for synchronization.")
-    #     except Exception as e:
-    #         st.error(f"Error during synchronization: {e}")
+    # ==============================
+    # Storage Information Section
+    # ==============================
+    st.info("This section allows you to manage your data storage options.")
+
+    col1, col2 = st.columns(2)
+
+    # ---- Local Data Column ----
+    with col1:
+        st.markdown("### 💻 Local Data")
+
+        if os.path.exists(get_local_data_path()):
+            local_df = pd.read_csv(get_local_data_path())
+            st.write(f"Local records: {len(local_df)}")
+
+            st.download_button(
+                "⬇️ Download Local Data",
+                local_df.to_csv(index=False).encode("utf-8"),
+                "local_disease_data.csv",
+                "text/csv",
+            )
+
+            # Uncomment to add "Clear Local Data" option
+            # if st.button("🧹 Clear Local Data"):
+            #     os.remove(get_local_data_path())
+            #     st.success("Local data cleared!")
+            #     reload_data()
+        else:
+            st.write("No local data found.")
+
+    # ---- Cloud Data Column ----
+    with col2:
+        st.markdown("### ☁️ Cloud Data (Google Sheets)")
+
+        gs_data = load_from_google_sheets()
+
+        if not gs_data.empty:
+            st.write(f"Cloud records: {len(gs_data)}")
+
+            st.download_button(
+                "⬇️ Download Cloud Data",
+                gs_data.to_csv(index=False).encode("utf-8"),
+                "cloud_disease_data.csv",
+                "text/csv",
+            )
+
+            # Button to open Google Sheet directly
+            if st.button("🔗 Open Google Sheet"):
+                st.markdown(
+                    "[Open Google Sheet in Browser]"
+                    "(https://docs.google.com/spreadsheets/d/your-sheet-id-here)"
+                )
+        else:
+            st.write("No cloud data found or not configured.")
+
+    # ==============================
+    # Synchronization Section
+    # ==============================
+    st.markdown("### 🔄 Synchronize Data")
+
+    if st.button("Synchronize Local with Cloud"):
+        try:
+            gs_data = load_from_google_sheets()
+            if not gs_data.empty:
+                save_local_data(gs_data)  # Overwrite local with cloud
+                st.success("✅ Local data updated from cloud!")
+                reload_data()
+            else:
+                st.warning("⚠️ No cloud data available for synchronization.")
+        except Exception as e:
+            st.error(f"❌ Error during synchronization: {e}")
 
 
 # -------------------------------
@@ -816,6 +836,7 @@ elif menu == "Resources":
         - [SARDI Biosecurity](https://pir.sa.gov.au/sardi/crop_sciences/plant_health_and_biosecurity)
         """
     )
+
 
 
 
