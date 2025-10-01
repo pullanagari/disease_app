@@ -724,62 +724,62 @@ elif menu == "Data Management":
                 st.warning("⚠️ Please select at least one row to delete.")
 
     
-    st.info("This section allows you to manage your data storage options.")
+    # st.info("This section allows you to manage your data storage options.")
     
-    col1, col2 = st.columns(2)
+    # col1, col2 = st.columns(2)
     
-    with col1:
-        st.markdown("### Local Data")
-        if os.path.exists(get_local_data_path()):
-            local_df = pd.read_csv(get_local_data_path())
-            st.write(f"Local records: {len(local_df)}")
-            st.download_button(
-                "Download Local Data",
-                local_df.to_csv(index=False).encode("utf-8"),
-                "local_disease_data.csv",
-                "text/csv",
-            )
+    # with col1:
+    #     st.markdown("### Local Data")
+    #     if os.path.exists(get_local_data_path()):
+    #         local_df = pd.read_csv(get_local_data_path())
+    #         st.write(f"Local records: {len(local_df)}")
+    #         st.download_button(
+    #             "Download Local Data",
+    #             local_df.to_csv(index=False).encode("utf-8"),
+    #             "local_disease_data.csv",
+    #             "text/csv",
+    #         )
             
-            # if st.button("Clear Local Data"):
-            #     os.remove(get_local_data_path())
-            #     st.success("Local data cleared!")
-            #     reload_data()
-        else:
-            st.write("No local data found.")
+    #         # if st.button("Clear Local Data"):
+    #         #     os.remove(get_local_data_path())
+    #         #     st.success("Local data cleared!")
+    #         #     reload_data()
+    #     else:
+    #         st.write("No local data found.")
     
-    with col2:
-        st.markdown("### Cloud Data (Google Sheets)")
-        gs_data = load_from_google_sheets()
-        if not gs_data.empty:
-            st.write(f"Cloud records: {len(gs_data)}")
-            st.download_button(
-                "Download Cloud Data",
-                gs_data.to_csv(index=False).encode("utf-8"),
-                "cloud_disease_data.csv",
-                "text/csv",
-            )
+    # with col2:
+    #     st.markdown("### Cloud Data (Google Sheets)")
+    #     gs_data = load_from_google_sheets()
+    #     if not gs_data.empty:
+    #         st.write(f"Cloud records: {len(gs_data)}")
+    #         st.download_button(
+    #             "Download Cloud Data",
+    #             gs_data.to_csv(index=False).encode("utf-8"),
+    #             "cloud_disease_data.csv",
+    #             "text/csv",
+    #         )
             
-            # Add a button to open the Google Sheet
-            if st.button("Open Google Sheet"):
-                st.markdown("[Open Google Sheet in Browser](https://docs.google.com/spreadsheets/d/your-sheet-id-here)")
-        else:
-            st.write("No cloud data found or not configured.")
+    #         # Add a button to open the Google Sheet
+    #         if st.button("Open Google Sheet"):
+    #             st.markdown("[Open Google Sheet in Browser](https://docs.google.com/spreadsheets/d/your-sheet-id-here)")
+    #     else:
+    #         st.write("No cloud data found or not configured.")
             
             
     
-    st.markdown("### Synchronize Data")
-    if st.button("Synchronize Local with Cloud"):
-        try:
-            gs_data = load_from_google_sheets()
-            if not gs_data.empty:
-                # Save cloud data to local
-                save_local_data(gs_data)
-                st.success("Local data updated from cloud!")
-                reload_data()
-            else:
-                st.warning("No cloud data available for synchronization.")
-        except Exception as e:
-            st.error(f"Error during synchronization: {e}")
+    # st.markdown("### Synchronize Data")
+    # if st.button("Synchronize Local with Cloud"):
+    #     try:
+    #         gs_data = load_from_google_sheets()
+    #         if not gs_data.empty:
+    #             # Save cloud data to local
+    #             save_local_data(gs_data)
+    #             st.success("Local data updated from cloud!")
+    #             reload_data()
+    #         else:
+    #             st.warning("No cloud data available for synchronization.")
+    #     except Exception as e:
+    #         st.error(f"Error during synchronization: {e}")
 
 
 # -------------------------------
@@ -816,6 +816,7 @@ elif menu == "Resources":
         - [SARDI Biosecurity](https://pir.sa.gov.au/sardi/crop_sciences/plant_health_and_biosecurity)
         """
     )
+
 
 
 
