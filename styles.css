@@ -19,11 +19,26 @@
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-body {
+/* body {
     background-color: #f8f9fa;
     color: #333;
     line-height: 1.6;
+} */
+
+
+/* Bright top margin strip */
+body::before {
+    content: "";
+    display: block;
+    height: 12px;  /* adjust thickness */
+    width: 100%;
+    background: var(--warning); /* choose any bright color e.g. var(--warning) or custom hex */
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 9999;
 }
+
 
 .container {
     max-width: 1400px;
@@ -317,3 +332,4 @@ select:focus, input:focus {
         grid-template-columns: 1fr;
     }
 }
+
