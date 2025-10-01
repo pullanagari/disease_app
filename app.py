@@ -440,7 +440,7 @@ if menu == "Disease tracker":
         disease_color_map = dict(zip(unique_diseases, disease_colors))
     
         # Create the map only once
-        m = folium.Map(location=[-36.76, 142.21], zoom_start=6)
+        m = folium.Map(location=[-34.96, 138.63], zoom_start=6)
     
         # Add markers
         for _, row in df_filtered.iterrows():
@@ -768,6 +768,7 @@ elif menu == "Resources":
         - [SARDI Biosecurity](https://pir.sa.gov.au/sardi/crop_sciences/plant_health_and_biosecurity)
         """
     )
+
 
 
 
