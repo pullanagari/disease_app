@@ -711,6 +711,8 @@ elif menu == "Tag a disease":
                     "survey_location": location,
                     "photo_filename": photo_filename if photo_filename else "",
                     "field_notes": field_notes,
+                    "Action":Action,
+                    "sample_taken":sample_taken,
                 }
 
                 # Save data to both local storage and Google Sheets
@@ -826,6 +828,7 @@ elif menu == "Resources":
         - [SARDI Biosecurity](https://pir.sa.gov.au/sardi/crop_sciences/plant_health_and_biosecurity)
         """
     )
+
 
 
 
