@@ -48,52 +48,7 @@ hide_github_logo = """
 """
 st.markdown(hide_github_logo, unsafe_allow_html=True)
 
-# -------------------------------
-# Google Sheets Integration
-# @st.cache_resource
-# def get_gs_client():
-#     """Return an authorized gspread client (cached)"""
-#     try:
-#         SCOPES = [
-#             "https://www.googleapis.com/auth/spreadsheets",
-#             "https://www.googleapis.com/auth/drive"
-#         ]
 
-#         # Check for credentials in Streamlit secrets
-#         if "gcp_service_account" in st.secrets:
-#             creds_dict = dict(st.secrets["gcp_service_account"])
-#             creds = service_account.Credentials.from_service_account_info(
-#                 creds_dict, scopes=SCOPES
-#             )
-#         # Check for environment variables (for deployment)
-#         elif all(key in os.environ for key in ["TYPE", "PROJECT_ID", "PRIVATE_KEY_ID", "PRIVATE_KEY", "CLIENT_EMAIL", "CLIENT_ID", "AUTH_URI", "TOKEN_URI", "AUTH_PROVIDER_X509_CERT_URL", "CLIENT_X509_CERT_URL"]):
-#             creds_dict = {
-#                 "type": os.environ["TYPE"],
-#                 "project_id": os.environ["PROJECT_ID"],
-#                 "private_key_id": os.environ["PRIVATE_KEY_ID"],
-#                 "private_key": os.environ["PRIVATE_KEY"].replace('\\n', '\n'),
-#                 "client_email": os.environ["CLIENT_EMAIL"],
-#                 "client_id": os.environ["CLIENT_ID"],
-#                 "auth_uri": os.environ["AUTH_URI"],
-#                 "token_uri": os.environ["TOKEN_URI"],
-#                 "auth_provider_x509_cert_url": os.environ["AUTH_PROVIDER_X509_CERT_URL"],
-#                 "client_x509_cert_url": os.environ["CLIENT_X509_CERT_URL"]
-#             }
-#             creds = service_account.Credentials.from_service_account_info(
-#                 creds_dict, scopes=SCOPES
-#             )
-#         else:
-#             # Fallback to service account file
-#             creds = service_account.Credentials.from_service_account_file(
-#                 "service_account.json", scopes=SCOPES
-#             )
-
-#         client = gspread.authorize(creds)
-#         return client
-
-#     except Exception as e:
-#         st.error(f"❌ Google Sheets auth error: {e}")
-#         return None
 @st.cache_resource
 def get_gs_client():
     """Return an authorized gspread client (cached)"""
@@ -424,7 +379,7 @@ if menu == "Disease tracker":
     st.markdown("### Key Metrics")
     if not df_filtered.empty:
         col1, col2, col3 = st.columns(3)
-        col1.metric("Total Surveys", len(df_filtered))
+        col1.metric("Total Surveys", len(df))
         col2.metric("Max Severity (%)", int(df_filtered["severity1_percent"].max()))
         col3.metric("Average Severity (%)", round(df_filtered["severity1_percent"].mean(), 1))
     else:
@@ -828,6 +783,7 @@ elif menu == "Resources":
         - [SARDI Biosecurity](https://pir.sa.gov.au/sardi/crop_sciences/plant_health_and_biosecurity)
         """
     )
+
 
 
 
