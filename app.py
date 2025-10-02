@@ -352,7 +352,7 @@ if "df" not in st.session_state:
 df = st.session_state.df
 
 # -------------------------------
-# Disease Tracker Page
+# Disease Tracker Page - FIXED VERSION
 if menu == "Disease tracker":
     st.markdown("## 🗺 Disease Tracker")
 
@@ -489,51 +489,118 @@ if menu == "Disease tracker":
         else:
             editable_df = df[["sample_id", "date", "crop", "disease1", "survey_location", "severity1_percent"]].copy()
     
-        # Make table editable
+        # Make table editable - use a unique key for the data_editor
         edited_df = st.data_editor(
             editable_df,
             num_rows="dynamic",
             use_container_width=True,
-            key="editable_summary",
+            key="surveillance_summary_editor",  # Unique key
         )
     
         # Save edited changes
-       
         if st.button("💾 Save Changes"):
-        # if st.button("💾 Save Changes"):
-            st.session_state.df = edited_df.copy()  # ✅ keep edits
-        
-            # Save to local
+            # Create a complete updated dataframe with all changes
+            if show_all_columns:
+                updated_df = edited_df.copy()
+            else:
+                # Merge changes back into the full dataframe
+                updated_df = df.copy()
+                for col in edited_df.columns:
+                    if col in updated_df.columns:
+                        # Update only the columns that were edited
+                        updated_df[col] = edited_df[col]
+            
+            # Update session state
+            st.session_state.df = updated_df
+            
+            # Save to local storage
             save_local_data(st.session_state.df)
-        
-            # Save to cloud
+            
+            # Save to Google Sheets
             try:
                 spreadsheet = get_spreadsheet()
                 if spreadsheet:
                     worksheet = spreadsheet.sheet1
+                    
+                    # Clear the entire worksheet
                     worksheet.clear()
+                    
+                    # Add headers
                     worksheet.append_row(st.session_state.df.columns.tolist())
-                    worksheet.append_rows(st.session_state.df.astype(str).values.tolist())
+                    
+                    # Add all data rows
+                    if not st.session_state.df.empty:
+                        # Convert all values to strings and handle NaN/None
+                        data_rows = []
+                        for _, row in st.session_state.df.iterrows():
+                            row_values = []
+                            for val in row:
+                                if pd.isna(val):
+                                    row_values.append("")
+                                else:
+                                    row_values.append(str(val))
+                            data_rows.append(row_values)
+                        
+                        worksheet.append_rows(data_rows, value_input_option="USER_ENTERED")
+                    
                     st.success("✅ Changes saved to Google Sheets and local storage!")
+                    
+                    # Force reload from cloud to ensure consistency
+                    st.cache_data.clear()
+                    reload_data()
+                    
                 else:
                     st.warning("⚠️ Could not connect to Google Sheets, saved only locally.")
             except Exception as e:
                 st.error(f"❌ Error saving to Google Sheets: {e}")
-        
-            # ✅ Reload fresh data from cloud
-            reload_data()
+                st.info("Data saved to local storage only.")
 
-       
-        # Row deletion
+        # Row deletion section
         st.markdown("### Delete Records")
         rows_to_delete = st.multiselect(
             "Select rows to delete (by Sample ID)",
             options=edited_df["sample_id"].tolist(),
         )
+        
         if st.button("🗑 Delete Selected Rows"):
-            st.session_state.df = st.session_state.df[~st.session_state.df["sample_id"].isin(rows_to_delete)]
-            save_local_data(st.session_state.df)
-            st.success(f"✅ Deleted {len(rows_to_delete)} record(s)")
+            if rows_to_delete:
+                # Remove from session state
+                st.session_state.df = st.session_state.df[~st.session_state.df["sample_id"].isin(rows_to_delete)]
+                
+                # Save to local
+                save_local_data(st.session_state.df)
+                
+                # Save to Google Sheets
+                try:
+                    spreadsheet = get_spreadsheet()
+                    if spreadsheet:
+                        worksheet = spreadsheet.sheet1
+                        worksheet.clear()
+                        worksheet.append_row(st.session_state.df.columns.tolist())
+                        
+                        if not st.session_state.df.empty:
+                            data_rows = []
+                            for _, row in st.session_state.df.iterrows():
+                                row_values = []
+                                for val in row:
+                                    if pd.isna(val):
+                                        row_values.append("")
+                                    else:
+                                        row_values.append(str(val))
+                                data_rows.append(row_values)
+                            
+                            worksheet.append_rows(data_rows, value_input_option="USER_ENTERED")
+                        
+                        st.success(f"✅ Deleted {len(rows_to_delete)} record(s) from both local and cloud storage!")
+                        
+                        # Force reload
+                        reload_data()
+                    else:
+                        st.warning("⚠️ Could not connect to Google Sheets, deleted from local storage only.")
+                except Exception as e:
+                    st.error(f"Error deleting from Google Sheets: {e}")
+            else:
+                st.warning("Please select at least one record to delete.")
     
         # Download option
         st.download_button(
@@ -544,30 +611,8 @@ if menu == "Disease tracker":
         )
     else:
         st.info("No data available for the selected filters.")
-
-
-    st.markdown("### 📸 Download Photos")
+Key Changes
     
-    # Filter only rows with photos
-    df_photos = df_filtered[df_filtered["photo_filename"].notna() & (df_filtered["photo_filename"] != "")]
-    
-    if not df_photos.empty:
-        # Download all photos as ZIP
-        zip_buffer = io.BytesIO()
-        with zipfile.ZipFile(zip_buffer, "w") as zf:
-            for _, row in df_photos.iterrows():
-                photo_path = os.path.join("uploads", row["photo_filename"])
-                if os.path.exists(photo_path):
-                    zf.write(photo_path, arcname=row["photo_filename"])
-        st.download_button(
-            "Download All Photos (ZIP)",
-            data=zip_buffer.getvalue(),
-            file_name="disease_photos.zip",
-            mime="application/zip",
-        )
-
-    else:
-        st.info("No photos available for the selected filters.")
 
 
 # -------------------------------
@@ -787,6 +832,7 @@ elif menu == "Resources":
         - [SARDI Biosecurity](https://pir.sa.gov.au/sardi/crop_sciences/plant_health_and_biosecurity)
         """
     )
+
 
 
 
