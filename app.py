@@ -730,20 +730,38 @@ elif menu == "Data Management":
             st.write("No cloud data found or not configured.")
             
             
-    
-    st.markdown("### Synchronize Data")
+    st.markdown("### 🔄 Synchronize Data")
+
     if st.button("Synchronize Local with Cloud"):
         try:
             gs_data = load_from_google_sheets()
             if not gs_data.empty:
-                # Save cloud data to local
-                save_local_data(gs_data)
-                st.success("Local data updated from cloud!")
-                reload_data()
+                # ✅ Replace session dataframe with cloud version
+                st.session_state.df = gs_data.copy()
+    
+                # ✅ Save to local file
+                save_local_data(st.session_state.df)
+    
+                st.success("✅ Local & session data updated from cloud!")
+    
             else:
-                st.warning("No cloud data available for synchronization.")
+                st.warning("⚠️ No cloud data available for synchronization.")
         except Exception as e:
-            st.error(f"Error during synchronization: {e}")
+            st.error(f"❌ Error during synchronization: {e}")
+
+    # st.markdown("### Synchronize Data")
+    # if st.button("Synchronize Local with Cloud"):
+    #     try:
+    #         gs_data = load_from_google_sheets()
+    #         if not gs_data.empty:
+    #             # Save cloud data to local
+    #             save_local_data(gs_data)
+    #             st.success("Local data updated from cloud!")
+    #             reload_data()
+    #         else:
+    #             st.warning("No cloud data available for synchronization.")
+    #     except Exception as e:
+    #         st.error(f"Error during synchronization: {e}")
 
 
 # -------------------------------
@@ -780,6 +798,7 @@ elif menu == "Resources":
         - [SARDI Biosecurity](https://pir.sa.gov.au/sardi/crop_sciences/plant_health_and_biosecurity)
         """
     )
+
 
 
 
