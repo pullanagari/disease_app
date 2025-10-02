@@ -257,55 +257,46 @@ def get_next_sample_id():
 # Load data with caching
 # @st.cache_data(ttl=300)
 def load_data():
-    """Load the most recent data, prioritizing Google Sheets."""
+    """Load the most recent data, prioritizing Google Sheets but merging with local if needed."""
+    df_local = pd.DataFrame()
+    df_gs = pd.DataFrame()
+
+    # Try load from Google Sheets
     try:
-        gs_data = load_from_google_sheets()
-        if not gs_data.empty:
-            # ✅ Save cloud to local for backup
-            save_local_data(gs_data)
-            return gs_data
+        df_gs = load_from_google_sheets()
+        if not df_gs.empty:
+            # ✅ Save cloud data to local as backup
+            save_local_data(df_gs)
     except Exception as e:
         st.warning(f"⚠️ Could not load from Google Sheets: {e}")
 
-    # Fallback: load from local
+    # Try load from local
     if os.path.exists("local_data.csv"):
-        return pd.read_csv("local_data.csv")
+        df_local = load_local_data()
 
-    # If nothing exists, start with empty dataframe
-    return pd.DataFrame(columns=[
-        "Date", "Location", "Disease", "Severity", "Notes"
-    ])
+    # --- Merge logic ---
+    if df_local.empty and df_gs.empty:
+        return pd.DataFrame(columns=["sample_id", "Date", "Location", "Disease", "Severity", "Notes"])
 
+    if not df_local.empty and not df_gs.empty:
+        df_combined = pd.concat([df_gs, df_local], ignore_index=True)
+        if "sample_id" in df_combined.columns:
+            df_combined = df_combined.drop_duplicates(subset=["sample_id"], keep="last")
+    elif not df_local.empty:
+        df_combined = df_local
+    else:
+        df_combined = df_gs
 
+    # --- Fix date parsing ---
+    for col in ["date", "Date"]:
+        if col in df_combined.columns:
+            df_combined[col] = pd.to_datetime(
+                df_combined[col], errors="coerce", dayfirst=True
+            )
+            break  # handle only one column variant
 
+    return df_combined
 
-# def load_data():
-#     """Load data from both local storage and Google Sheets, merge them"""
-#     df_local = load_local_data()
-#     df_gs = load_from_google_sheets()
-    
-#     if df_local.empty and df_gs.empty:
-#         return pd.DataFrame()
-    
-#     # Combine both data sources
-#     if not df_local.empty and not df_gs.empty:
-#         df_combined = pd.concat([df_gs, df_local], ignore_index=True)
-#         # Remove duplicates based on sample_id
-#         df_combined = df_combined.drop_duplicates(subset=['sample_id'], keep='last')
-#     elif not df_local.empty:
-#         df_combined = df_local
-#     else:
-#         df_combined = df_gs
-    
-    # # --- Fix date parsing ---
-    # if "date" in df_combined.columns:
-    #     df_combined["date"] = pd.to_datetime(
-    #         df_combined["date"],
-    #         errors="coerce",
-    #         dayfirst=True
-    #     )
-    
-    # return df_combined
 
 # Initialize session state
 if "df" not in st.session_state:
@@ -796,6 +787,7 @@ elif menu == "Resources":
         - [SARDI Biosecurity](https://pir.sa.gov.au/sardi/crop_sciences/plant_health_and_biosecurity)
         """
     )
+
 
 
 
