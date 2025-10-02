@@ -249,6 +249,7 @@ def get_next_sample_id():
 # -------------------------------
 # Load data with caching
 @st.cache_data(ttl=300)
+@st.cache_data(ttl=300)
 def load_data():
     """Load the most recent data, prioritizing Google Sheets but merging with local if needed."""
     df_local = pd.DataFrame()
@@ -279,13 +280,39 @@ def load_data():
     else:
         df_combined = df_gs
 
-    # --- Fix date parsing ---
-    for col in ["date", "Date"]:
-        if col in df_combined.columns:
-            df_combined[col] = pd.to_datetime(
-                df_combined[col], errors="coerce", dayfirst=True
-            )
-            break  # handle only one column variant
+    # --- Robust date parsing ---
+    date_columns = [col for col in df_combined.columns if 'date' in col.lower()]
+    
+    for date_col in date_columns:
+        if date_col in df_combined.columns:
+            # Try multiple date formats
+            try:
+                df_combined[date_col] = pd.to_datetime(
+                    df_combined[date_col], 
+                    errors='coerce', 
+                    dayfirst=True,
+                    format='mixed'
+                )
+            except:
+                try:
+                    # Try different parsing approach
+                    df_combined[date_col] = pd.to_datetime(
+                        df_combined[date_col], 
+                        errors='coerce'
+                    )
+                except:
+                    st.warning(f"Could not parse date column: {date_col}")
+            
+            # If still not datetime, try manual conversion
+            if not pd.api.types.is_datetime64_any_dtype(df_combined[date_col]):
+                try:
+                    df_combined[date_col] = pd.to_datetime(
+                        df_combined[date_col].astype(str), 
+                        errors='coerce',
+                        dayfirst=True
+                    )
+                except:
+                    pass
 
     return df_combined
 
@@ -301,6 +328,14 @@ def reload_data():
         
         # Reload data
         new_data = load_data()
+        
+        # Ensure date columns are properly formatted
+        date_columns = [col for col in new_data.columns if 'date' in col.lower()]
+        for date_col in date_columns:
+            if date_col in new_data.columns:
+                if not pd.api.types.is_datetime64_any_dtype(new_data[date_col]):
+                    new_data[date_col] = pd.to_datetime(new_data[date_col], errors='coerce')
+        
         st.session_state.df = new_data
         
         st.success("Data reloaded successfully!")
@@ -480,10 +515,12 @@ if menu == "Disease tracker":
             st.info("No data available for the graph.")
 
     st.markdown("### Surveillance Summary")
+        
     if not df.empty:
         # Option to show all columns or just selected ones
         show_all_columns = st.checkbox("Show all columns", value=False)
         
+        # Create a working copy of the dataframe for editing
         if show_all_columns:
             editable_df = df.copy()
         else:
@@ -491,71 +528,97 @@ if menu == "Disease tracker":
             available_columns = ["sample_id", "date", "crop", "disease1", "survey_location", "severity1_percent"]
             existing_columns = [col for col in available_columns if col in df.columns]
             editable_df = df[existing_columns].copy()
+        
+        # Ensure date column is in proper format for editing
+        if 'date' in editable_df.columns:
+            # Convert to datetime if not already
+            if not pd.api.types.is_datetime64_any_dtype(editable_df['date']):
+                editable_df['date'] = pd.to_datetime(editable_df['date'], errors='coerce')
+            # Format for display in the editor
+            editable_df['date'] = editable_df['date'].dt.strftime('%d/%m/%Y')
     
         # Make table editable - use a unique key for the data_editor
         edited_df = st.data_editor(
             editable_df,
             num_rows="dynamic",
             use_container_width=True,
-            key="surveillance_summary_editor",  # Unique key
+            key="surveillance_summary_editor",
         )
     
         # Save edited changes
         if st.button("💾 Save Changes"):
-            # Create a complete updated dataframe with all changes
-            if show_all_columns:
-                updated_df = edited_df.copy()
-            else:
-                # Merge changes back into the full dataframe
-                updated_df = df.copy()
-                for col in edited_df.columns:
-                    if col in updated_df.columns:
-                        # Update only the columns that were edited
-                        updated_df[col] = edited_df[col]
-            
-            # Update session state
-            st.session_state.df = updated_df
-            
-            # Save to local storage
-            save_local_data(st.session_state.df)
-            
-            # Save to Google Sheets
             try:
-                spreadsheet = get_spreadsheet()
-                if spreadsheet:
-                    worksheet = spreadsheet.sheet1
-                    
-                    # Clear the entire worksheet
-                    worksheet.clear()
-                    
-                    # Add headers
-                    worksheet.append_row(st.session_state.df.columns.tolist())
-                    
-                    # Add all data rows
-                    if not st.session_state.df.empty:
-                        # Convert all values to strings and handle NaN/None
-                        data_rows = []
-                        for _, row in st.session_state.df.iterrows():
-                            row_values = []
-                            for val in row:
-                                if pd.isna(val):
-                                    row_values.append("")
-                                else:
-                                    row_values.append(str(val))
-                            data_rows.append(row_values)
-                        
-                        worksheet.append_rows(data_rows, value_input_option="USER_ENTERED")
-                    
-                    st.success("✅ Changes saved to Google Sheets and local storage!")
-                    
-                    # Force reload from cloud to ensure consistency
-                    reload_data()
-                    
+                # Create a complete updated dataframe with all changes
+                if show_all_columns:
+                    updated_df = edited_df.copy()
                 else:
-                    st.warning("⚠️ Could not connect to Google Sheets, saved only locally.")
+                    # Merge changes back into the full dataframe
+                    updated_df = df.copy()
+                    for col in edited_df.columns:
+                        if col in updated_df.columns:
+                            # Update only the columns that were edited
+                            if col == 'date':
+                                # Handle date conversion properly
+                                updated_df[col] = pd.to_datetime(edited_df[col], format='%d/%m/%Y', errors='coerce')
+                            else:
+                                updated_df[col] = edited_df[col]
+                
+                # Ensure date column is properly formatted in the final dataframe
+                if 'date' in updated_df.columns:
+                    if not pd.api.types.is_datetime64_any_dtype(updated_df['date']):
+                        updated_df['date'] = pd.to_datetime(updated_df['date'], errors='coerce')
+                
+                # Update session state
+                st.session_state.df = updated_df
+                
+                # Save to local storage
+                save_local_data(st.session_state.df)
+                
+                # Save to Google Sheets
+                try:
+                    spreadsheet = get_spreadsheet()
+                    if spreadsheet:
+                        worksheet = spreadsheet.sheet1
+                        
+                        # Clear the entire worksheet
+                        worksheet.clear()
+                        
+                        # Prepare data for Google Sheets - ensure proper date formatting
+                        gs_df = st.session_state.df.copy()
+                        if 'date' in gs_df.columns:
+                            gs_df['date'] = gs_df['date'].dt.strftime('%d/%m/%Y')
+                        
+                        # Add headers
+                        worksheet.append_row(gs_df.columns.tolist())
+                        
+                        # Add all data rows
+                        if not gs_df.empty:
+                            # Convert all values to strings and handle NaN/None
+                            data_rows = []
+                            for _, row in gs_df.iterrows():
+                                row_values = []
+                                for val in row:
+                                    if pd.isna(val):
+                                        row_values.append("")
+                                    else:
+                                        row_values.append(str(val))
+                                data_rows.append(row_values)
+                            
+                            worksheet.append_rows(data_rows, value_input_option="USER_ENTERED")
+                        
+                        st.success("✅ Changes saved to Google Sheets and local storage!")
+                        
+                        # Force reload from cloud to ensure consistency
+                        reload_data()
+                        
+                    else:
+                        st.warning("⚠️ Could not connect to Google Sheets, saved only locally.")
+                except Exception as e:
+                    st.error(f"❌ Error saving to Google Sheets: {e}")
+                    st.info("Data saved to local storage only.")
+                    
             except Exception as e:
-                st.error(f"❌ Error saving to Google Sheets: {e}")
-                st.info("Data saved to local storage only.")
+                st.error(f"Error processing changes: {e}")
 
         # Row deletion section
         st.markdown("### Delete Records")
@@ -578,11 +641,17 @@ if menu == "Disease tracker":
                     if spreadsheet:
                         worksheet = spreadsheet.sheet1
                         worksheet.clear()
-                        worksheet.append_row(st.session_state.df.columns.tolist())
                         
-                        if not st.session_state.df.empty:
+                        # Prepare data for Google Sheets - ensure proper date formatting
+                        gs_df = st.session_state.df.copy()
+                        if 'date' in gs_df.columns:
+                            gs_df['date'] = gs_df['date'].dt.strftime('%d/%m/%Y')
+                        
+                        worksheet.append_row(gs_df.columns.tolist())
+                        
+                        if not gs_df.empty:
                             data_rows = []
-                            for _, row in st.session_state.df.iterrows():
+                            for _, row in gs_df.iterrows():
                                 row_values = []
                                 for val in row:
                                     if pd.isna(val):
@@ -604,16 +673,22 @@ if menu == "Disease tracker":
             else:
                 st.warning("Please select at least one record to delete.")
     
-        # Download option
+        # Download option - ensure proper date formatting in download
+        download_df = st.session_state.df.copy()
+        if 'date' in download_df.columns and pd.api.types.is_datetime64_any_dtype(download_df['date']):
+            download_df['date'] = download_df['date'].dt.strftime('%d/%m/%Y')
+            
         st.download_button(
             "⬇️ Download CSV",
-            st.session_state.df.to_csv(index=False).encode("utf-8"),
+            download_df.to_csv(index=False).encode("utf-8"),
             "survey.csv",
             "text/csv",
         )
     else:
         st.info("No data available for the selected filters.")
 
+
+    
     st.markdown("### 📸 Download Photos")
     
     # Filter only rows with photos
@@ -840,3 +915,4 @@ elif menu == "Resources":
         - [SARDI Biosecurity](https://pir.sa.gov.au/sardi/crop_sciences/plant_health_and_biosecurity)
         """
     )
+
