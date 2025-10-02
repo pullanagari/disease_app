@@ -487,13 +487,14 @@ if menu == "Disease tracker":
         # Save edited changes
        
         if st.button("💾 Save Changes"):
-            # Update main dataframe with edited values
-            st.session_state.df.update(edited_df)
+        if st.button("💾 Save Changes"):
+            # Replace the dataframe with edited version
+            st.session_state.df = edited_df.copy()
         
-            # --- Save locally ---
+            # Save locally
             save_local_data(st.session_state.df)
         
-            # --- Save to Google Sheets ---
+            # Save to Google Sheets
             try:
                 spreadsheet = get_spreadsheet()
                 if spreadsheet:
@@ -515,10 +516,6 @@ if menu == "Disease tracker":
                 st.error(f"❌ Error saving to Google Sheets: {e}")
                 st.warning("Changes saved locally, but not to Google Sheets.")
 
-            # # Update main dataframe
-            # st.session_state.df.update(edited_df)
-            # save_local_data(st.session_state.df)  # persist locally
-            # st.success("✅ Changes saved successfully!")
     
         # Row deletion
         st.markdown("### Delete Records")
@@ -783,6 +780,7 @@ elif menu == "Resources":
         - [SARDI Biosecurity](https://pir.sa.gov.au/sardi/crop_sciences/plant_health_and_biosecurity)
         """
     )
+
 
 
 
