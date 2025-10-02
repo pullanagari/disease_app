@@ -330,8 +330,8 @@ st.sidebar.markdown("## 🌾 South Australia Disease Surveillance")
 menu = st.sidebar.radio("Navigation", ["Disease tracker", "Tag a disease", "About", "Resources", "Data Management"])
 
 # Refresh button
-if st.sidebar.button("🔄 Refresh Data"):
-    reload_data()
+# if st.sidebar.button("🔄 Refresh Data"):
+#     reload_data()
 
 # Make sure df exists in session state
 if "df" not in st.session_state:
@@ -783,6 +783,7 @@ elif menu == "Resources":
         - [SARDI Biosecurity](https://pir.sa.gov.au/sardi/crop_sciences/plant_health_and_biosecurity)
         """
     )
+
 
 
 
