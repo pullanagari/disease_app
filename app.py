@@ -89,12 +89,10 @@ def get_spreadsheet():
     SHEET_ID = "15D6_hA_LhG6M8CKMUFikCxXPQNtxhNBSCykaBF2egtE"
     try:
         spreadsheet = client.open_by_key(SHEET_ID)
-        st.success("✅ Connected to Google Sheets")
         return spreadsheet
     except Exception as e:
         st.error(f"❌ Error opening Google Sheet: {e}")
         return None
-
 
 def init_google_sheets():
     """Initialize connection to Google Sheets using service account"""
@@ -117,8 +115,6 @@ def init_google_sheets():
         client = gspread.authorize(creds)
         SHEET_ID = "15D6_hA_LhG6M8CKMUFikCxXPQNtxhNBSCykaBF2egtE"
         spreadsheet = client.open_by_key(SHEET_ID)
-
-        st.success("✅ Connected to Google Sheets")
         return spreadsheet
 
     except Exception as e:
@@ -146,17 +142,15 @@ def save_to_google_sheets(new_row: dict):
         values = [str(v) for v in new_row.values()]
         worksheet.append_row(values, value_input_option="USER_ENTERED")
         
-        st.success("✅ Data saved to Google Sheets")
         return True
         
     except Exception as e:
         st.error(f"Error saving to Google Sheets: {e}")
-        # Add more detailed error information
-        st.error(f"Row data: {new_row}")
         return False
+
 def load_from_google_sheets():
     """Load all data from Google Sheets"""
-    spreadsheet = init_google_sheets()
+    spreadsheet = get_spreadsheet()
     if spreadsheet:
         try:
             worksheet = spreadsheet.sheet1
@@ -166,7 +160,6 @@ def load_from_google_sheets():
         except Exception as e:
             st.error(f"Error loading from Google Sheets: {e}")
     return pd.DataFrame()
-
 
 # -------------------------------
 # Improved data persistence functions
@@ -255,7 +248,7 @@ def get_next_sample_id():
 
 # -------------------------------
 # Load data with caching
-# @st.cache_data(ttl=300)
+@st.cache_data(ttl=300)
 def load_data():
     """Load the most recent data, prioritizing Google Sheets but merging with local if needed."""
     df_local = pd.DataFrame()
@@ -265,18 +258,17 @@ def load_data():
     try:
         df_gs = load_from_google_sheets()
         if not df_gs.empty:
-            # ✅ Save cloud data to local as backup
+            # Save cloud data to local as backup
             save_local_data(df_gs)
     except Exception as e:
         st.warning(f"⚠️ Could not load from Google Sheets: {e}")
 
     # Try load from local
-    if os.path.exists("local_data.csv"):
-        df_local = load_local_data()
+    df_local = load_local_data()
 
     # --- Merge logic ---
     if df_local.empty and df_gs.empty:
-        return pd.DataFrame(columns=["sample_id", "Date", "Location", "Disease", "Severity", "Notes"])
+        return pd.DataFrame()
 
     if not df_local.empty and not df_gs.empty:
         df_combined = pd.concat([df_gs, df_local], ignore_index=True)
@@ -297,36 +289,21 @@ def load_data():
 
     return df_combined
 
-
 # Initialize session state
 if "df" not in st.session_state:
     st.session_state.df = load_data()
-# def reload_data():
-#     st.cache_data.clear()
-#     st.session_state.df = load_data()
+
 def reload_data():
     """Force reload data from all sources"""
     try:
         # Clear all relevant caches
         st.cache_data.clear()
         
-        # Reload from Google Sheets first, then merge with local
-        gs_data = load_from_google_sheets()
-        local_data = load_local_data()
+        # Reload data
+        new_data = load_data()
+        st.session_state.df = new_data
         
-        if not gs_data.empty and not local_data.empty:
-            # Merge with Google Sheets taking priority
-            combined = pd.concat([gs_data, local_data], ignore_index=True)
-            if "sample_id" in combined.columns:
-                combined = combined.drop_duplicates(subset=["sample_id"], keep="first")
-            st.session_state.df = combined
-        elif not gs_data.empty:
-            st.session_state.df = gs_data
-        elif not local_data.empty:
-            st.session_state.df = local_data
-        else:
-            st.session_state.df = pd.DataFrame()
-            
+        st.success("Data reloaded successfully!")
         st.rerun()  # Force UI refresh
     except Exception as e:
         st.error(f"Error reloading data: {e}")
@@ -368,8 +345,8 @@ st.sidebar.markdown("## 🌾 South Australia Disease Surveillance")
 menu = st.sidebar.radio("Navigation", ["Disease tracker", "Tag a disease", "About", "Resources", "Data Management"])
 
 # Refresh button
-# if st.sidebar.button("🔄 Refresh Data"):
-#     reload_data()
+if st.sidebar.button("🔄 Refresh Data"):
+    reload_data()
 
 # Make sure df exists in session state
 if "df" not in st.session_state:
@@ -502,8 +479,6 @@ if menu == "Disease tracker":
         else:
             st.info("No data available for the graph.")
 
-   
-    # st.markdown("### Surveillance Summary")
     st.markdown("### Surveillance Summary")
     if not df.empty:
         # Option to show all columns or just selected ones
@@ -512,7 +487,10 @@ if menu == "Disease tracker":
         if show_all_columns:
             editable_df = df.copy()
         else:
-            editable_df = df[["sample_id", "date", "crop", "disease1", "survey_location", "severity1_percent"]].copy()
+            # Select only the columns that exist in the dataframe
+            available_columns = ["sample_id", "date", "crop", "disease1", "survey_location", "severity1_percent"]
+            existing_columns = [col for col in available_columns if col in df.columns]
+            editable_df = df[existing_columns].copy()
     
         # Make table editable - use a unique key for the data_editor
         edited_df = st.data_editor(
@@ -571,7 +549,6 @@ if menu == "Disease tracker":
                     st.success("✅ Changes saved to Google Sheets and local storage!")
                     
                     # Force reload from cloud to ensure consistency
-                    st.cache_data.clear()
                     reload_data()
                     
                 else:
@@ -637,9 +614,30 @@ if menu == "Disease tracker":
     else:
         st.info("No data available for the selected filters.")
 
+    st.markdown("### 📸 Download Photos")
+    
+    # Filter only rows with photos
+    df_photos = df_filtered[df_filtered["photo_filename"].notna() & (df_filtered["photo_filename"] != "")]
+    
+    if not df_photos.empty:
+        # Download all photos as ZIP
+        zip_buffer = io.BytesIO()
+        with zipfile.ZipFile(zip_buffer, "w") as zf:
+            for _, row in df_photos.iterrows():
+                photo_path = os.path.join("uploads", row["photo_filename"])
+                if os.path.exists(photo_path):
+                    zf.write(photo_path, arcname=row["photo_filename"])
+        st.download_button(
+            "Download All Photos (ZIP)",
+            data=zip_buffer.getvalue(),
+            file_name="disease_photos.zip",
+            mime="application/zip",
+        )
+    else:
+        st.info("No photos available for the selected filters.")
 
 # -------------------------------
-# Tag a Disease Page
+# Tag a Disease Page - FIXED VERSION
 elif menu == "Tag a disease":
     st.markdown("## 📌 Tag a Disease")
     
@@ -655,7 +653,7 @@ elif menu == "Tag a disease":
             )
             crop = st.selectbox(
                 "Crop", ["Wheat", "Barley", "Canola", "Lentil", "Oats","Faba beans",
-                         "Vetch","Field peas","Chcickpea", "Other"]
+                         "Vetch","Field peas","Chickpea", "Other"]
             )
             variety = st.text_input("Variety", "")
             plant_stage = st.selectbox(
@@ -678,10 +676,9 @@ elif menu == "Tag a disease":
             severity2 = st.number_input("Severity 2 (%)", min_value=0, max_value=100, value=0, step=1)
             severity3 = st.number_input("Severity 3 (%)", min_value=0, max_value=100, value=0, step=1)
             
-            latitude = st.text_input("Latitude" )
-            longitude = st.text_input("Longitude")
+            latitude = st.text_input("Latitude", "-34.96")
+            longitude = st.text_input("Longitude", "138.63")
 
-            
         location = st.text_input("Location (Suburb)", "")
         field_type = st.text_input("Field Type", "")
         agronomist = st.text_input("Agronomist", "")
@@ -701,8 +698,6 @@ elif menu == "Tag a disease":
             if not all([crop, disease1, location]):
                 st.error("Please fill in all required fields: Crop, Disease 1, and Location")
             else:            
-       
-        
                 photo_filename = None
                 if uploaded_file is not None:
                     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -733,13 +728,13 @@ elif menu == "Tag a disease":
                     "severity1_percent": severity1,
                     "severity2_percent": severity2,
                     "severity3_percent": severity3,
-                    "latitude": float(latitude) if latitude else -36.76,
-                    "longitude": float(longitude) if longitude else 142.21,
+                    "latitude": float(latitude) if latitude else -34.96,
+                    "longitude": float(longitude) if longitude else 138.63,
                     "survey_location": location,
                     "photo_filename": photo_filename if photo_filename else "",
                     "field_notes": field_notes,
-                    "Action":Action,
-                    "sample_taken":sample_taken,
+                    "Action": ", ".join(molecular_diagnosis) if molecular_diagnosis else "",  # FIXED: Use correct variable name
+                    "sample_taken": sample_taken,
                 }
 
                 # Save data to both local storage and Google Sheets
@@ -753,11 +748,9 @@ elif menu == "Tag a disease":
                         st.markdown("**Uploaded Photo Preview:**")
                         image = Image.open(io.BytesIO(uploaded_file.getbuffer()))
                         st.image(image, caption="Disease Photo", use_column_width=True)
-                   
                 else:
                     st.error("Failed to save data. Please try again.")
-                    
-                
+
 # -------------------------------
 # Data Management Page
 elif menu == "Data Management":
@@ -778,11 +771,6 @@ elif menu == "Data Management":
                 "local_disease_data.csv",
                 "text/csv",
             )
-            
-            # if st.button("Clear Local Data"):
-            #     os.remove(get_local_data_path())
-            #     st.success("Local data cleared!")
-            #     reload_data()
         else:
             st.write("No local data found.")
     
@@ -800,11 +788,9 @@ elif menu == "Data Management":
             
             # Add a button to open the Google Sheet
             if st.button("Open Google Sheet"):
-                st.markdown("[Open Google Sheet in Browser](https://docs.google.com/spreadsheets/d/your-sheet-id-here)")
+                st.markdown("[Open Google Sheet in Browser](https://docs.google.com/spreadsheets/d/15D6_hA_LhG6M8CKMUFikCxXPQNtxhNBSCykaBF2egtE)")
         else:
             st.write("No cloud data found or not configured.")
-            
-            
     
     st.markdown("### Synchronize Data")
     if st.button("Synchronize Local with Cloud"):
@@ -819,7 +805,6 @@ elif menu == "Data Management":
                 st.warning("No cloud data available for synchronization.")
         except Exception as e:
             st.error(f"Error during synchronization: {e}")
-
 
 # -------------------------------
 # About Page
@@ -855,19 +840,3 @@ elif menu == "Resources":
         - [SARDI Biosecurity](https://pir.sa.gov.au/sardi/crop_sciences/plant_health_and_biosecurity)
         """
     )
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
