@@ -467,14 +467,14 @@ if menu == "Disease tracker":
    
     # st.markdown("### Surveillance Summary")
     st.markdown("### Surveillance Summary")
-    if not df_filtered.empty:
+    if not df.empty:
         # Option to show all columns or just selected ones
         show_all_columns = st.checkbox("Show all columns", value=False)
         
         if show_all_columns:
-            editable_df = df_filtered.copy()
+            editable_df = df.copy()
         else:
-            editable_df = df_filtered[["sample_id", "date", "crop", "disease1", "survey_location", "severity1_percent"]].copy()
+            editable_df = df[["sample_id", "date", "crop", "disease1", "survey_location", "severity1_percent"]].copy()
     
         # Make table editable
         edited_df = st.data_editor(
@@ -783,6 +783,7 @@ elif menu == "Resources":
         - [SARDI Biosecurity](https://pir.sa.gov.au/sardi/crop_sciences/plant_health_and_biosecurity)
         """
     )
+
 
 
 
