@@ -330,8 +330,8 @@ st.sidebar.markdown("## 🌾 South Australia Disease Surveillance")
 menu = st.sidebar.radio("Navigation", ["Disease tracker", "Tag a disease", "About", "Resources", "Data Management"])
 
 # Refresh button
-# if st.sidebar.button("🔄 Refresh Data"):
-#     reload_data()
+if st.sidebar.button("🔄 Refresh Data"):
+    reload_data()
 
 # Make sure df exists in session state
 if "df" not in st.session_state:
@@ -487,35 +487,38 @@ if menu == "Disease tracker":
         # Save edited changes
        
         if st.button("💾 Save Changes"):
-        # if st.button("💾 Save Changes"):
-            # ✅ 1. Replace the session dataframe with the edited copy
-            st.session_state.df = edited_df.copy()
+            # Update main dataframe with edited values
+            st.session_state.df.update(edited_df)
         
-            # ✅ 2. Save locally
+            # --- Save locally ---
             save_local_data(st.session_state.df)
         
-            # ✅ 3. Save to Google Sheets
+            # --- Save to Google Sheets ---
             try:
                 spreadsheet = get_spreadsheet()
                 if spreadsheet:
                     worksheet = spreadsheet.sheet1
-        
-                    # Clear all existing data
+                    
+                    # Clear old data first
                     worksheet.clear()
-        
+                    
                     # Write headers
                     worksheet.append_row(st.session_state.df.columns.tolist())
-        
-                    # Write all rows
+                    
+                    # Write updated values
                     worksheet.append_rows(st.session_state.df.astype(str).values.tolist())
-        
-                    st.success("✅ Changes saved & synced to Google Sheets!")
+                    
+                    st.success("✅ Changes saved to Google Sheets and local storage!")
                 else:
                     st.warning("⚠️ Could not connect to Google Sheets, saved only locally.")
             except Exception as e:
                 st.error(f"❌ Error saving to Google Sheets: {e}")
+                st.warning("Changes saved locally, but not to Google Sheets.")
 
-           
+            # # Update main dataframe
+            # st.session_state.df.update(edited_df)
+            # save_local_data(st.session_state.df)  # persist locally
+            # st.success("✅ Changes saved successfully!")
     
         # Row deletion
         st.markdown("### Delete Records")
@@ -730,25 +733,7 @@ elif menu == "Data Management":
             st.write("No cloud data found or not configured.")
             
             
-    # st.markdown("### 🔄 Synchronize Data")
-
-    # if st.button("Synchronize Local with Cloud"):
-    #     try:
-    #         gs_data = load_from_google_sheets()
-    #         if not gs_data.empty:
-    #             # ✅ Replace session dataframe with cloud version
-    #             st.session_state.df = gs_data.copy()
     
-    #             # ✅ Save to local file
-    #             save_local_data(st.session_state.df)
-    
-    #             st.success("✅ Local & session data updated from cloud!")
-    
-    #         else:
-    #             st.warning("⚠️ No cloud data available for synchronization.")
-    #     except Exception as e:
-    #         st.error(f"❌ Error during synchronization: {e}")
-
     st.markdown("### Synchronize Data")
     if st.button("Synchronize Local with Cloud"):
         try:
@@ -798,13 +783,6 @@ elif menu == "Resources":
         - [SARDI Biosecurity](https://pir.sa.gov.au/sardi/crop_sciences/plant_health_and_biosecurity)
         """
     )
-
-
-
-
-
-
-
 
 
 
