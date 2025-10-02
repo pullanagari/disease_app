@@ -301,10 +301,35 @@ def load_data():
 # Initialize session state
 if "df" not in st.session_state:
     st.session_state.df = load_data()
+# def reload_data():
+#     st.cache_data.clear()
+#     st.session_state.df = load_data()
 def reload_data():
-    st.cache_data.clear()
-    st.session_state.df = load_data()
-
+    """Force reload data from all sources"""
+    try:
+        # Clear all relevant caches
+        st.cache_data.clear()
+        
+        # Reload from Google Sheets first, then merge with local
+        gs_data = load_from_google_sheets()
+        local_data = load_local_data()
+        
+        if not gs_data.empty and not local_data.empty:
+            # Merge with Google Sheets taking priority
+            combined = pd.concat([gs_data, local_data], ignore_index=True)
+            if "sample_id" in combined.columns:
+                combined = combined.drop_duplicates(subset=["sample_id"], keep="first")
+            st.session_state.df = combined
+        elif not gs_data.empty:
+            st.session_state.df = gs_data
+        elif not local_data.empty:
+            st.session_state.df = local_data
+        else:
+            st.session_state.df = pd.DataFrame()
+            
+        st.rerun()  # Force UI refresh
+    except Exception as e:
+        st.error(f"Error reloading data: {e}")
 
 # Debug code to check authentication
 if st.sidebar.button("Debug Google Sheets Connection"):
@@ -830,6 +855,7 @@ elif menu == "Resources":
         - [SARDI Biosecurity](https://pir.sa.gov.au/sardi/crop_sciences/plant_health_and_biosecurity)
         """
     )
+
 
 
 
