@@ -257,41 +257,63 @@ def get_next_sample_id():
 # Load data with caching
 # @st.cache_data(ttl=300)
 def load_data():
-    """Load data from both local storage and Google Sheets, merge them"""
-    df_local = load_local_data()
-    df_gs = load_from_google_sheets()
+    """Load the most recent data, prioritizing Google Sheets."""
+    try:
+        gs_data = load_from_google_sheets()
+        if not gs_data.empty:
+            # ✅ Save cloud to local for backup
+            save_local_data(gs_data)
+            return gs_data
+    except Exception as e:
+        st.warning(f"⚠️ Could not load from Google Sheets: {e}")
+
+    # Fallback: load from local
+    if os.path.exists("local_data.csv"):
+        return pd.read_csv("local_data.csv")
+
+    # If nothing exists, start with empty dataframe
+    return pd.DataFrame(columns=[
+        "Date", "Location", "Disease", "Severity", "Notes"
+    ])
+
+
+
+
+# def load_data():
+#     """Load data from both local storage and Google Sheets, merge them"""
+#     df_local = load_local_data()
+#     df_gs = load_from_google_sheets()
     
-    if df_local.empty and df_gs.empty:
-        return pd.DataFrame()
+#     if df_local.empty and df_gs.empty:
+#         return pd.DataFrame()
     
-    # Combine both data sources
-    if not df_local.empty and not df_gs.empty:
-        df_combined = pd.concat([df_gs, df_local], ignore_index=True)
-        # Remove duplicates based on sample_id
-        df_combined = df_combined.drop_duplicates(subset=['sample_id'], keep='last')
-    elif not df_local.empty:
-        df_combined = df_local
-    else:
-        df_combined = df_gs
+#     # Combine both data sources
+#     if not df_local.empty and not df_gs.empty:
+#         df_combined = pd.concat([df_gs, df_local], ignore_index=True)
+#         # Remove duplicates based on sample_id
+#         df_combined = df_combined.drop_duplicates(subset=['sample_id'], keep='last')
+#     elif not df_local.empty:
+#         df_combined = df_local
+#     else:
+#         df_combined = df_gs
     
-    # --- Fix date parsing ---
-    if "date" in df_combined.columns:
-        df_combined["date"] = pd.to_datetime(
-            df_combined["date"],
-            errors="coerce",
-            dayfirst=True
-        )
+    # # --- Fix date parsing ---
+    # if "date" in df_combined.columns:
+    #     df_combined["date"] = pd.to_datetime(
+    #         df_combined["date"],
+    #         errors="coerce",
+    #         dayfirst=True
+    #     )
     
-    return df_combined
+    # return df_combined
 
 # Initialize session state
 if "df" not in st.session_state:
     st.session_state.df = load_data()
-
 def reload_data():
     st.cache_data.clear()
     st.session_state.df = load_data()
-    st.success("Data reloaded!")
+
 
 # Debug code to check authentication
 if st.sidebar.button("Debug Google Sheets Connection"):
@@ -488,39 +510,29 @@ if menu == "Disease tracker":
        
         if st.button("💾 Save Changes"):
         # if st.button("💾 Save Changes"):
-            # Update main dataframe with edited values
-            st.session_state.df.update(edited_df)
+            st.session_state.df = edited_df.copy()  # ✅ keep edits
         
-            # --- Save locally ---
+            # Save to local
             save_local_data(st.session_state.df)
         
-            # --- Save to Google Sheets ---
+            # Save to cloud
             try:
                 spreadsheet = get_spreadsheet()
                 if spreadsheet:
                     worksheet = spreadsheet.sheet1
-        
-                    # Clear old data first
                     worksheet.clear()
-        
-                    # Write headers
                     worksheet.append_row(st.session_state.df.columns.tolist())
-        
-                    # Write updated values
                     worksheet.append_rows(st.session_state.df.astype(str).values.tolist())
-        
                     st.success("✅ Changes saved to Google Sheets and local storage!")
                 else:
                     st.warning("⚠️ Could not connect to Google Sheets, saved only locally.")
             except Exception as e:
                 st.error(f"❌ Error saving to Google Sheets: {e}")
-                st.warning("Changes saved locally, but not to Google Sheets.")
         
-            # 🔄 Immediately reload fresh data so refresh works
+            # ✅ Reload fresh data from cloud
             reload_data()
 
-
-    
+       
         # Row deletion
         st.markdown("### Delete Records")
         rows_to_delete = st.multiselect(
@@ -784,6 +796,7 @@ elif menu == "Resources":
         - [SARDI Biosecurity](https://pir.sa.gov.au/sardi/crop_sciences/plant_health_and_biosecurity)
         """
     )
+
 
 
 
