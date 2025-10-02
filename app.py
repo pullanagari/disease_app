@@ -530,11 +530,40 @@ if menu == "Disease tracker":
         )
     
         # Save edited changes
+       
         if st.button("💾 Save Changes"):
-            # Update main dataframe
+            # Update main dataframe with edited values
             st.session_state.df.update(edited_df)
-            save_local_data(st.session_state.df)  # persist locally
-            st.success("✅ Changes saved successfully!")
+        
+            # --- Save locally ---
+            save_local_data(st.session_state.df)
+        
+            # --- Save to Google Sheets ---
+            try:
+                spreadsheet = get_spreadsheet()
+                if spreadsheet:
+                    worksheet = spreadsheet.sheet1
+                    
+                    # Clear old data first
+                    worksheet.clear()
+                    
+                    # Write headers
+                    worksheet.append_row(st.session_state.df.columns.tolist())
+                    
+                    # Write updated values
+                    worksheet.append_rows(st.session_state.df.astype(str).values.tolist())
+                    
+                    st.success("✅ Changes saved to Google Sheets and local storage!")
+                else:
+                    st.warning("⚠️ Could not connect to Google Sheets, saved only locally.")
+            except Exception as e:
+                st.error(f"❌ Error saving to Google Sheets: {e}")
+                st.warning("Changes saved locally, but not to Google Sheets.")
+
+            # # Update main dataframe
+            # st.session_state.df.update(edited_df)
+            # save_local_data(st.session_state.df)  # persist locally
+            # st.success("✅ Changes saved successfully!")
     
         # Row deletion
         st.markdown("### Delete Records")
@@ -557,29 +586,6 @@ if menu == "Disease tracker":
     else:
         st.info("No data available for the selected filters.")
 
-
-
-
-
-
-    
-    # if not df_filtered.empty:
-    #     # Option to show all columns or just selected ones
-    #     show_all_columns = st.checkbox("Show all columns", value=False)
-        
-    #     if show_all_columns:
-    #         st.dataframe(df_filtered)
-    #     else:
-    #         st.dataframe(df_filtered[["sample_id", "date", "crop", "disease1", "survey_location", "severity1_percent"]])
-        
-    #     st.download_button(
-    #         "Download CSV",
-    #         df_filtered.to_csv(index=False).encode("utf-8"),
-    #         "survey.csv",
-    #         "text/csv",
-    #     )
-    # else:
-    #     st.info("No data available for the selected filters.")
 
     st.markdown("### 📸 Download Photos")
     
@@ -820,6 +826,7 @@ elif menu == "Resources":
         - [SARDI Biosecurity](https://pir.sa.gov.au/sardi/crop_sciences/plant_health_and_biosecurity)
         """
     )
+
 
 
 
