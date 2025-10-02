@@ -487,7 +487,7 @@ if menu == "Disease tracker":
         # Save edited changes
        
         if st.button("💾 Save Changes"):
-        if st.button("💾 Save Changes"):
+        # if st.button("💾 Save Changes"):
             # Update main dataframe with edited values
             st.session_state.df.update(edited_df)
         
@@ -784,6 +784,7 @@ elif menu == "Resources":
         - [SARDI Biosecurity](https://pir.sa.gov.au/sardi/crop_sciences/plant_health_and_biosecurity)
         """
     )
+
 
 
 
