@@ -12,6 +12,7 @@ import io
 import zipfile
 import re
 import gspread
+import streamlit-js-eval
 from google.oauth2 import service_account
 
 # -------------------------------
@@ -713,46 +714,68 @@ if menu == "Disease tracker":
 
 # -------------------------------
 # Tag a Disease Page - FIXED VERSION
+# -------------------------------------------
+# Tag a Disease Page - UPDATED VERSION WITH GPS
+# -------------------------------------------
 elif menu == "Tag a disease":
+    from streamlit_js_eval import get_geolocation
+    import time
+
     st.markdown("## 📌 Tag a Disease")
-    
+
+    # --- Get GPS location from mobile/desktop browser ---
+    st.info("📍 Fetching your current GPS coordinates. Please allow location access in your browser.")
+    location_data = get_geolocation(timeout=10)
+    time.sleep(1)  # small delay for stability
+
+    if location_data and "coords" in location_data:
+        current_lat = location_data["coords"]["latitude"]
+        current_lon = location_data["coords"]["longitude"]
+        st.success(f"✅ Location captured: {current_lat:.6f}, {current_lon:.6f}")
+    else:
+        st.warning("⚠️ Could not retrieve GPS location. Please allow location access or enter manually.")
+        current_lat, current_lon = -34.96, 138.63  # fallback default
+
+    # --- Disease tagging form ---
     with st.form("disease_form", clear_on_submit=True):
         col1, col2 = st.columns(2)
         with col1:
             date = st.date_input("Date", datetime.today())
             collector = st.selectbox(
                 "Collector Name",
-                ["Hari Dadu", "Rohan Kimber", "Tara Garrard","Moshen Khani", "Kul Adhikari", 
-                 "Mark Butt","Marzena Krysinka-Kaczmarek","Michelle Russ","Entesar Abood", 
-                 "Milica Grcic", "Nicole Thompson","Blake Gontar", "Other"]
+                ["Hari Dadu", "Rohan Kimber", "Tara Garrard", "Moshen Khani", "Kul Adhikari",
+                 "Mark Butt", "Marzena Krysinka-Kaczmarek", "Michelle Russ", "Entesar Abood",
+                 "Milica Grcic", "Nicole Thompson", "Blake Gontar", "Other"]
             )
             crop = st.selectbox(
-                "Crop", ["Wheat", "Barley", "Canola", "Lentil", "Oats","Faba beans",
-                         "Vetch","Field peas","Chickpea", "Other"]
+                "Crop", ["Wheat", "Barley", "Canola", "Lentil", "Oats", "Faba beans",
+                         "Vetch", "Field peas", "Chickpea", "Other"]
             )
             variety = st.text_input("Variety", "")
             plant_stage = st.selectbox(
-            "Plant Growth Stage",
-            ["Emergence", "Tillering", "Stem elongation", "Flowering", "Grain filling", "Maturity"],
+                "Plant Growth Stage",
+                ["Emergence", "Tillering", "Stem elongation", "Flowering", "Grain filling", "Maturity"],
             )
+
         with col2:
-            disease_options = ["Stripe rust", "Leaf rust", "Stem rust", "Septoria tritici blotch", "Yellow leaf spot", 
-                               "Powdery mildew", "Eye spot", "Black point", "Smut", "Spot form net blotch", 
-                               "Net form net blotch", "Scald", "Red Leather Leaf", "Septoria avenae blotch", 
-                               "Bacterial blight", "Ascochyta Blight", "Botrytis Grey Mold", "Sclerotinia white mould", 
-                               "Chocolate Spot", "Cercospora leaf spot", "Downy mildew", "Black Spot", 
+            disease_options = ["Stripe rust", "Leaf rust", "Stem rust", "Septoria tritici blotch", "Yellow leaf spot",
+                               "Powdery mildew", "Eye spot", "Black point", "Smut", "Spot form net blotch",
+                               "Net form net blotch", "Scald", "Red Leather Leaf", "Septoria avenae blotch",
+                               "Bacterial blight", "Ascochyta Blight", "Botrytis Grey Mold", "Sclerotinia white mould",
+                               "Chocolate Spot", "Cercospora leaf spot", "Downy mildew", "Black Spot",
                                "Root Disease", "Virus", "Blackleg", "Other"]
 
-            disease1 = st.selectbox("Disease 1",["None"]+ disease_options)
+            disease1 = st.selectbox("Disease 1", ["None"] + disease_options)
             disease2 = st.selectbox("Disease 2", ["None"] + disease_options)
             disease3 = st.selectbox("Disease 3", ["None"] + disease_options)
-            
+
             severity1 = st.number_input("Severity 1 (%)", min_value=0, max_value=100, value=0, step=1)
             severity2 = st.number_input("Severity 2 (%)", min_value=0, max_value=100, value=0, step=1)
             severity3 = st.number_input("Severity 3 (%)", min_value=0, max_value=100, value=0, step=1)
-            
-            latitude = st.text_input("Latitude", "-34.96")
-            longitude = st.text_input("Longitude", "138.63")
+
+            # Automatically filled latitude and longitude
+            latitude = st.text_input("Latitude", f"{current_lat:.6f}")
+            longitude = st.text_input("Longitude", f"{current_lon:.6f}")
 
         location = st.text_input("Location (Suburb)", "")
         field_type = st.text_input("Field Type", "")
@@ -769,10 +792,10 @@ elif menu == "Tag a disease":
 
         if submitted:
             sample_id = get_next_sample_id()
-            # Validate required fields
+
             if not all([crop, disease1, location]):
                 st.error("Please fill in all required fields: Crop, Disease 1, and Location")
-            else:            
+            else:
                 photo_filename = None
                 if uploaded_file is not None:
                     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -780,13 +803,11 @@ elif menu == "Tag a disease":
                     photo_filename = f"disease_photo_{timestamp}.{file_extension}"
                     with open(os.path.join("uploads", photo_filename), "wb") as f:
                         f.write(uploaded_file.getbuffer())
-        
+
                 if disease2 == "None":
-                    disease2 = ""
-                    severity2 = 0
+                    disease2, severity2 = "", 0
                 if disease3 == "None":
-                    disease3 = ""
-                    severity3 = 0
+                    disease3, severity3 = "", 0
 
                 new_record = {
                     "sample_id": sample_id,
@@ -803,26 +824,20 @@ elif menu == "Tag a disease":
                     "severity1_percent": severity1,
                     "severity2_percent": severity2,
                     "severity3_percent": severity3,
-                    "latitude": float(latitude) if latitude else -34.96,
-                    "longitude": float(longitude) if longitude else 138.63,
+                    "latitude": float(latitude),
+                    "longitude": float(longitude),
                     "survey_location": location,
                     "photo_filename": photo_filename if photo_filename else "",
                     "field_notes": field_notes,
-                    "Action": ", ".join(molecular_diagnosis) if molecular_diagnosis else "",  # FIXED: Use correct variable name
+                    "Action": ", ".join(molecular_diagnosis) if molecular_diagnosis else "",
                     "sample_taken": sample_taken,
                 }
 
-                # Save data to both local storage and Google Sheets
                 if save_data(new_record):
                     st.success("✅ Submission successful! Data saved to persistent storage.")
-                    
-                    # Clear cache and reload data
                     reload_data()
-
                     if uploaded_file is not None:
-                        st.markdown("**Uploaded Photo Preview:**")
-                        image = Image.open(io.BytesIO(uploaded_file.getbuffer()))
-                        st.image(image, caption="Disease Photo", use_column_width=True)
+                        st.image(uploaded_file, caption="Disease Photo", use_column_width=True)
                 else:
                     st.error("Failed to save data. Please try again.")
 
@@ -915,4 +930,5 @@ elif menu == "Resources":
         - [SARDI Biosecurity](https://pir.sa.gov.au/sardi/crop_sciences/plant_health_and_biosecurity)
         """
     )
+
 
