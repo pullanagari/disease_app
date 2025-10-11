@@ -12,7 +12,7 @@ import io
 import zipfile
 import re
 import gspread
-import streamlit-js-eval
+from streamlit_js_eval import get_geolocation
 from google.oauth2 import service_account
 
 # -------------------------------
@@ -930,5 +930,6 @@ elif menu == "Resources":
         - [SARDI Biosecurity](https://pir.sa.gov.au/sardi/crop_sciences/plant_health_and_biosecurity)
         """
     )
+
 
 
