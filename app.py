@@ -19,7 +19,7 @@ from google.oauth2 import service_account
 # -------------------------------
 # Page config (must be before any Streamlit UI code)
 st.set_page_config(
-    page_title="South Australia Disease Surveillance",
+    page_title="Surveillance SA",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -775,7 +775,7 @@ elif menu == "Tag a disease":
             variety = st.text_input("Variety", "")
             plant_stage = st.selectbox(
                 "Plant Growth Stage",
-                ["Emergence", "Tillering", "Stem elongation", "Flowering", "Grain filling", "Maturity"],
+                ["Emergence", "Tillering", "Stem elongation", "Canopy closure", "Flowering", "Grain filling", "Podding", "Maturity"],
             )
 
         with col2:
@@ -941,6 +941,9 @@ elif menu == "About":
     **Data Persistence:**
     - Your submitted data is now saved to both local storage and Google Sheets
     - Google Sheets ensures your data persists across sessions and deployments
+
+    Designed the APP by Dr. Pullanagari Reddy
+    Scinetific Supoort by Dr. Hari Dadu
     """
     )
 
@@ -954,6 +957,7 @@ elif menu == "Resources":
         - [SARDI Biosecurity](https://pir.sa.gov.au/sardi/crop_sciences/plant_health_and_biosecurity)
         """
     )
+
 
 
 
