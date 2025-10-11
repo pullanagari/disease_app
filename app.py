@@ -713,13 +713,9 @@ if menu == "Disease tracker":
         st.info("No photos available for the selected filters.")
 
 # -------------------------------
-# Tag a Disease Page - FIXED VERSION
-# -------------------------------------------
-# Tag a Disease Page - UPDATED VERSION WITH GPS
+# Tag a Disease Page 
 # -------------------------------------------
 elif menu == "Tag a disease":
-    from streamlit_js_eval import get_geolocation
-    import time
 
     st.markdown("## 📌 Tag a Disease")
 
@@ -727,14 +723,22 @@ elif menu == "Tag a disease":
     st.info("📍 Fetching your current GPS coordinates. Please allow location access in your browser.")
     location_data = get_geolocation(timeout=10)
     time.sleep(1)  # small delay for stability
+    st.title("📍 Capture Current GPS Location")
 
-    if location_data and "coords" in location_data:
-        current_lat = location_data["coords"]["latitude"]
-        current_lon = location_data["coords"]["longitude"]
-        st.success(f"✅ Location captured: {current_lat:.6f}, {current_lon:.6f}")
-    else:
-        st.warning("⚠️ Could not retrieve GPS location. Please allow location access or enter manually.")
-        current_lat, current_lon = -34.96, 138.63  # fallback default
+    # Ask user to trigger GPS manually
+    if st.button("Get Current Location"):
+        try:
+            loc = get_geolocation()
+            if loc and "coords" in loc:
+                lat = loc["coords"]["latitude"]
+                lon = loc["coords"]["longitude"]
+                st.success(f"✅ Got location: {lat:.6f}, {lon:.6f}")
+            else:
+                st.warning("⚠️ Could not fetch GPS coordinates. Please allow location access.")
+        except Exception as e:
+            st.error(f"Error fetching GPS: {e}")
+
+
 
     # --- Disease tagging form ---
     with st.form("disease_form", clear_on_submit=True):
@@ -930,6 +934,7 @@ elif menu == "Resources":
         - [SARDI Biosecurity](https://pir.sa.gov.au/sardi/crop_sciences/plant_health_and_biosecurity)
         """
     )
+
 
 
 
