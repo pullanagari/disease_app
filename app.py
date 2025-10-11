@@ -719,26 +719,41 @@ elif menu == "Tag a disease":
 
     st.markdown("## 📌 Tag a Disease")
 
-    # --- Get GPS location from mobile/desktop browser ---
-    st.info("📍 Fetching your current GPS coordinates. Please allow location access in your browser.")
-    location_data = get_geolocation(timeout=10)
-    time.sleep(1)  # small delay for stability
-    st.title("📍 Capture Current GPS Location")
+    # --- Get GPS location from browser ---
+    st.info("📍 Please allow browser access to your location for automatic tagging.")
 
-    # Ask user to trigger GPS manually
-    if st.button("Get Current Location"):
+    current_lat, current_lon = None, None
+    location_data = None
+
+    try:
+        # Try to get location with timeout
+        location_data = get_geolocation(timeout=10)
+        time.sleep(1)
+        if location_data and "coords" in location_data:
+            current_lat = location_data["coords"]["latitude"]
+            current_lon = location_data["coords"]["longitude"]
+            st.success(f"✅ Location fetched: {current_lat:.6f}, {current_lon:.6f}")
+        else:
+            st.warning("⚠️ Could not automatically fetch GPS coordinates. You can enter them manually below.")
+    except Exception as e:
+        st.warning("⚠️ Unable to fetch GPS automatically. Please allow location access or enter coordinates manually.")
+
+    # --- Manual trigger for GPS capture ---
+    if st.button("📍 Refresh Location"):
         try:
-            loc = get_geolocation()
+            loc = get_geolocation(timeout=10)
             if loc and "coords" in loc:
-                lat = loc["coords"]["latitude"]
-                lon = loc["coords"]["longitude"]
-                st.success(f"✅ Got location: {lat:.6f}, {lon:.6f}")
+                current_lat = loc["coords"]["latitude"]
+                current_lon = loc["coords"]["longitude"]
+                st.success(f"✅ Updated location: {current_lat:.6f}, {current_lon:.6f}")
             else:
-                st.warning("⚠️ Could not fetch GPS coordinates. Please allow location access.")
+                st.warning("⚠️ Could not fetch location. Try again or enter manually.")
         except Exception as e:
             st.error(f"Error fetching GPS: {e}")
 
-
+    # Default to 0.0 if GPS not available
+    if current_lat is None:
+        current_lat, current_lon = 0.0, 0.0
 
     # --- Disease tagging form ---
     with st.form("disease_form", clear_on_submit=True):
@@ -762,12 +777,14 @@ elif menu == "Tag a disease":
             )
 
         with col2:
-            disease_options = ["Stripe rust", "Leaf rust", "Stem rust", "Septoria tritici blotch", "Yellow leaf spot",
-                               "Powdery mildew", "Eye spot", "Black point", "Smut", "Spot form net blotch",
-                               "Net form net blotch", "Scald", "Red Leather Leaf", "Septoria avenae blotch",
-                               "Bacterial blight", "Ascochyta Blight", "Botrytis Grey Mold", "Sclerotinia white mould",
-                               "Chocolate Spot", "Cercospora leaf spot", "Downy mildew", "Black Spot",
-                               "Root Disease", "Virus", "Blackleg", "Other"]
+            disease_options = [
+                "Stripe rust", "Leaf rust", "Stem rust", "Septoria tritici blotch", "Yellow leaf spot",
+                "Powdery mildew", "Eye spot", "Black point", "Smut", "Spot form net blotch",
+                "Net form net blotch", "Scald", "Red Leather Leaf", "Septoria avenae blotch",
+                "Bacterial blight", "Ascochyta Blight", "Botrytis Grey Mold", "Sclerotinia white mould",
+                "Chocolate Spot", "Cercospora leaf spot", "Downy mildew", "Black Spot",
+                "Root Disease", "Virus", "Blackleg", "Other"
+            ]
 
             disease1 = st.selectbox("Disease 1", ["None"] + disease_options)
             disease2 = st.selectbox("Disease 2", ["None"] + disease_options)
@@ -777,7 +794,6 @@ elif menu == "Tag a disease":
             severity2 = st.number_input("Severity 2 (%)", min_value=0, max_value=100, value=0, step=1)
             severity3 = st.number_input("Severity 3 (%)", min_value=0, max_value=100, value=0, step=1)
 
-            # Automatically filled latitude and longitude
             latitude = st.text_input("Latitude", f"{current_lat:.6f}")
             longitude = st.text_input("Longitude", f"{current_lon:.6f}")
 
@@ -805,9 +821,11 @@ elif menu == "Tag a disease":
                     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
                     file_extension = uploaded_file.name.split(".")[-1]
                     photo_filename = f"disease_photo_{timestamp}.{file_extension}"
+                    os.makedirs("uploads", exist_ok=True)
                     with open(os.path.join("uploads", photo_filename), "wb") as f:
                         f.write(uploaded_file.getbuffer())
 
+                # Remove "None" diseases
                 if disease2 == "None":
                     disease2, severity2 = "", 0
                 if disease3 == "None":
@@ -831,14 +849,14 @@ elif menu == "Tag a disease":
                     "latitude": float(latitude),
                     "longitude": float(longitude),
                     "survey_location": location,
-                    "photo_filename": photo_filename if photo_filename else "",
+                    "photo_filename": photo_filename or "",
                     "field_notes": field_notes,
                     "Action": ", ".join(molecular_diagnosis) if molecular_diagnosis else "",
                     "sample_taken": sample_taken,
                 }
 
                 if save_data(new_record):
-                    st.success("✅ Submission successful! Data saved to persistent storage.")
+                    st.success("✅ Submission successful! Data saved.")
                     reload_data()
                     if uploaded_file is not None:
                         st.image(uploaded_file, caption="Disease Photo", use_column_width=True)
@@ -934,6 +952,7 @@ elif menu == "Resources":
         - [SARDI Biosecurity](https://pir.sa.gov.au/sardi/crop_sciences/plant_health_and_biosecurity)
         """
     )
+
 
 
 
