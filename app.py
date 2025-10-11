@@ -715,20 +715,22 @@ if menu == "Disease tracker":
 # -------------------------------
 # Tag a Disease Page 
 # -------------------------------------------
+from streamlit_js_eval import get_geolocation
+import time
+
 elif menu == "Tag a disease":
 
     st.markdown("## 📌 Tag a Disease")
 
-    # --- Get GPS location from browser ---
     st.info("📍 Please allow browser access to your location for automatic tagging.")
 
     current_lat, current_lon = None, None
-    location_data = None
 
     try:
-        # Try to get location with timeout
-        location_data = get_geolocation(timeout=10)
+        # Simply call without timeout
+        location_data = get_geolocation()
         time.sleep(1)
+
         if location_data and "coords" in location_data:
             current_lat = location_data["coords"]["latitude"]
             current_lon = location_data["coords"]["longitude"]
@@ -736,12 +738,12 @@ elif menu == "Tag a disease":
         else:
             st.warning("⚠️ Could not automatically fetch GPS coordinates. You can enter them manually below.")
     except Exception as e:
-        st.warning("⚠️ Unable to fetch GPS automatically. Please allow location access or enter coordinates manually.")
+        st.warning(f"⚠️ Unable to fetch GPS automatically. Please allow location access or enter coordinates manually. ({e})")
 
-    # --- Manual trigger for GPS capture ---
+    # Manual trigger for GPS refresh
     if st.button("📍 Refresh Location"):
         try:
-            loc = get_geolocation(timeout=10)
+            loc = get_geolocation()
             if loc and "coords" in loc:
                 current_lat = loc["coords"]["latitude"]
                 current_lon = loc["coords"]["longitude"]
@@ -751,7 +753,7 @@ elif menu == "Tag a disease":
         except Exception as e:
             st.error(f"Error fetching GPS: {e}")
 
-    # Default to 0.0 if GPS not available
+    # Default fallback
     if current_lat is None:
         current_lat, current_lon = 0.0, 0.0
 
@@ -952,6 +954,7 @@ elif menu == "Resources":
         - [SARDI Biosecurity](https://pir.sa.gov.au/sardi/crop_sciences/plant_health_and_biosecurity)
         """
     )
+
 
 
 
