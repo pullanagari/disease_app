@@ -495,7 +495,7 @@ if menu == "Disease tracker":
 
 
         
-            # x_axis = st.selectbox("X-Axis", ["Crop", "Location", "Disease"])
+            # x_axis = st.selectbox("X-Axis", ["Crop", "Location"])
         
             # if not df_long.empty:
             #     if x_axis == "Crop":
@@ -1013,6 +1013,7 @@ elif menu == "Resources":
         - [SARDI Biosecurity](https://pir.sa.gov.au/sardi/crop_sciences/plant_health_and_biosecurity)
         """
     )
+
 
 
 
