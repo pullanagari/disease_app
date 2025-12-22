@@ -485,11 +485,39 @@ if menu == "Disease tracker":
         # Render the map
         st_folium(m, width=800, height=450)
         with tab2:
+            # Convert disease columns into long format
+df_long = df_filtered.melt(
+    id_vars=["crop", "survey_location"],
+    value_vars=["disease1", "disease2"],
+    var_name="disease_source",
+    value_name="disease"
+)
+
+# Add corresponding severity values
+df_long["severity"] = np.where(
+    df_long["disease_source"] == "disease1",
+    df_filtered["severity1_percent"].values,
+    df_filtered["severity2_percent"].values
+)
+
+# Remove empty diseases
+df_long = df_long.dropna(subset=["disease", "severity"])
+
+
+
+
+
+
+
+
+
+
+        with tab2:
             st.markdown("### Disease Severity Graph")
-            
+        
             x_axis = st.selectbox("X-Axis", ["Crop", "Location", "Disease"])
-            
-            if not df_filtered.empty:
+        
+            if not df_long.empty:
                 if x_axis == "Crop":
                     x_col = "crop"
                     title = "Mean Disease Severity by Crop"
@@ -497,30 +525,71 @@ if menu == "Disease tracker":
                     x_col = "survey_location"
                     title = "Mean Disease Severity by Location"
                 else:  # Disease
-                    x_col = "disease1"
+                    x_col = "disease"
                     title = "Mean Disease Severity by Disease Type"
         
-                # 🔹 Aggregate mean severity
+                # 🔹 Mean severity aggregation
                 df_mean = (
-                    df_filtered
-                    .groupby([x_col, "disease1"], as_index=False)
-                    .agg(mean_severity=("severity1_percent", "mean"))
+                    df_long
+                    .groupby([x_col, "disease"], as_index=False)
+                    .agg(mean_severity=("severity", "mean"))
                 )
         
                 fig = px.bar(
                     df_mean,
                     x=x_col,
                     y="mean_severity",
-                    color="disease1",
+                    color="disease",
                     title=title,
                     labels={"mean_severity": "Mean Severity (%)", x_col: x_axis},
                     color_discrete_map=disease_color_map,
-                    barmode="group",   # ✅ KEY FIX
+                    barmode="group",   # separate bars per disease
                 )
         
                 st.plotly_chart(fig, use_container_width=True)
             else:
                 st.info("No data available for the graph.")
+        
+        
+        
+
+
+            # st.markdown("### Disease Severity Graph")
+            
+            # x_axis = st.selectbox("X-Axis", ["Crop", "Location", "Disease"])
+            
+            # if not df_filtered.empty:
+            #     if x_axis == "Crop":
+            #         x_col = "crop"
+            #         title = "Mean Disease Severity by Crop"
+            #     elif x_axis == "Location":
+            #         x_col = "survey_location"
+            #         title = "Mean Disease Severity by Location"
+            #     else:  # Disease
+            #         x_col = "disease1"
+            #         title = "Mean Disease Severity by Disease Type"
+        
+            #     # 🔹 Aggregate mean severity
+            #     df_mean = (
+            #         df_filtered
+            #         .groupby([x_col, "disease1"], as_index=False)
+            #         .agg(mean_severity=("severity1_percent", "mean"))
+            #     )
+        
+            #     fig = px.bar(
+            #         df_mean,
+            #         x=x_col,
+            #         y="mean_severity",
+            #         color="disease1",
+            #         title=title,
+            #         labels={"mean_severity": "Mean Severity (%)", x_col: x_axis},
+            #         color_discrete_map=disease_color_map,
+            #         barmode="group",   # ✅ KEY FIX
+            #     )
+        
+            #     st.plotly_chart(fig, use_container_width=True)
+            # else:
+            #     st.info("No data available for the graph.")
         
 
     st.markdown("### Surveillance Summary")
@@ -964,6 +1033,7 @@ elif menu == "Resources":
         - [SARDI Biosecurity](https://pir.sa.gov.au/sardi/crop_sciences/plant_health_and_biosecurity)
         """
     )
+
 
 
 
