@@ -999,7 +999,7 @@ elif menu == "About":
     - Google Sheets ensures your data persists across sessions and deployments
     ** **
     - Designed the APP by Dr. Pullanagari Reddy
-    - Scinetific Supoort by Dr. Hari Dadu
+    - Scinetific Collaboration with Dr. Hari Dadu
     """
     )
 
@@ -1013,6 +1013,7 @@ elif menu == "Resources":
         - [SARDI Biosecurity](https://pir.sa.gov.au/sardi/crop_sciences/plant_health_and_biosecurity)
         """
     )
+
 
 
 
