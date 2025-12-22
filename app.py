@@ -484,6 +484,42 @@ if menu == "Disease tracker":
     
         # Render the map
         st_folium(m, width=800, height=450)
+    # with tab2:
+    #     st.markdown("### Disease Severity Graph")
+        
+    #     x_axis = st.selectbox("X-Axis", ["Crop", "Location", "Disease"])
+        
+    #     if not df_filtered.empty:
+    #         if x_axis == "Crop":
+    #             x_col = "crop"
+    #             title = "Mean Disease Severity by Crop"
+    #         elif x_axis == "Location":
+    #             x_col = "survey_location"
+    #             title = "Mean Disease Severity by Location"
+    #         else:  # Disease
+    #             x_col = "disease1"
+    #             title = "Mean Disease Severity by Disease Type"
+    
+    #         # 🔹 Aggregate mean severity
+    #         df_mean = (
+    #             df_filtered
+    #             .groupby([x_col, "disease1"], as_index=False)
+    #             .agg(mean_severity=("severity1_percent", "mean"))
+    #         )
+    
+    #         fig = px.bar(
+    #             df_mean,
+    #             x=x_col,
+    #             y="mean_severity",
+    #             title=title,
+    #             labels={"mean_severity": "Mean Severity (%)", x_col: x_axis},
+    #             color="disease1",
+    #             color_discrete_map=disease_color_map,
+    #         )
+    
+    #         st.plotly_chart(fig, use_container_width=True)
+    #     else:
+    #         st.info("No data available for the graph.")
     with tab2:
         st.markdown("### Disease Severity Graph")
         
@@ -511,16 +547,17 @@ if menu == "Disease tracker":
                 df_mean,
                 x=x_col,
                 y="mean_severity",
+                color="disease1",
                 title=title,
                 labels={"mean_severity": "Mean Severity (%)", x_col: x_axis},
-                color="disease1",
                 color_discrete_map=disease_color_map,
+                barmode="group",   # ✅ KEY FIX
             )
     
             st.plotly_chart(fig, use_container_width=True)
         else:
             st.info("No data available for the graph.")
-
+    
 
     st.markdown("### Surveillance Summary")
         
@@ -963,6 +1000,7 @@ elif menu == "Resources":
         - [SARDI Biosecurity](https://pir.sa.gov.au/sardi/crop_sciences/plant_health_and_biosecurity)
         """
     )
+
 
 
 
