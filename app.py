@@ -6,7 +6,7 @@ from streamlit_folium import st_folium
 from datetime import datetime
 import os
 from PIL import Image
-import json
+import json 
 import requests
 import io
 import zipfile
@@ -378,7 +378,7 @@ sidebar_mobile_friendly = """
 """
 st.markdown(sidebar_mobile_friendly, unsafe_allow_html=True)
 
-st.sidebar.markdown("## 🌾 South Australia Disease Surveillance")
+st.sidebar.markdown("## 🌾 Surveillance SA")
 menu = st.sidebar.radio("Navigation", ["Disease tracker", "Tag a disease", "About", "Resources", "Data Management"])
 
 # Refresh button
@@ -963,6 +963,7 @@ elif menu == "Resources":
         - [SARDI Biosecurity](https://pir.sa.gov.au/sardi/crop_sciences/plant_health_and_biosecurity)
         """
     )
+
 
 
 
