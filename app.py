@@ -178,6 +178,23 @@ def save_local_data(df):
     except Exception as e:
         st.error(f"Error saving data: {e}")
         return False
+# Convert disease columns into long format
+df_long = df_filtered.melt(
+    id_vars=["crop", "survey_location"],
+    value_vars=["disease1", "disease2"],
+    var_name="disease_source",
+    value_name="disease"
+)
+
+# Add corresponding severity values
+df_long["severity"] = np.where(
+    df_long["disease_source"] == "disease1",
+    df_filtered["severity1_percent"].values,
+    df_filtered["severity2_percent"].values
+)
+
+# Remove empty diseases
+df_long = df_long.dropna(subset=["disease", "severity"])
 
 def load_local_data():
     """Load local data with error handling"""
@@ -489,32 +506,9 @@ if menu == "Disease tracker":
           
         with tab2:
             st.markdown("### Disease Severity Graph")
-              
-            # # Convert disease columns into long format
-            # df_long = df_filtered.melt(
-            #     id_vars=["crop", "survey_location"],
-            #     value_vars=["disease1", "disease2"],
-            #     var_name="disease_source",
-            #     value_name="disease"
-            # )
+          
             
-            # # Add corresponding severity values
-            # df_long["severity"] = np.where(
-            #     df_long["disease_source"] == "disease1",
-            #     df_filtered["severity1_percent"].values,
-            #     df_filtered["severity2_percent"].values
-            # )
-            
-            # # Remove empty diseases
-            # df_long = df_long.dropna(subset=["disease", "severity"])
-            
-            
-            
-
-
-
-
-
+        
 
 
         
@@ -1036,6 +1030,7 @@ elif menu == "Resources":
         - [SARDI Biosecurity](https://pir.sa.gov.au/sardi/crop_sciences/plant_health_and_biosecurity)
         """
     )
+
 
 
 
