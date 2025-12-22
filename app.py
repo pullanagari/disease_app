@@ -485,26 +485,28 @@ if menu == "Disease tracker":
         # Render the map
         st_folium(m, width=800, height=450)
         with tab2:
+
+            
             # Convert disease columns into long format
-df_long = df_filtered.melt(
-    id_vars=["crop", "survey_location"],
-    value_vars=["disease1", "disease2"],
-    var_name="disease_source",
-    value_name="disease"
-)
-
-# Add corresponding severity values
-df_long["severity"] = np.where(
-    df_long["disease_source"] == "disease1",
-    df_filtered["severity1_percent"].values,
-    df_filtered["severity2_percent"].values
-)
-
-# Remove empty diseases
-df_long = df_long.dropna(subset=["disease", "severity"])
-
-
-
+            df_long = df_filtered.melt(
+                id_vars=["crop", "survey_location"],
+                value_vars=["disease1", "disease2"],
+                var_name="disease_source",
+                value_name="disease"
+            )
+            
+            # Add corresponding severity values
+            df_long["severity"] = np.where(
+                df_long["disease_source"] == "disease1",
+                df_filtered["severity1_percent"].values,
+                df_filtered["severity2_percent"].values
+            )
+            
+            # Remove empty diseases
+            df_long = df_long.dropna(subset=["disease", "severity"])
+            
+            
+            
 
 
 
@@ -1033,6 +1035,7 @@ elif menu == "Resources":
         - [SARDI Biosecurity](https://pir.sa.gov.au/sardi/crop_sciences/plant_health_and_biosecurity)
         """
     )
+
 
 
 
