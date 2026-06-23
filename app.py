@@ -216,41 +216,37 @@ def save_data(new_row):
 #----------------------------
 # Adding unique ID
 def get_next_sample_id():
-    """Generate the next sample ID by checking both local and Google Sheets data"""
-    # First check Google Sheets for the latest ID
-    gs_data = load_from_google_sheets()
-    if not gs_data.empty and "sample_id" in gs_data.columns:
-        last_id = gs_data["sample_id"].iloc[-1]
-        match = re.search(r"SARDI(\d+)", str(last_id))
-        if match:
-            next_num = int(match.group(1)) + 1
-        else:
-            next_num = 25001
-    else:
-        # Fallback to local file
-        file_path = "data/local_disease_data.csv"
-        try:
-            if os.path.exists(file_path):
-                df = pd.read_csv(file_path)
-                if "sample_id" in df.columns and not df.empty:
-                    last_id = df["sample_id"].iloc[-1]
-                    match = re.search(r"SARDI(\d+)", str(last_id))
-                    if match:
-                        next_num = int(match.group(1)) + 1
-                    else:
-                        next_num = 25001
-                else:
-                    next_num = 25001
-            else:
-                next_num = 25001
-        except:
-            next_num = 25001
-    
-    return f"SARDI{next_num:05d}"
+    """Generate the next sample ID by finding the MAX existing ID across all sources"""
+    max_num = 25000  # default starting point (first ID will be SARDI25001)
+
+    def extract_num(sid):
+        m = re.search(r"SARDI(\d+)", str(sid))
+        return int(m.group(1)) if m else 0
+
+    # Check Google Sheets first
+    try:
+        gs_data = load_from_google_sheets()
+        if not gs_data.empty and "sample_id" in gs_data.columns:
+            nums = gs_data["sample_id"].apply(extract_num)
+            max_num = max(max_num, int(nums.max()))
+    except Exception:
+        pass
+
+    # Also check local file to be safe
+    file_path = "data/local_disease_data.csv"
+    try:
+        if os.path.exists(file_path):
+            df_local = pd.read_csv(file_path)
+            if "sample_id" in df_local.columns and not df_local.empty:
+                nums = df_local["sample_id"].apply(extract_num)
+                max_num = max(max_num, int(nums.max()))
+    except Exception:
+        pass
+
+    return f"SARDI{max_num + 1:05d}"
 
 # -------------------------------
 # Load data with caching
-@st.cache_data(ttl=300)
 @st.cache_data(ttl=300)
 def load_data():
     """Load the most recent data, prioritizing Google Sheets but merging with local if needed."""
@@ -486,91 +482,44 @@ if menu == "Disease tracker":
         st_folium(m, width=800, height=450)
        
 
-          
-        with tab2:
-            st.markdown("### Disease Severity Graph")
-          
-            
-        
+    with tab2:
+        st.markdown("### Disease Severity Graph")
 
+        x_axis = st.selectbox("X-Axis", ["Crop", "Location"])
 
-        
-            # x_axis = st.selectbox("X-Axis", ["Crop", "Location"])
-        
-            # if not df_long.empty:
-            #     if x_axis == "Crop":
-            #         x_col = "crop"
-            #         title = "Mean Disease Severity by Crop"
-            #     elif x_axis == "Location":
-            #         x_col = "survey_location"
-            #         title = "Mean Disease Severity by Location"
-            #     else:  # Disease
-            #         x_col = "disease"
-            #         title = "Mean Disease Severity by Disease Type"
-        
-            #     # 🔹 Mean severity aggregation
-            #     df_mean = (
-            #         df_long
-            #         .groupby([x_col, "disease"], as_index=False)
-            #         .agg(mean_severity=("severity", "mean"))
-            #     )
-        
-            #     fig = px.bar(
-            #         df_mean,
-            #         x=x_col,
-            #         y="mean_severity",
-            #         color="disease",
-            #         title=title,
-            #         labels={"mean_severity": "Mean Severity (%)", x_col: x_axis},
-            #         color_discrete_map=disease_color_map,
-            #         barmode="group",   # separate bars per disease
-            #     )
-        
-            #     st.plotly_chart(fig, use_container_width=True)
-            # else:
-            #     st.info("No data available for the graph.")
-        
-        
-        
-
-
-            # st.markdown("### Disease Severity Graph")
-            
-            x_axis = st.selectbox("X-Axis", ["Crop", "Location"])
-            
-            if not df_filtered.empty:
-                if x_axis == "Crop":
-                    x_col = "crop"
-                    title = "Mean Disease Severity by Crop"
-                elif x_axis == "Location":
-                    x_col = "survey_location"
-                    title = "Mean Disease Severity by Location"
-                else:  # Disease
-                    x_col = "disease1"
-                    title = "Mean Disease Severity by Disease Type"
-        
-                # 🔹 Aggregate mean severity
-                df_mean = (
-                    df_filtered
-                    .groupby([x_col, "disease1"], as_index=False)
-                    .agg(mean_severity=("severity1_percent", "mean"))
-                )
-        
-                fig = px.bar(
-                    df_mean,
-                    x=x_col,
-                    y="mean_severity",
-                    color="disease1",
-                    title=title,
-                    labels={"mean_severity": "Mean Severity (%)", x_col: x_axis},
-                    color_discrete_map=disease_color_map,
-                    barmode="group",   # ✅ KEY FIX
-                )
-        
-                st.plotly_chart(fig, use_container_width=True)
+        if not df_filtered.empty:
+            if x_axis == "Crop":
+                x_col = "crop"
+                title = "Mean Disease Severity by Crop"
+            elif x_axis == "Location":
+                x_col = "survey_location"
+                title = "Mean Disease Severity by Location"
             else:
-                st.info("No data available for the graph.")
-        
+                x_col = "disease1"
+                title = "Mean Disease Severity by Disease Type"
+
+            # Aggregate mean severity
+            df_mean = (
+                df_filtered
+                .groupby([x_col, "disease1"], as_index=False)
+                .agg(mean_severity=("severity1_percent", "mean"))
+            )
+
+            fig = px.bar(
+                df_mean,
+                x=x_col,
+                y="mean_severity",
+                color="disease1",
+                title=title,
+                labels={"mean_severity": "Mean Severity (%)", x_col: x_axis},
+                color_discrete_map=disease_color_map,
+                barmode="group",
+            )
+
+            st.plotly_chart(fig, use_container_width=True)
+        else:
+            st.info("No data available for the graph.")
+
 
     st.markdown("### Surveillance Summary")
         
@@ -860,6 +809,7 @@ elif menu == "Tag a disease":
         agronomist = st.text_input("Agronomist", "")
         field_notes = st.text_area("Field Notes (Optional)")
         sample_taken = st.selectbox("Sample Taken", ["Yes", "No", "N/A"])
+        sample_type = st.selectbox("Sample Type", ["Diagnostic", "Surveillance"])
         molecular_diagnosis = st.multiselect(
             "Action",
             ["Molecular diagnosis", "Mail a sample to collaborators", "Report back to farmers", "Single Spore isolation"]
@@ -911,6 +861,7 @@ elif menu == "Tag a disease":
                     "field_notes": field_notes,
                     "Action": ", ".join(molecular_diagnosis) if molecular_diagnosis else "",
                     "sample_taken": sample_taken,
+                    "sample_type": sample_type,
                 }
 
                 if save_data(new_record):
@@ -1013,27 +964,3 @@ elif menu == "Resources":
         - [SARDI Biosecurity](https://pir.sa.gov.au/sardi/crop_sciences/plant_health_and_biosecurity)
         """
     )
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
