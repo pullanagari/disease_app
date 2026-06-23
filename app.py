@@ -949,7 +949,7 @@ elif menu == "About":
     - Your submitted data is now saved to both local storage and Google Sheets
     - Google Sheets ensures your data persists across sessions and deployments
     ** **
-    - Designed the APP by Dr. Pullanagari Reddy
+    - Designed the APP by Dr. Reddy Pullanagari
     - Scinetific Collaboration with Dr. Hari Dadu
     """
     )
