@@ -216,19 +216,31 @@ def save_data(new_row):
 #----------------------------
 # Adding unique ID
 def get_next_sample_id():
-    """Generate the next sample ID by finding the MAX existing ID across all sources"""
-    max_num = 25000  # default starting point (first ID will be SARDI25001)
+    """Generate the next sample ID as SARDI_YY_N, where YY is the current
+    2-digit year and N is a sequence number that resets to 1 each year
+    (e.g. SARDI_26_1, SARDI_26_2, ... then SARDI_27_1 in 2027)."""
+    current_year = datetime.now().strftime("%y")
+    max_seq = 0
 
-    def extract_num(sid):
-        m = re.search(r"SARDI(\d+)", str(sid))
-        return int(m.group(1)) if m else 0
+    def extract_seq(sid):
+        m = re.match(r"SARDI_(\d{2})_(\d+)\s*$", str(sid).strip())
+        if m and m.group(1) == current_year:
+            return int(m.group(2))
+        return None
+
+    def update_max_seq(df):
+        nonlocal max_seq
+        if df is None or df.empty or "sample_id" not in df.columns:
+            return
+        for sid in df["sample_id"]:
+            seq = extract_seq(sid)
+            if seq is not None and seq > max_seq:
+                max_seq = seq
 
     # Check Google Sheets first
     try:
         gs_data = load_from_google_sheets()
-        if not gs_data.empty and "sample_id" in gs_data.columns:
-            nums = gs_data["sample_id"].apply(extract_num)
-            max_num = max(max_num, int(nums.max()))
+        update_max_seq(gs_data)
     except Exception:
         pass
 
@@ -237,13 +249,11 @@ def get_next_sample_id():
     try:
         if os.path.exists(file_path):
             df_local = pd.read_csv(file_path)
-            if "sample_id" in df_local.columns and not df_local.empty:
-                nums = df_local["sample_id"].apply(extract_num)
-                max_num = max(max_num, int(nums.max()))
+            update_max_seq(df_local)
     except Exception:
         pass
 
-    return f"SARDI{max_num + 1:05d}"
+    return f"SARDI_{current_year}_{max_seq + 1}"
 
 # -------------------------------
 # Load data with caching
@@ -412,10 +422,26 @@ if menu == "Disease tracker":
     with col3:
         min_date = df["date"].min().date() if not df["date"].isna().all() else datetime(2020, 1, 1).date()
         max_date = df["date"].max().date() if not df["date"].isna().all() else datetime.today().date()
-        date_range = st.date_input("Select Date Range", [min_date, max_date])
+        date_range = st.date_input(
+            "Select Date Range",
+            [min_date, max_date],
+            min_value=min_date,
+            max_value=max_date,
+            key="disease_tracker_date_range",
+        )
+
+    # st.date_input returns a single-element tuple while the user has only
+    # picked the start date (before the end date is chosen). Guard against
+    # that so filtering doesn't break mid-selection.
+    if isinstance(date_range, (list, tuple)) and len(date_range) == 2:
+        start_date, end_date = date_range
+    elif isinstance(date_range, (list, tuple)) and len(date_range) == 1:
+        start_date = end_date = date_range[0]
+    else:
+        start_date = end_date = date_range
 
     # Filter data
-    mask = (df["date"] >= pd.to_datetime(date_range[0])) & (df["date"] <= pd.to_datetime(date_range[1]))
+    mask = (df["date"] >= pd.to_datetime(start_date)) & (df["date"] <= pd.to_datetime(end_date))
     if crop != "All":
         mask &= df["crop"] == crop
     if disease != "All":
@@ -427,7 +453,7 @@ if menu == "Disease tracker":
     st.markdown("### Key Metrics")
     if not df_filtered.empty:
         col1, col2, col3 = st.columns(3)
-        col1.metric("Total Surveys", len(df))
+        col1.metric("Total Surveys", len(df_filtered))
         col2.metric("Max Severity (%)", int(df_filtered["severity1_percent"].max()))
         col3.metric("Average Severity (%)", round(df_filtered["severity1_percent"].mean(), 1))
     else:
