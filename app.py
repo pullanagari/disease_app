@@ -631,16 +631,12 @@ if menu == "Disease tracker":
         # (which serializes as `null`) before rendering.
         editable_df = editable_df.astype(object).where(pd.notna(editable_df), None)
 
-        # Make table editable - use a unique key for the data_editor.
-        # Force every column to plain text: Streamlit's automatic
-        # numeric/date column-type detection is what crashes on a missing
-        # value in this dataset, so bypass that detection entirely.
+        # Make table editable - use a unique key for the data_editor
         edited_df = st.data_editor(
             editable_df,
             num_rows="dynamic",
             use_container_width=True,
             key="surveillance_summary_editor",
-            column_config={col: st.column_config.TextColumn() for col in editable_df.columns},
         )
     
         # Save edited changes
