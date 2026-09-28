@@ -334,7 +334,7 @@ def load_data():
                     bad_rows = df_combined.loc[failed_mask]
                     date_parse_issues[date_col] = [
                         {
-                            "sample_id": row.get("sample_id", "?"),
+                            "sample_id": str(row.get("sample_id")) if pd.notna(row.get("sample_id")) else "?",
                             "value": original_str.loc[idx],
                         }
                         for idx, row in bad_rows.iterrows()
