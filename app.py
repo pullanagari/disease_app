@@ -614,6 +614,13 @@ if menu == "Disease tracker":
             # instead of leaving a raw NaN in the cell.
             editable_df['date'] = editable_df['date'].dt.strftime('%d/%m/%Y').fillna("")
 
+        # A raw NaN (missing value) anywhere else in the table breaks the data
+        # editor too: Python's json encoder writes a bare `NaN` token for it,
+        # which is not valid JSON and crashes the browser when it tries to
+        # parse the grid data. Replace all remaining missing values with None
+        # (which serializes as `null`) before rendering.
+        editable_df = editable_df.astype(object).where(pd.notna(editable_df), None)
+
         # Make table editable - use a unique key for the data_editor
         edited_df = st.data_editor(
             editable_df,
