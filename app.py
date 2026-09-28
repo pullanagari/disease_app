@@ -290,38 +290,59 @@ def load_data():
 
     # --- Robust date parsing ---
     date_columns = [col for col in df_combined.columns if 'date' in col.lower()]
-    
+    date_parse_issues = {}
+
     for date_col in date_columns:
         if date_col in df_combined.columns:
+            original = df_combined[date_col]
+
             # Try multiple date formats
             try:
-                df_combined[date_col] = pd.to_datetime(
-                    df_combined[date_col], 
-                    errors='coerce', 
+                parsed = pd.to_datetime(
+                    original,
+                    errors='coerce',
                     dayfirst=True,
                     format='mixed'
                 )
-            except:
+            except Exception:
                 try:
                     # Try different parsing approach
-                    df_combined[date_col] = pd.to_datetime(
-                        df_combined[date_col], 
-                        errors='coerce'
-                    )
-                except:
+                    parsed = pd.to_datetime(original, errors='coerce')
+                except Exception:
                     st.warning(f"Could not parse date column: {date_col}")
-            
+                    parsed = original
+
             # If still not datetime, try manual conversion
-            if not pd.api.types.is_datetime64_any_dtype(df_combined[date_col]):
+            if not pd.api.types.is_datetime64_any_dtype(parsed):
                 try:
-                    df_combined[date_col] = pd.to_datetime(
-                        df_combined[date_col].astype(str), 
+                    parsed = pd.to_datetime(
+                        original.astype(str),
                         errors='coerce',
                         dayfirst=True
                     )
-                except:
+                except Exception:
                     pass
 
+            # A value that failed to parse becomes NaT and pandas' min()/max()
+            # silently ignore NaT, so a bad date in the cloud sheet doesn't
+            # raise an error - it just quietly disappears from the date range.
+            # Flag it instead so it's visible and fixable at the source.
+            if pd.api.types.is_datetime64_any_dtype(parsed):
+                original_str = original.astype(str).str.strip()
+                failed_mask = parsed.isna() & original_str.ne("") & original_str.str.lower().ne("nan")
+                if failed_mask.any():
+                    bad_rows = df_combined.loc[failed_mask]
+                    date_parse_issues[date_col] = [
+                        {
+                            "sample_id": row.get("sample_id", "?"),
+                            "value": original_str.loc[idx],
+                        }
+                        for idx, row in bad_rows.iterrows()
+                    ]
+
+            df_combined[date_col] = parsed
+
+    df_combined.attrs["date_parse_issues"] = date_parse_issues
     return df_combined
 
 # Initialize session state
@@ -414,6 +435,16 @@ if menu == "Disease tracker":
         st.error(f"Missing required columns in data: {missing_columns}")
         st.stop()
 
+    date_issues = df.attrs.get("date_parse_issues", {}).get("date")
+    if date_issues:
+        st.warning(
+            f"⚠️ {len(date_issues)} row(s) have a 'date' value that couldn't be understood "
+            "and are excluded from the date range below. Fix these in the Google Sheet, "
+            "then click Refresh Data."
+        )
+        with st.expander("Show rows with unrecognized dates"):
+            st.dataframe(pd.DataFrame(date_issues), use_container_width=True)
+
     col1, col2, col3 = st.columns([1.5, 1, 1])
     with col1:
         crop = st.selectbox("Choose a Crop", ["All"] + sorted(df["crop"].dropna().unique()))
@@ -422,6 +453,16 @@ if menu == "Disease tracker":
     with col3:
         min_date = df["date"].min().date() if not df["date"].isna().all() else datetime(2020, 1, 1).date()
         max_date = df["date"].max().date() if not df["date"].isna().all() else datetime.today().date()
+
+        # st.date_input keeps its selection in session_state keyed by `key` and
+        # only honours the [min_date, max_date] default the first time that key
+        # is created. Without this, the picker stays stuck at whatever range was
+        # first computed and won't follow new min/max dates coming from the
+        # cloud sheet (e.g. after a new submission or a Refresh Data click).
+        if st.session_state.get("_disease_tracker_date_bounds") != (min_date, max_date):
+            st.session_state["_disease_tracker_date_bounds"] = (min_date, max_date)
+            st.session_state.pop("disease_tracker_date_range", None)
+
         date_range = st.date_input(
             "Select Date Range",
             [min_date, max_date],
