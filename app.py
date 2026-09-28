@@ -608,9 +608,12 @@ if menu == "Disease tracker":
             # Convert to datetime if not already
             if not pd.api.types.is_datetime64_any_dtype(editable_df['date']):
                 editable_df['date'] = pd.to_datetime(editable_df['date'], errors='coerce')
-            # Format for display in the editor
-            editable_df['date'] = editable_df['date'].dt.strftime('%d/%m/%Y')
-    
+            # Format for display in the editor. NaT.strftime() returns NaN
+            # (not a string), which breaks the data editor's JSON
+            # serialization in the browser, so blank out unparseable dates
+            # instead of leaving a raw NaN in the cell.
+            editable_df['date'] = editable_df['date'].dt.strftime('%d/%m/%Y').fillna("")
+
         # Make table editable - use a unique key for the data_editor
         edited_df = st.data_editor(
             editable_df,
