@@ -631,17 +631,16 @@ if menu == "Disease tracker":
         # (which serializes as `null`) before rendering.
         editable_df = editable_df.astype(object).where(pd.notna(editable_df), None)
 
-        # Read-only for now: st.data_editor crashes the browser on this data
-        # (a Streamlit frontend bug triggered by some value in the real
-        # sheet that we haven't isolated yet - it doesn't reproduce with any
-        # synthetic data tried so far). Plain st.dataframe on the same data
-        # renders fine, so use that until the editor issue is root-caused.
-        st.dataframe(editable_df, use_container_width=True)
-        edited_df = editable_df
-    
+        # Make table editable - use a unique key for the data_editor
+        edited_df = st.data_editor(
+            editable_df,
+            num_rows="dynamic",
+            use_container_width=True,
+            key="surveillance_summary_editor",
+        )
+
         # Save edited changes
-        st.info("✏️ Inline editing is temporarily disabled while a display bug in the table editor is being fixed. To correct a record, edit it directly in the Google Sheet and click 'Refresh Data', or use 'Tag a disease' / 'Delete Records' below.")
-        if False and st.button("💾 Save Changes"):
+        if st.button("💾 Save Changes"):
             try:
                 # Create a complete updated dataframe with all changes
                 if show_all_columns:
