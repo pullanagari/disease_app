@@ -631,6 +631,12 @@ if menu == "Disease tracker":
         # (which serializes as `null`) before rendering.
         editable_df = editable_df.astype(object).where(pd.notna(editable_df), None)
 
+        # TEMPORARY DIAGNOSTIC: dump the raw values going into the editor so
+        # we can see exactly what's triggering the frontend crash. Safe to
+        # remove once the cause is identified.
+        with st.expander("DEBUG: raw editable_df rows"):
+            st.json(editable_df.to_dict(orient="records"))
+
         # Make table editable - use a unique key for the data_editor
         edited_df = st.data_editor(
             editable_df,
