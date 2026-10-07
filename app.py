@@ -344,26 +344,47 @@ def load_data():
 if "df" not in st.session_state:
     st.session_state.df = load_data()
 
-def reload_data():
-    """Force reload data from all sources"""
+def fetch_fresh_data():
+    """Fetch fresh data directly from Google Sheets + local, bypassing cache."""
+    df_gs = pd.DataFrame()
+    df_local = pd.DataFrame()
+
     try:
-        # Clear all relevant caches
+        df_gs = load_from_google_sheets()
+        if not df_gs.empty:
+            save_local_data(df_gs)
+    except Exception:
+        pass
+
+    df_local = load_local_data()
+
+    if df_local.empty and df_gs.empty:
+        return pd.DataFrame()
+    elif not df_local.empty and not df_gs.empty:
+        df_combined = pd.concat([df_gs, df_local], ignore_index=True)
+        if "sample_id" in df_combined.columns:
+            df_combined = df_combined.drop_duplicates(subset=["sample_id"], keep="last")
+    elif not df_local.empty:
+        df_combined = df_local
+    else:
+        df_combined = df_gs
+
+    # Parse date columns
+    for col in [c for c in df_combined.columns if 'date' in c.lower()]:
+        try:
+            df_combined[col] = pd.to_datetime(df_combined[col], errors='coerce', dayfirst=True)
+        except Exception:
+            pass
+
+    return df_combined
+
+def reload_data():
+    """Force reload data from all sources, bypassing Streamlit cache."""
+    try:
         st.cache_data.clear()
-        
-        # Reload data
-        new_data = load_data()
-        
-        # Ensure date columns are properly formatted
-        date_columns = [col for col in new_data.columns if 'date' in col.lower()]
-        for date_col in date_columns:
-            if date_col in new_data.columns:
-                if not pd.api.types.is_datetime64_any_dtype(new_data[date_col]):
-                    new_data[date_col] = pd.to_datetime(new_data[date_col], errors='coerce')
-        
+        new_data = fetch_fresh_data()
         st.session_state.df = new_data
-        
-        st.success("Data reloaded successfully!")
-        st.rerun()  # Force UI refresh
+        st.rerun()
     except Exception as e:
         st.error(f"Error reloading data: {e}")
 
@@ -885,9 +906,15 @@ elif menu == "Tag a disease":
 
                 if save_data(new_record):
                     st.success("✅ Submission successful! Data saved.")
-                    reload_data()
+                    # Immediately add new record to session state so Surveillance Summary updates now
+                    new_row_df = pd.DataFrame([new_record])
+                    new_row_df['date'] = pd.to_datetime(new_row_df['date'], dayfirst=True, errors='coerce')
+                    st.session_state.df = pd.concat(
+                        [st.session_state.df, new_row_df], ignore_index=True
+                    )
                     if uploaded_file is not None:
                         st.image(uploaded_file, caption="Disease Photo", use_column_width=True)
+                    st.rerun()
                 else:
                     st.error("Failed to save data. Please try again.")
 
