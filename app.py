@@ -482,22 +482,31 @@ if menu == "Disease tracker":
         max_date = df["date"].max().date() if not df["date"].isna().all() else datetime.today().date()
         date_range = st.date_input("Select Date Range", [min_date, max_date])
 
-    # Filter data
-    mask = (df["date"] >= pd.to_datetime(date_range[0])) & (df["date"] <= pd.to_datetime(date_range[1]))
+    # Wait until the user has selected both start and end dates
+    if not isinstance(date_range, (list, tuple)) or len(date_range) < 2:
+        st.info("Please select a start and end date.")
+        st.stop()
+
+    start_date = pd.to_datetime(date_range[0])
+    end_date   = pd.to_datetime(date_range[1])
+
+    # Filter data — all three filters applied to df_filtered
+    mask = (df["date"] >= start_date) & (df["date"] <= end_date)
     if crop != "All":
         mask &= df["crop"] == crop
     if disease != "All":
         mask &= df["disease1"] == disease
 
-    df_filtered = df.loc[mask]
+    df_filtered = df.loc[mask].copy()
 
-    # Metrics
+    # Metrics — all numbers reflect the current filter
     st.markdown("### Key Metrics")
     if not df_filtered.empty:
+        sev = pd.to_numeric(df_filtered["severity1_percent"], errors="coerce")
         col1, col2, col3 = st.columns(3)
-        col1.metric("Total Surveys", len(df))
-        col2.metric("Max Severity (%)", int(df_filtered["severity1_percent"].max()))
-        col3.metric("Average Severity (%)", round(df_filtered["severity1_percent"].mean(), 1))
+        col1.metric("Surveys (filtered)", len(df_filtered))
+        col2.metric("Max Severity (%)", int(sev.max()) if sev.notna().any() else 0)
+        col3.metric("Average Severity (%)", round(sev.mean(), 1) if sev.notna().any() else 0)
     else:
         st.warning("No data found for the selected filters.")
 
