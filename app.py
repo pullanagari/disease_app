@@ -230,20 +230,16 @@ def save_data(new_row):
 #----------------------------
 # Adding unique ID
 def get_next_sample_id():
-    """Generate the next sample ID, scanning ALL existing IDs (both old SARDI###### and new SARDI_YY_N formats)."""
+    """Generate the next sample ID in SARDI_YY_N format, e.g. SARDI_26_117."""
     current_year = datetime.now().strftime("%y")
     max_seq = 0
 
     def extract_seq(sid):
         sid = str(sid).strip()
-        # New format: SARDI_26_5
+        # Only match new format: SARDI_26_116 (year must match current year)
         m = re.match(r"SARDI_(\d{2})_(\d+)$", sid)
         if m and m.group(1) == current_year:
             return int(m.group(2))
-        # Old format: SARDI25001 — treat each as a sequence number too
-        m2 = re.match(r"SARDI(\d+)$", sid)
-        if m2:
-            return int(m2.group(1))
         return None
 
     def update_max_seq(df):
