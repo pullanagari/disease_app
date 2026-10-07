@@ -124,6 +124,20 @@ def init_google_sheets():
         st.warning("⚠️ No cloud data available for synchronization. Using local storage.")
         return None
 
+def _clean_df_for_sheets(df: pd.DataFrame) -> pd.DataFrame:
+    """Strip leaked index columns and blank-named columns before writing to Sheets."""
+    df = df.reset_index(drop=True).copy()
+    # Remove columns with blank names or that look like a DataFrame index
+    bad_cols = [
+        c for c in df.columns
+        if str(c).strip() == ""
+        or re.match(r"^Unnamed[:.\s]", str(c))
+        or str(c).strip() == "0"
+    ]
+    if bad_cols:
+        df = df.drop(columns=bad_cols)
+    return df
+
 def save_to_google_sheets(new_row: dict):
     """Save data to Google Sheets with proper error handling"""
     try:
@@ -151,7 +165,8 @@ def save_to_google_sheets(new_row: dict):
         return False
 
 def load_from_google_sheets():
-    """Load all data from Google Sheets, robust to blank/duplicate header columns."""
+    """Load all data from Google Sheets, robust to blank/duplicate header columns
+    and stray index columns written by earlier versions of the app."""
     spreadsheet = get_spreadsheet()
     if spreadsheet:
         try:
@@ -160,16 +175,34 @@ def load_from_google_sheets():
             if not all_values:
                 return pd.DataFrame()
 
-            # First row is headers — drop columns whose header is blank
             headers = all_values[0]
             data_rows = all_values[1:]
-            valid_cols = [i for i, h in enumerate(headers) if h.strip() != ""]
+
+            # Drop columns whose header is blank or looks like a leaked DataFrame index
+            # (unnamed columns that contain sequential integers)
+            valid_cols = [
+                i for i, h in enumerate(headers)
+                if h.strip() != "" and not re.match(r"^Unnamed[:.\s]", h)
+            ]
             clean_headers = [headers[i] for i in valid_cols]
-            clean_rows = [[row[i] for i in valid_cols] for row in data_rows]
+            clean_rows = [[row[i] if i < len(row) else "" for i in valid_cols]
+                          for row in data_rows]
 
             if not clean_rows:
                 return pd.DataFrame(columns=clean_headers)
-            return pd.DataFrame(clean_rows, columns=clean_headers)
+
+            df = pd.DataFrame(clean_rows, columns=clean_headers)
+
+            # Drop any column that is just sequential integers (leaked index)
+            for col in df.columns:
+                try:
+                    numeric = pd.to_numeric(df[col], errors='coerce')
+                    if numeric.notna().all() and (numeric == range(len(df))).all():
+                        df = df.drop(columns=[col])
+                except Exception:
+                    pass
+
+            return df
         except Exception as e:
             st.error(f"Error loading from Google Sheets: {e}")
     return pd.DataFrame()
@@ -653,29 +686,25 @@ if menu == "Disease tracker":
                         # Clear the entire worksheet
                         worksheet.clear()
                         
-                        # Prepare data for Google Sheets - ensure proper date formatting
-                        gs_df = st.session_state.df.copy()
-                        if 'date' in gs_df.columns:
+                        # Prepare data for Google Sheets - strip index cols, format dates
+                        gs_df = _clean_df_for_sheets(st.session_state.df.copy())
+                        if 'date' in gs_df.columns and pd.api.types.is_datetime64_any_dtype(gs_df['date']):
                             gs_df['date'] = gs_df['date'].dt.strftime('%d/%m/%Y')
-                        
+
                         # Add headers
                         worksheet.append_row(gs_df.columns.tolist())
-                        
+
                         # Add all data rows
                         if not gs_df.empty:
-                            # Convert all values to strings and handle NaN/None
                             data_rows = []
                             for _, row in gs_df.iterrows():
-                                row_values = []
-                                for val in row:
-                                    if pd.isna(val):
-                                        row_values.append("")
-                                    else:
-                                        row_values.append(str(val))
+                                row_values = [
+                                    "" if pd.isna(val) else str(val)
+                                    for val in row
+                                ]
                                 data_rows.append(row_values)
-                            
                             worksheet.append_rows(data_rows, value_input_option="USER_ENTERED")
-                        
+
                         st.success("✅ Changes saved to Google Sheets and local storage!")
                         
                         # Force reload from cloud to ensure consistency
@@ -712,26 +741,23 @@ if menu == "Disease tracker":
                         worksheet = spreadsheet.sheet1
                         worksheet.clear()
                         
-                        # Prepare data for Google Sheets - ensure proper date formatting
-                        gs_df = st.session_state.df.copy()
-                        if 'date' in gs_df.columns:
+                        # Prepare data for Google Sheets - strip index cols, format dates
+                        gs_df = _clean_df_for_sheets(st.session_state.df.copy())
+                        if 'date' in gs_df.columns and pd.api.types.is_datetime64_any_dtype(gs_df['date']):
                             gs_df['date'] = gs_df['date'].dt.strftime('%d/%m/%Y')
-                        
+
                         worksheet.append_row(gs_df.columns.tolist())
-                        
+
                         if not gs_df.empty:
                             data_rows = []
                             for _, row in gs_df.iterrows():
-                                row_values = []
-                                for val in row:
-                                    if pd.isna(val):
-                                        row_values.append("")
-                                    else:
-                                        row_values.append(str(val))
+                                row_values = [
+                                    "" if pd.isna(val) else str(val)
+                                    for val in row
+                                ]
                                 data_rows.append(row_values)
-                            
                             worksheet.append_rows(data_rows, value_input_option="USER_ENTERED")
-                        
+
                         st.success(f"✅ Deleted {len(rows_to_delete)} record(s) from both local and cloud storage!")
                         
                         # Force reload
