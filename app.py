@@ -6,7 +6,7 @@ from streamlit_folium import st_folium
 from datetime import datetime
 import os
 from PIL import Image
-import json
+import json 
 import requests
 import io
 import zipfile
@@ -134,18 +134,18 @@ def save_to_google_sheets(new_row: dict):
 
         worksheet = spreadsheet.sheet1
         existing_values = worksheet.get_all_values()
-
+        
         # Add headers if sheet is empty
         if not existing_values:
             headers = list(new_row.keys())
             worksheet.append_row(headers)
-
+        
         # Append row values (convert all to strings)
         values = [str(v) for v in new_row.values()]
         worksheet.append_row(values, value_input_option="USER_ENTERED")
-
+        
         return True
-
+        
     except Exception as e:
         st.error(f"Error saving to Google Sheets: {e}")
         return False
@@ -194,23 +194,23 @@ def save_data(new_row):
     """Save data to both local storage and Google Sheets"""
     # First save to Google Sheets
     gs_success = save_to_google_sheets(new_row)
-
+    
     # Then save to local storage as backup
     file_path = "data/local_disease_data.csv"
-
+    
     try:
         if os.path.exists(file_path):
             df = pd.read_csv(file_path)
             df = pd.concat([df, pd.DataFrame([new_row])], ignore_index=True)
         else:
             df = pd.DataFrame([new_row])
-
+        
         df.to_csv(file_path, index=False)
         local_success = True
     except Exception as e:
         st.error(f"Error saving to local storage: {e}")
         local_success = False
-
+    
     return gs_success or local_success  # Return True if either save was successful
 
 #----------------------------
@@ -280,14 +280,14 @@ def load_data():
 
     # --- Robust date parsing ---
     date_columns = [col for col in df_combined.columns if 'date' in col.lower()]
-
+    
     for date_col in date_columns:
         if date_col in df_combined.columns:
             # Try multiple date formats
             try:
                 df_combined[date_col] = pd.to_datetime(
-                    df_combined[date_col],
-                    errors='coerce',
+                    df_combined[date_col], 
+                    errors='coerce', 
                     dayfirst=True,
                     format='mixed'
                 )
@@ -295,17 +295,17 @@ def load_data():
                 try:
                     # Try different parsing approach
                     df_combined[date_col] = pd.to_datetime(
-                        df_combined[date_col],
+                        df_combined[date_col], 
                         errors='coerce'
                     )
                 except:
                     st.warning(f"Could not parse date column: {date_col}")
-
+            
             # If still not datetime, try manual conversion
             if not pd.api.types.is_datetime64_any_dtype(df_combined[date_col]):
                 try:
                     df_combined[date_col] = pd.to_datetime(
-                        df_combined[date_col].astype(str),
+                        df_combined[date_col].astype(str), 
                         errors='coerce',
                         dayfirst=True
                     )
@@ -323,19 +323,19 @@ def reload_data():
     try:
         # Clear all relevant caches
         st.cache_data.clear()
-
+        
         # Reload data
         new_data = load_data()
-
+        
         # Ensure date columns are properly formatted
         date_columns = [col for col in new_data.columns if 'date' in col.lower()]
         for date_col in date_columns:
             if date_col in new_data.columns:
                 if not pd.api.types.is_datetime64_any_dtype(new_data[date_col]):
                     new_data[date_col] = pd.to_datetime(new_data[date_col], errors='coerce')
-
+        
         st.session_state.df = new_data
-
+        
         st.success("Data reloaded successfully!")
         st.rerun()  # Force UI refresh
     except Exception as e:
@@ -395,11 +395,11 @@ if menu == "Disease tracker":
     if df.empty:
         st.warning("No data available. Please check your data sources.")
         st.stop()
-
+    
     # Ensure we have the required columns
     required_columns = ["sample_id", "date", "crop", "disease1", "severity1_percent", "latitude", "longitude", "survey_location"]
     missing_columns = [col for col in required_columns if col not in df.columns]
-
+    
     if missing_columns:
         st.error(f"Missing required columns in data: {missing_columns}")
         st.stop()
@@ -437,37 +437,37 @@ if menu == "Disease tracker":
     tab1, tab2 = st.tabs(["🗺️ Map", "📊 Graph"])
     with tab1:
         st.markdown("### Map View")
-
+    
         unique_diseases = df["disease1"].dropna().unique()
         disease_colors = px.colors.qualitative.Set3[:len(unique_diseases)]
         disease_color_map = dict(zip(unique_diseases, disease_colors))
-
+    
         # Create the map only once
         m = folium.Map(location=[-34.96, 138.63], zoom_start=6)
-
+    
         # Add markers
         for _, row in df_filtered.iterrows():
             if not pd.isna(row["latitude"]) and not pd.isna(row["longitude"]):
                 popup_text = f"{row.get('survey_location', 'Unknown')}"
-
+    
                 if not pd.isna(row.get("disease1")):
                     if not pd.isna(row.get("severity1_percent")):
                         popup_text += f" | Disease1: {row['disease1']} ({row['severity1_percent']}%)"
                     else:
                         popup_text += f" | Disease1: {row['disease1']}"
-
+    
                 if not pd.isna(row.get("disease2")) and row["disease2"] != "":
                     if not pd.isna(row.get("severity2_percent")):
                         popup_text += f" | Disease2: {row['disease2']} ({row['severity2_percent']}%)"
                     else:
                         popup_text += f" | Disease2: {row['disease2']}"
-
+                        
                 if not pd.isna(row.get("disease3")) and row["disease3"] != "":
                     if not pd.isna(row.get("severity3_percent")):
                         popup_text += f" | Disease3: {row['disease3']} ({row['severity3_percent']}%)"
                     else:
                         popup_text += f" | Disease3: {row['disease3']}"
-
+    
                 color = disease_color_map.get(row["disease1"], "gray")
                 folium.CircleMarker(
                     location=[row["latitude"], row["longitude"]],
@@ -477,10 +477,10 @@ if menu == "Disease tracker":
                     fill_color=color,
                     popup=popup_text,
                 ).add_to(m)
-
+    
         # Render the map
         st_folium(m, width=800, height=450)
-
+       
 
     with tab2:
         st.markdown("### Disease Severity Graph")
@@ -522,11 +522,11 @@ if menu == "Disease tracker":
 
 
     st.markdown("### Surveillance Summary")
-
+        
     if not df.empty:
         # Option to show all columns or just selected ones
         show_all_columns = st.checkbox("Show all columns", value=False)
-
+        
         # Create a working copy of the dataframe for editing
         if show_all_columns:
             editable_df = df.copy()
@@ -535,7 +535,7 @@ if menu == "Disease tracker":
             available_columns = ["sample_id", "date", "crop", "disease1", "survey_location", "severity1_percent"]
             existing_columns = [col for col in available_columns if col in df.columns]
             editable_df = df[existing_columns].copy()
-
+        
         # Ensure date column is in proper format for editing
         if 'date' in editable_df.columns:
             # Convert to datetime if not already
@@ -543,7 +543,7 @@ if menu == "Disease tracker":
                 editable_df['date'] = pd.to_datetime(editable_df['date'], errors='coerce')
             # Format for display in the editor
             editable_df['date'] = editable_df['date'].dt.strftime('%d/%m/%Y')
-
+    
         # Make table editable - use a unique key for the data_editor
         edited_df = st.data_editor(
             editable_df,
@@ -551,7 +551,7 @@ if menu == "Disease tracker":
             use_container_width=True,
             key="surveillance_summary_editor",
         )
-
+    
         # Save edited changes
         if st.button("💾 Save Changes"):
             try:
@@ -569,35 +569,35 @@ if menu == "Disease tracker":
                                 updated_df[col] = pd.to_datetime(edited_df[col], format='%d/%m/%Y', errors='coerce')
                             else:
                                 updated_df[col] = edited_df[col]
-
+                
                 # Ensure date column is properly formatted in the final dataframe
                 if 'date' in updated_df.columns:
                     if not pd.api.types.is_datetime64_any_dtype(updated_df['date']):
                         updated_df['date'] = pd.to_datetime(updated_df['date'], errors='coerce')
-
+                
                 # Update session state
                 st.session_state.df = updated_df
-
+                
                 # Save to local storage
                 save_local_data(st.session_state.df)
-
+                
                 # Save to Google Sheets
                 try:
                     spreadsheet = get_spreadsheet()
                     if spreadsheet:
                         worksheet = spreadsheet.sheet1
-
+                        
                         # Clear the entire worksheet
                         worksheet.clear()
-
+                        
                         # Prepare data for Google Sheets - ensure proper date formatting
                         gs_df = st.session_state.df.copy()
                         if 'date' in gs_df.columns:
                             gs_df['date'] = gs_df['date'].dt.strftime('%d/%m/%Y')
-
+                        
                         # Add headers
                         worksheet.append_row(gs_df.columns.tolist())
-
+                        
                         # Add all data rows
                         if not gs_df.empty:
                             # Convert all values to strings and handle NaN/None
@@ -610,20 +610,20 @@ if menu == "Disease tracker":
                                     else:
                                         row_values.append(str(val))
                                 data_rows.append(row_values)
-
+                            
                             worksheet.append_rows(data_rows, value_input_option="USER_ENTERED")
-
+                        
                         st.success("✅ Changes saved to Google Sheets and local storage!")
-
+                        
                         # Force reload from cloud to ensure consistency
                         reload_data()
-
+                        
                     else:
                         st.warning("⚠️ Could not connect to Google Sheets, saved only locally.")
                 except Exception as e:
                     st.error(f"❌ Error saving to Google Sheets: {e}")
                     st.info("Data saved to local storage only.")
-
+                    
             except Exception as e:
                 st.error(f"Error processing changes: {e}")
 
@@ -633,29 +633,29 @@ if menu == "Disease tracker":
             "Select rows to delete (by Sample ID)",
             options=edited_df["sample_id"].tolist(),
         )
-
+        
         if st.button("🗑 Delete Selected Rows"):
             if rows_to_delete:
                 # Remove from session state
                 st.session_state.df = st.session_state.df[~st.session_state.df["sample_id"].isin(rows_to_delete)]
-
+                
                 # Save to local
                 save_local_data(st.session_state.df)
-
+                
                 # Save to Google Sheets
                 try:
                     spreadsheet = get_spreadsheet()
                     if spreadsheet:
                         worksheet = spreadsheet.sheet1
                         worksheet.clear()
-
+                        
                         # Prepare data for Google Sheets - ensure proper date formatting
                         gs_df = st.session_state.df.copy()
                         if 'date' in gs_df.columns:
                             gs_df['date'] = gs_df['date'].dt.strftime('%d/%m/%Y')
-
+                        
                         worksheet.append_row(gs_df.columns.tolist())
-
+                        
                         if not gs_df.empty:
                             data_rows = []
                             for _, row in gs_df.iterrows():
@@ -666,11 +666,11 @@ if menu == "Disease tracker":
                                     else:
                                         row_values.append(str(val))
                                 data_rows.append(row_values)
-
+                            
                             worksheet.append_rows(data_rows, value_input_option="USER_ENTERED")
-
+                        
                         st.success(f"✅ Deleted {len(rows_to_delete)} record(s) from both local and cloud storage!")
-
+                        
                         # Force reload
                         reload_data()
                     else:
@@ -679,12 +679,12 @@ if menu == "Disease tracker":
                     st.error(f"Error deleting from Google Sheets: {e}")
             else:
                 st.warning("Please select at least one record to delete.")
-
+    
         # Download option - ensure proper date formatting in download
         download_df = st.session_state.df.copy()
         if 'date' in download_df.columns and pd.api.types.is_datetime64_any_dtype(download_df['date']):
             download_df['date'] = download_df['date'].dt.strftime('%d/%m/%Y')
-
+            
         st.download_button(
             "⬇️ Download CSV",
             download_df.to_csv(index=False).encode("utf-8"),
@@ -695,12 +695,12 @@ if menu == "Disease tracker":
         st.info("No data available for the selected filters.")
 
 
-
+    
     st.markdown("### 📸 Download Photos")
-
+    
     # Filter only rows with photos
     df_photos = df_filtered[df_filtered["photo_filename"].notna() & (df_filtered["photo_filename"] != "")]
-
+    
     if not df_photos.empty:
         # Download all photos as ZIP
         zip_buffer = io.BytesIO()
@@ -719,7 +719,7 @@ if menu == "Disease tracker":
         st.info("No photos available for the selected filters.")
 
 # -------------------------------
-# Tag a Disease Page
+# Tag a Disease Page 
 # -------------------------------------------
 
 
@@ -876,11 +876,11 @@ elif menu == "Tag a disease":
 # Data Management Page
 elif menu == "Data Management":
     st.markdown("## 📊 Data Management")
-
+    
     st.info("This section allows you to manage your data storage options.")
-
+    
     col1, col2 = st.columns(2)
-
+    
     with col1:
         st.markdown("### Local Data")
         if os.path.exists(get_local_data_path()):
@@ -894,7 +894,7 @@ elif menu == "Data Management":
             )
         else:
             st.write("No local data found.")
-
+    
     with col2:
         st.markdown("### Cloud Data (Google Sheets)")
         gs_data = load_from_google_sheets()
@@ -906,13 +906,13 @@ elif menu == "Data Management":
                 "cloud_disease_data.csv",
                 "text/csv",
             )
-
+            
             # Add a button to open the Google Sheet
             if st.button("Open Google Sheet"):
                 st.markdown("[Open Google Sheet in Browser](https://docs.google.com/spreadsheets/d/15D6_hA_LhG6M8CKMUFikCxXPQNtxhNBSCykaBF2egtE)")
         else:
             st.write("No cloud data found or not configured.")
-
+    
     st.markdown("### Synchronize Data")
     if st.button("Synchronize Local with Cloud"):
         try:
@@ -933,23 +933,23 @@ elif menu == "About":
     st.markdown("## ℹ️ About SA Ds App")
     st.markdown(
         """
-    This application supports field crop pathology staff during surveillance activities to upload disease information
+    This application supports field crop pathology staff during surveillance activities to upload disease information 
     and visualize disease severity through maps, graphs, and tables.
 
     **New Features:**
-    - Photo attachment capability for disease documentation
+    - Photo attachment capability for disease documentation  
     - Google Sheets integration for persistent data storage
-    - Improved data management
+    - Improved data management  
 
-    **Tips:**
-    - Use the 'Refresh Data' button in the sidebar to see newly submitted entries
+    **Tips:**  
+    - Use the 'Refresh Data' button in the sidebar to see newly submitted entries  
     - If data doesn't update automatically, try refreshing the page
-
+    
     **Data Persistence:**
     - Your submitted data is now saved to both local storage and Google Sheets
     - Google Sheets ensures your data persists across sessions and deployments
     ** **
-    - Designed the APP by Dr. Reddy Pullanagari
+    - Designed the APP by Dr. Pullanagari Reddy
     - Scinetific Collaboration with Dr. Hari Dadu
     """
     )
@@ -958,7 +958,7 @@ elif menu == "Resources":
     st.title("📚 Resources")
     st.markdown(
         """
-        - [UteGuide: Disease Identification](https://uteguides.net.au/UteGuides/Details/8b4db434-297c-42d3-8ebe-e6b6520ea4e2)
+        - [UteGuide: Disease Identification](https://uteguides.net.au/UteGuides/Details/8b4db434-297c-42d3-8ebe-e6b6520ea4e2)  
         - [NVT Disease ratings](https://nvt.grdc.com.au/nvt-disease-ratings)
         - [SARDI Molecular diagnostics](https://pir.sa.gov.au/sardi/services/molecular_diagnostics)
         - [SARDI Biosecurity](https://pir.sa.gov.au/sardi/crop_sciences/plant_health_and_biosecurity)
