@@ -151,28 +151,14 @@ def save_to_google_sheets(new_row: dict):
         return False
 
 def load_from_google_sheets():
-    """Load all data from Google Sheets, robust to blank/duplicate header columns"""
+    """Load all data from Google Sheets"""
     spreadsheet = get_spreadsheet()
     if spreadsheet:
         try:
             worksheet = spreadsheet.sheet1
-            all_values = worksheet.get_all_values()
-            if not all_values:
-                return pd.DataFrame()
-
-            # First row is headers — drop columns with blank headers
-            headers = all_values[0]
-            data_rows = all_values[1:]
-
-            # Build a mask of columns that have a non-empty header
-            valid_cols = [i for i, h in enumerate(headers) if h.strip() != ""]
-            clean_headers = [headers[i] for i in valid_cols]
-            clean_rows = [[row[i] for i in valid_cols] for row in data_rows]
-
-            if not clean_rows:
-                return pd.DataFrame(columns=clean_headers)
-
-            return pd.DataFrame(clean_rows, columns=clean_headers)
+            records = worksheet.get_all_records()
+            if records:
+                return pd.DataFrame(records)
         except Exception as e:
             st.error(f"Error loading from Google Sheets: {e}")
     return pd.DataFrame()
@@ -230,41 +216,47 @@ def save_data(new_row):
 #----------------------------
 # Adding unique ID
 def get_next_sample_id():
-    """Generate the next sample ID by checking both local and Google Sheets data"""
-    # First check Google Sheets for the latest ID
-    gs_data = load_from_google_sheets()
-    if not gs_data.empty and "sample_id" in gs_data.columns:
-        last_id = gs_data["sample_id"].iloc[-1]
-        match = re.search(r"SARDI(\d+)", str(last_id))
-        if match:
-            next_num = int(match.group(1)) + 1
-        else:
-            next_num = 25001
-    else:
-        # Fallback to local file
-        file_path = "data/local_disease_data.csv"
-        try:
-            if os.path.exists(file_path):
-                df = pd.read_csv(file_path)
-                if "sample_id" in df.columns and not df.empty:
-                    last_id = df["sample_id"].iloc[-1]
-                    match = re.search(r"SARDI(\d+)", str(last_id))
-                    if match:
-                        next_num = int(match.group(1)) + 1
-                    else:
-                        next_num = 25001
-                else:
-                    next_num = 25001
-            else:
-                next_num = 25001
-        except:
-            next_num = 25001
-    
-    return f"SARDI{next_num:05d}"
+    """Generate the next sample ID as SARDI_YY_N, where YY is the current
+    2-digit year and N is a sequence number that resets to 1 each year
+    (e.g. SARDI_26_1, SARDI_26_2, ... then SARDI_27_1 in 2027)."""
+    current_year = datetime.now().strftime("%y")
+    max_seq = 0
+
+    def extract_seq(sid):
+        m = re.match(r"SARDI_(\d{2})_(\d+)\s*$", str(sid).strip())
+        if m and m.group(1) == current_year:
+            return int(m.group(2))
+        return None
+
+    def update_max_seq(df):
+        nonlocal max_seq
+        if df is None or df.empty or "sample_id" not in df.columns:
+            return
+        for sid in df["sample_id"]:
+            seq = extract_seq(sid)
+            if seq is not None and seq > max_seq:
+                max_seq = seq
+
+    # Check Google Sheets first
+    try:
+        gs_data = load_from_google_sheets()
+        update_max_seq(gs_data)
+    except Exception:
+        pass
+
+    # Also check local file to be safe
+    file_path = "data/local_disease_data.csv"
+    try:
+        if os.path.exists(file_path):
+            df_local = pd.read_csv(file_path)
+            update_max_seq(df_local)
+    except Exception:
+        pass
+
+    return f"SARDI_{current_year}_{max_seq + 1}"
 
 # -------------------------------
 # Load data with caching
-@st.cache_data(ttl=300)
 @st.cache_data(ttl=300)
 def load_data():
     """Load the most recent data, prioritizing Google Sheets but merging with local if needed."""
@@ -298,38 +290,59 @@ def load_data():
 
     # --- Robust date parsing ---
     date_columns = [col for col in df_combined.columns if 'date' in col.lower()]
-    
+    date_parse_issues = {}
+
     for date_col in date_columns:
         if date_col in df_combined.columns:
+            original = df_combined[date_col]
+
             # Try multiple date formats
             try:
-                df_combined[date_col] = pd.to_datetime(
-                    df_combined[date_col], 
-                    errors='coerce', 
+                parsed = pd.to_datetime(
+                    original,
+                    errors='coerce',
                     dayfirst=True,
                     format='mixed'
                 )
-            except:
+            except Exception:
                 try:
                     # Try different parsing approach
-                    df_combined[date_col] = pd.to_datetime(
-                        df_combined[date_col], 
-                        errors='coerce'
-                    )
-                except:
+                    parsed = pd.to_datetime(original, errors='coerce')
+                except Exception:
                     st.warning(f"Could not parse date column: {date_col}")
-            
+                    parsed = original
+
             # If still not datetime, try manual conversion
-            if not pd.api.types.is_datetime64_any_dtype(df_combined[date_col]):
+            if not pd.api.types.is_datetime64_any_dtype(parsed):
                 try:
-                    df_combined[date_col] = pd.to_datetime(
-                        df_combined[date_col].astype(str), 
+                    parsed = pd.to_datetime(
+                        original.astype(str),
                         errors='coerce',
                         dayfirst=True
                     )
-                except:
+                except Exception:
                     pass
 
+            # A value that failed to parse becomes NaT and pandas' min()/max()
+            # silently ignore NaT, so a bad date in the cloud sheet doesn't
+            # raise an error - it just quietly disappears from the date range.
+            # Flag it instead so it's visible and fixable at the source.
+            if pd.api.types.is_datetime64_any_dtype(parsed):
+                original_str = original.astype(str).str.strip()
+                failed_mask = parsed.isna() & original_str.ne("") & original_str.str.lower().ne("nan")
+                if failed_mask.any():
+                    bad_rows = df_combined.loc[failed_mask]
+                    date_parse_issues[date_col] = [
+                        {
+                            "sample_id": row.get("sample_id", "?"),
+                            "value": original_str.loc[idx],
+                        }
+                        for idx, row in bad_rows.iterrows()
+                    ]
+
+            df_combined[date_col] = parsed
+
+    df_combined.attrs["date_parse_issues"] = date_parse_issues
     return df_combined
 
 # Initialize session state
@@ -422,6 +435,16 @@ if menu == "Disease tracker":
         st.error(f"Missing required columns in data: {missing_columns}")
         st.stop()
 
+    date_issues = df.attrs.get("date_parse_issues", {}).get("date")
+    if date_issues:
+        st.warning(
+            f"⚠️ {len(date_issues)} row(s) have a 'date' value that couldn't be understood "
+            "and are excluded from the date range below. Fix these in the Google Sheet, "
+            "then click Refresh Data."
+        )
+        with st.expander("Show rows with unrecognized dates"):
+            st.dataframe(pd.DataFrame(date_issues), use_container_width=True)
+
     col1, col2, col3 = st.columns([1.5, 1, 1])
     with col1:
         crop = st.selectbox("Choose a Crop", ["All"] + sorted(df["crop"].dropna().unique()))
@@ -430,10 +453,36 @@ if menu == "Disease tracker":
     with col3:
         min_date = df["date"].min().date() if not df["date"].isna().all() else datetime(2020, 1, 1).date()
         max_date = df["date"].max().date() if not df["date"].isna().all() else datetime.today().date()
-        date_range = st.date_input("Select Date Range", [min_date, max_date])
+
+        # st.date_input keeps its selection in session_state keyed by `key` and
+        # only honours the [min_date, max_date] default the first time that key
+        # is created. Without this, the picker stays stuck at whatever range was
+        # first computed and won't follow new min/max dates coming from the
+        # cloud sheet (e.g. after a new submission or a Refresh Data click).
+        if st.session_state.get("_disease_tracker_date_bounds") != (min_date, max_date):
+            st.session_state["_disease_tracker_date_bounds"] = (min_date, max_date)
+            st.session_state.pop("disease_tracker_date_range", None)
+
+        date_range = st.date_input(
+            "Select Date Range",
+            [min_date, max_date],
+            min_value=min_date,
+            max_value=max_date,
+            key="disease_tracker_date_range",
+        )
+
+    # st.date_input returns a single-element tuple while the user has only
+    # picked the start date (before the end date is chosen). Guard against
+    # that so filtering doesn't break mid-selection.
+    if isinstance(date_range, (list, tuple)) and len(date_range) == 2:
+        start_date, end_date = date_range
+    elif isinstance(date_range, (list, tuple)) and len(date_range) == 1:
+        start_date = end_date = date_range[0]
+    else:
+        start_date = end_date = date_range
 
     # Filter data
-    mask = (df["date"] >= pd.to_datetime(date_range[0])) & (df["date"] <= pd.to_datetime(date_range[1]))
+    mask = (df["date"] >= pd.to_datetime(start_date)) & (df["date"] <= pd.to_datetime(end_date))
     if crop != "All":
         mask &= df["crop"] == crop
     if disease != "All":
@@ -445,7 +494,7 @@ if menu == "Disease tracker":
     st.markdown("### Key Metrics")
     if not df_filtered.empty:
         col1, col2, col3 = st.columns(3)
-        col1.metric("Total Surveys", len(df))
+        col1.metric("Total Surveys", len(df_filtered))
         col2.metric("Max Severity (%)", int(df_filtered["severity1_percent"].max()))
         col3.metric("Average Severity (%)", round(df_filtered["severity1_percent"].mean(), 1))
     else:
@@ -500,91 +549,44 @@ if menu == "Disease tracker":
         st_folium(m, width=800, height=450)
        
 
-          
-        with tab2:
-            st.markdown("### Disease Severity Graph")
-          
-            
-        
+    with tab2:
+        st.markdown("### Disease Severity Graph")
 
+        x_axis = st.selectbox("X-Axis", ["Crop", "Location"])
 
-        
-            # x_axis = st.selectbox("X-Axis", ["Crop", "Location"])
-        
-            # if not df_long.empty:
-            #     if x_axis == "Crop":
-            #         x_col = "crop"
-            #         title = "Mean Disease Severity by Crop"
-            #     elif x_axis == "Location":
-            #         x_col = "survey_location"
-            #         title = "Mean Disease Severity by Location"
-            #     else:  # Disease
-            #         x_col = "disease"
-            #         title = "Mean Disease Severity by Disease Type"
-        
-            #     # 🔹 Mean severity aggregation
-            #     df_mean = (
-            #         df_long
-            #         .groupby([x_col, "disease"], as_index=False)
-            #         .agg(mean_severity=("severity", "mean"))
-            #     )
-        
-            #     fig = px.bar(
-            #         df_mean,
-            #         x=x_col,
-            #         y="mean_severity",
-            #         color="disease",
-            #         title=title,
-            #         labels={"mean_severity": "Mean Severity (%)", x_col: x_axis},
-            #         color_discrete_map=disease_color_map,
-            #         barmode="group",   # separate bars per disease
-            #     )
-        
-            #     st.plotly_chart(fig, use_container_width=True)
-            # else:
-            #     st.info("No data available for the graph.")
-        
-        
-        
-
-
-            # st.markdown("### Disease Severity Graph")
-            
-            x_axis = st.selectbox("X-Axis", ["Crop", "Location"])
-            
-            if not df_filtered.empty:
-                if x_axis == "Crop":
-                    x_col = "crop"
-                    title = "Mean Disease Severity by Crop"
-                elif x_axis == "Location":
-                    x_col = "survey_location"
-                    title = "Mean Disease Severity by Location"
-                else:  # Disease
-                    x_col = "disease1"
-                    title = "Mean Disease Severity by Disease Type"
-        
-                # 🔹 Aggregate mean severity
-                df_mean = (
-                    df_filtered
-                    .groupby([x_col, "disease1"], as_index=False)
-                    .agg(mean_severity=("severity1_percent", "mean"))
-                )
-        
-                fig = px.bar(
-                    df_mean,
-                    x=x_col,
-                    y="mean_severity",
-                    color="disease1",
-                    title=title,
-                    labels={"mean_severity": "Mean Severity (%)", x_col: x_axis},
-                    color_discrete_map=disease_color_map,
-                    barmode="group",   # ✅ KEY FIX
-                )
-        
-                st.plotly_chart(fig, use_container_width=True)
+        if not df_filtered.empty:
+            if x_axis == "Crop":
+                x_col = "crop"
+                title = "Mean Disease Severity by Crop"
+            elif x_axis == "Location":
+                x_col = "survey_location"
+                title = "Mean Disease Severity by Location"
             else:
-                st.info("No data available for the graph.")
-        
+                x_col = "disease1"
+                title = "Mean Disease Severity by Disease Type"
+
+            # Aggregate mean severity
+            df_mean = (
+                df_filtered
+                .groupby([x_col, "disease1"], as_index=False)
+                .agg(mean_severity=("severity1_percent", "mean"))
+            )
+
+            fig = px.bar(
+                df_mean,
+                x=x_col,
+                y="mean_severity",
+                color="disease1",
+                title=title,
+                labels={"mean_severity": "Mean Severity (%)", x_col: x_axis},
+                color_discrete_map=disease_color_map,
+                barmode="group",
+            )
+
+            st.plotly_chart(fig, use_container_width=True)
+        else:
+            st.info("No data available for the graph.")
+
 
     st.markdown("### Surveillance Summary")
         
@@ -874,6 +876,7 @@ elif menu == "Tag a disease":
         agronomist = st.text_input("Agronomist", "")
         field_notes = st.text_area("Field Notes (Optional)")
         sample_taken = st.selectbox("Sample Taken", ["Yes", "No", "N/A"])
+        sample_type = st.selectbox("Sample Type", ["Diagnostic", "Surveillance"])
         molecular_diagnosis = st.multiselect(
             "Action",
             ["Molecular diagnosis", "Mail a sample to collaborators", "Report back to farmers", "Single Spore isolation"]
@@ -925,6 +928,7 @@ elif menu == "Tag a disease":
                     "field_notes": field_notes,
                     "Action": ", ".join(molecular_diagnosis) if molecular_diagnosis else "",
                     "sample_taken": sample_taken,
+                    "sample_type": sample_type,
                 }
 
                 if save_data(new_record):
@@ -1012,7 +1016,7 @@ elif menu == "About":
     - Your submitted data is now saved to both local storage and Google Sheets
     - Google Sheets ensures your data persists across sessions and deployments
     ** **
-    - Designed the APP by Dr. Pullanagari Reddy
+    - Designed the APP by Dr. Reddy Pullanagari
     - Scinetific Collaboration with Dr. Hari Dadu
     """
     )
