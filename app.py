@@ -51,78 +51,43 @@ hide_github_logo = """
 st.markdown(hide_github_logo, unsafe_allow_html=True)
 
 
-@st.cache_resource
-def get_gs_client():
-    """Return an authorized gspread client (cached)"""
-    try:
-        SCOPES = [
-            "https://www.googleapis.com/auth/spreadsheets",
-            "https://www.googleapis.com/auth/drive"
-        ]
+SHEET_ID = "15D6_hA_LhG6M8CKMUFikCxXPQNtxhNBSCykaBF2egtE"
+SCOPES = [
+    "https://www.googleapis.com/auth/spreadsheets",
+    "https://www.googleapis.com/auth/drive"
+]
 
-        # Check for credentials in Streamlit secrets (for cloud deployment)
+def get_gs_client():
+    """Return a fresh authorized gspread client every call (service accounts don't expire)."""
+    try:
         if "gcp_service_account" in st.secrets:
             creds_dict = dict(st.secrets["gcp_service_account"])
             creds = service_account.Credentials.from_service_account_info(
                 creds_dict, scopes=SCOPES
             )
-        # Check for service account file (for local development)
         elif os.path.exists("service_account.json"):
             creds = service_account.Credentials.from_service_account_file(
                 "service_account.json", scopes=SCOPES
             )
         else:
-            st.error("No Google Sheets credentials found")
+            st.error("❌ No Google Sheets credentials found")
             return None
-
-        client = gspread.authorize(creds)
-        return client
-
+        return gspread.authorize(creds)
     except Exception as e:
         st.error(f"❌ Google Sheets auth error: {e}")
         return None
 
 def get_spreadsheet():
-    """Return spreadsheet object if available"""
+    """Return spreadsheet object if available."""
     client = get_gs_client()
     if not client:
         return None
-
-    SHEET_ID = "15D6_hA_LhG6M8CKMUFikCxXPQNtxhNBSCykaBF2egtE"
     try:
-        spreadsheet = client.open_by_key(SHEET_ID)
-        return spreadsheet
+        return client.open_by_key(SHEET_ID)
     except Exception as e:
         st.error(f"❌ Error opening Google Sheet: {e}")
         return None
 
-def init_google_sheets():
-    """Initialize connection to Google Sheets using service account"""
-    try:
-        SCOPES = [
-            "https://www.googleapis.com/auth/spreadsheets",
-            "https://www.googleapis.com/auth/drive"
-        ]
-
-        if "gcp_service_account" in st.secrets:
-            creds_dict = dict(st.secrets["gcp_service_account"])
-            creds = service_account.Credentials.from_service_account_info(
-                creds_dict, scopes=SCOPES
-            )
-        else:
-            creds = service_account.Credentials.from_service_account_file(
-                "service_account.json", scopes=SCOPES
-            )
-
-        client = gspread.authorize(creds)
-        SHEET_ID = "15D6_hA_LhG6M8CKMUFikCxXPQNtxhNBSCykaBF2egtE"
-        spreadsheet = client.open_by_key(SHEET_ID)
-        return spreadsheet
-
-    except Exception as e:
-        st.error(f"❌ Google Sheets error: {e}")
-        st.warning("⚠️ No cloud data available for synchronization. Using local storage.")
-        return None
 
 def _clean_df_for_sheets(df: pd.DataFrame) -> pd.DataFrame:
     """Strip leaked index columns and blank-named columns before writing to Sheets."""
@@ -139,29 +104,34 @@ def _clean_df_for_sheets(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 def save_to_google_sheets(new_row: dict):
-    """Save data to Google Sheets with proper error handling"""
+    """Append one row to Google Sheets, aligning columns to existing headers."""
     try:
         spreadsheet = get_spreadsheet()
         if not spreadsheet:
-            st.warning("⚠️ No cloud data available for synchronization.")
+            st.warning("⚠️ Could not connect to Google Sheets.")
             return False
 
         worksheet = spreadsheet.sheet1
         existing_values = worksheet.get_all_values()
-        
-        # Add headers if sheet is empty
+
         if not existing_values:
+            # Sheet is empty — write headers then data
             headers = list(new_row.keys())
-            worksheet.append_row(headers)
-        
-        # Append row values (convert all to strings)
-        values = [str(v) for v in new_row.values()]
-        worksheet.append_row(values, value_input_option="USER_ENTERED")
-        
+            worksheet.append_row(headers, value_input_option="USER_ENTERED")
+            worksheet.append_row([str(new_row.get(h, "")) for h in headers],
+                                  value_input_option="USER_ENTERED")
+        else:
+            # Sheet has headers — align new row to existing column order
+            headers = [h.strip() for h in existing_values[0]]
+            # Filter out blank/unnamed headers (leaked index columns)
+            headers = [h for h in headers if h and not re.match(r"^Unnamed[:.\s]", h)]
+            row_values = [str(new_row.get(h, "")) for h in headers]
+            worksheet.append_row(row_values, value_input_option="USER_ENTERED")
+
         return True
-        
+
     except Exception as e:
-        st.error(f"Error saving to Google Sheets: {e}")
+        st.error(f"❌ Error saving to Google Sheets: {e}")
         return False
 
 def load_from_google_sheets():
