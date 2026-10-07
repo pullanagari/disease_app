@@ -149,12 +149,19 @@ def load_from_google_sheets():
             data_rows = all_values[1:]
 
             # Drop columns whose header is blank or looks like a leaked DataFrame index
-            # (unnamed columns that contain sequential integers)
-            valid_cols = [
-                i for i, h in enumerate(headers)
-                if h.strip() != "" and not re.match(r"^Unnamed[:.\s]", h)
-            ]
-            clean_headers = [headers[i] for i in valid_cols]
+            # Also deduplicate: keep only the FIRST occurrence of each column name
+            seen = {}
+            valid_cols = []
+            for i, h in enumerate(headers):
+                h = h.strip()
+                if h == "" or re.match(r"^Unnamed[:.\s]", h):
+                    continue
+                if h not in seen:
+                    seen[h] = i
+                    valid_cols.append(i)
+                # duplicate header — skip it
+
+            clean_headers = [headers[i].strip() for i in valid_cols]
             clean_rows = [[row[i] if i < len(row) else "" for i in valid_cols]
                           for row in data_rows]
 
@@ -267,6 +274,16 @@ def get_next_sample_id():
 
     return f"SARDI_{current_year}_{max_seq + 1}"
 
+def dedup_cols(df):
+    """Keep only the first occurrence of each column name (prevents concat crash on duplicate headers)."""
+    seen = set()
+    keep = []
+    for col in df.columns:
+        if col not in seen:
+            seen.add(col)
+            keep.append(col)
+    return df[keep]
+
 # -------------------------------
 # Load data with caching
 @st.cache_data(ttl=300)
@@ -290,6 +307,10 @@ def load_data():
     # --- Merge logic ---
     if df_local.empty and df_gs.empty:
         return pd.DataFrame()
+
+    # Deduplicate columns before concat to prevent InvalidIndexError
+    df_gs = dedup_cols(df_gs) if not df_gs.empty else df_gs
+    df_local = dedup_cols(df_local) if not df_local.empty else df_local
 
     if not df_local.empty and not df_gs.empty:
         df_combined = pd.concat([df_gs, df_local], ignore_index=True)
@@ -348,11 +369,14 @@ def fetch_fresh_data():
     try:
         df_gs = load_from_google_sheets()
         if not df_gs.empty:
+            df_gs = dedup_cols(df_gs)
             save_local_data(df_gs)
     except Exception:
         pass
 
     df_local = load_local_data()
+    if not df_local.empty:
+        df_local = dedup_cols(df_local)
 
     if df_local.empty and df_gs.empty:
         return pd.DataFrame()
